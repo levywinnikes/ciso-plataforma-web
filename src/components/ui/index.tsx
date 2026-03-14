@@ -1,4 +1,5 @@
 import React from 'react'
+import { X } from 'lucide-react'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
@@ -78,19 +79,17 @@ export function Modal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
-      <div className="relative w-full max-w-lg rounded-xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b px-6 py-4">
-          <h3 className="text-lg font-bold text-primary">{title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+      <div className="fixed inset-0 bg-black/60 transition-opacity" onClick={onClose} />
+      <div className="relative w-full max-w-lg rounded-xl bg-white shadow-xl animate-in fade-in zoom-in duration-200">
+        <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6 sm:py-4">
+          <h3 className="text-base sm:text-lg font-bold text-primary">{title}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-500 p-1">
+            <X className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
-        <div className="p-6">{children}</div>
-        {footer && <div className="flex justify-end space-x-3 border-t bg-gray-50 px-6 py-4 rounded-b-xl">{footer}</div>}
+        <div className="p-4 sm:p-6 overflow-y-auto max-h-[80vh]">{children}</div>
+        {footer && <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 border-t bg-gray-50 px-4 py-3 sm:px-6 sm:py-4 rounded-b-xl">{footer}</div>}
       </div>
     </div>
   )

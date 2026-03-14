@@ -83,13 +83,13 @@ export default function MedicoPage() {
 
       <Card className="p-6">
         <h3 className="mb-4 font-semibold text-gray-900">Resumo de Produtividade</h3>
-        <div className="flex items-center space-x-8">
-          <div className="text-center">
+        <div className="flex flex-wrap items-center gap-4 md:gap-8">
+          <div className="text-center min-w-[80px]">
             <p className="text-sm text-gray-500">Atendidos</p>
             <p className="text-2xl font-bold text-green-600">8</p>
           </div>
-          <div className="h-10 w-px bg-gray-200" />
-          <div className="text-center">
+          <div className="hidden md:block h-10 w-px bg-gray-200" />
+          <div className="text-center min-w-[80px]">
             <p className="text-sm text-gray-500">Pendentes</p>
             <p className="text-2xl font-bold text-yellow-600">4</p>
           </div>
