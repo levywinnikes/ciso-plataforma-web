@@ -1,0 +1,35 @@
+{
+  "name": "ciso-plataforma-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "dev:host": "next dev -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "clean": "if exist .next (rd /s /q .next) && if exist node_modules (rd /s /q node_modules)"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "next": "13.5.6",
+    "lucide-react": "^0.284.0",
+    "tailwind-merge": "^1.14.0",
+    "tailwindcss-animate": "^1.0.7",
+    "clsx": "^2.0.0",
+    "date-fns": "^2.30.0",
+    "framer-motion": "^10.16.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "@types/node": "^20.8.2",
+    "@types/react": "^18.2.25",
+    "@types/react-dom": "^18.2.10",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.3",
+    "eslint": "^8.50.0",
+    "eslint-config-next": "13.5.6",
+    "autoprefixer": "^10.4.16"
+  }
+}
