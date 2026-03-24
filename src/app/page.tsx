@@ -9,11 +9,13 @@ export default function LandingPage() {
     <div className="flex min-h-screen flex-col bg-white">
       <header className="flex h-20 items-center justify-between border-b px-12">
         <h1 className="text-2xl font-bold text-primary">CISO</h1>
-        <div className="space-x-4">
-          <Link href="/optometrista">
-            <Button variant="primary">Acessar Sistema</Button>
+        <nav>
+          <Link href="/login">
+            <Button variant="primary" className="font-bold px-6 shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
+              Acesso Restrito
+            </Button>
           </Link>
-        </div>
+        </nav>
       </header>
       
       <main className="flex flex-1 flex-col items-center justify-center space-y-12 p-12 text-center">

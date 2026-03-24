@@ -12,8 +12,8 @@ export default function OptometristaPage() {
 
   const stats = [
     { label: 'Total Encaminhados', value: MOCK_REFERRALS.length, icon: PlusCircle, color: 'text-blue-600' },
-    { label: 'Aguardando Triagem', value: MOCK_REFERRALS.filter(r => r.status === 'Aguardando Triagem').length, icon: Clock, color: 'text-yellow-600' },
-    { label: 'Atendimentos Finalizados', value: MOCK_REFERRALS.filter(r => r.status === 'Finalizado').length, icon: CheckCircle2, color: 'text-green-600' },
+    { label: 'Aguardando Triagem', value: MOCK_REFERRALS.filter(r => r.status === 'Encaminhado').length, icon: Clock, color: 'text-yellow-600' },
+    { label: 'Atendimentos Finalizados', value: MOCK_REFERRALS.filter(r => r.status === 'Atendido').length, icon: CheckCircle2, color: 'text-green-600' },
   ]
 
   const handleOpenResult = (referral: Referral) => {
@@ -60,7 +60,7 @@ export default function OptometristaPage() {
               <tr>
                 <th className="px-6 py-3">Paciente</th>
                 <th className="px-6 py-3">Data</th>
-                <th className="px-6 py-3">Suspeita</th>
+                <th className="px-6 py-3">Núcleo / Protocolo</th>
                 <th className="px-3 py-3">Status</th>
                 <th className="px-6 py-3 text-right">Ação</th>
               </tr>
@@ -70,10 +70,10 @@ export default function OptometristaPage() {
                 <tr key={referral.id} className="hover:bg-gray-50">
                   <td className="whitespace-nowrap px-6 py-4 font-medium text-gray-900">{referral.patientName}</td>
                   <td className="whitespace-nowrap px-6 py-4 text-xs">{referral.date}</td>
-                  <td className="whitespace-nowrap px-6 py-4">{referral.suspect}</td>
+                  <td className="whitespace-nowrap px-6 py-4 truncate max-w-[200px]" title={referral.protocolName}>{referral.protocolName}</td>
                   <td className="whitespace-nowrap px-3 py-4">
                     <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${
-                      referral.status === 'Finalizado' ? 'bg-green-100 text-green-800' :
+                      referral.status === 'Atendido' ? 'bg-green-100 text-green-800' :
                       referral.status === 'Agendado' ? 'bg-blue-100 text-blue-800' :
                       'bg-yellow-100 text-yellow-800'
                     }`}>
@@ -84,9 +84,9 @@ export default function OptometristaPage() {
                     <Button 
                       variant="ghost" 
                       className="text-primary hover:text-accent text-xs"
-                      onClick={() => referral.status === 'Finalizado' && handleOpenResult(referral)}
+                      onClick={() => referral.status === 'Atendido' && handleOpenResult(referral)}
                     >
-                      {referral.status === 'Finalizado' ? 'Ver Resultado' : 'Ver Detalhes'}
+                      {referral.status === 'Atendido' ? 'Ver Resultado' : 'Ver Detalhes'}
                     </Button>
                   </td>
                 </tr>
@@ -106,11 +106,11 @@ export default function OptometristaPage() {
           <div className="grid grid-cols-2 gap-4 rounded-lg bg-gray-50 p-4 border border-green-100">
             <div>
               <p className="text-xs font-medium text-gray-500 uppercase">Núcleo de Atendimento</p>
-              <p className="font-semibold text-primary">{selectedReferral?.nucleus}</p>
+              <p className="font-semibold text-primary">{selectedReferral?.protocolName}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase">Data do Atendimento</p>
-              <p className="font-semibold text-primary">{selectedReferral?.appointmentDate}</p>
+              <p className="text-xs font-medium text-gray-500 uppercase">Médico Oftalmologista</p>
+              <p className="font-semibold text-primary">{selectedReferral?.doctor || 'Não informado'}</p>
             </div>
           </div>
 

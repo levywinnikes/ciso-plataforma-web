@@ -10,7 +10,7 @@ export default function CentroPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showSuccessToast, setShowSuccessToast] = useState(false)
 
-  const pendingReferrals = MOCK_REFERRALS.filter(r => r.status === 'Aguardando Triagem')
+  const pendingReferrals = MOCK_REFERRALS.filter(r => r.status === 'Encaminhado')
 
   const handleOpenTriage = (referral: Referral) => {
     setSelectedReferral(referral)
@@ -76,8 +76,8 @@ export default function CentroPage() {
               <tr>
                 <th className="px-6 py-3">Paciente</th>
                 <th className="px-6 py-3">Data Envio</th>
-                <th className="px-6 py-3">Suspeita</th>
-                <th className="px-6 py-3">Ação</th>
+                <th className="px-6 py-3">Protocolo Solicitado</th>
+                <th className="px-6 py-3 text-right">Ação</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
@@ -85,8 +85,8 @@ export default function CentroPage() {
                 <tr key={referral.id} className="hover:bg-gray-50">
                   <td className="whitespace-nowrap px-6 py-4 font-medium text-gray-900">{referral.patientName}</td>
                   <td className="whitespace-nowrap px-6 py-4">{referral.date}</td>
-                  <td className="whitespace-nowrap px-6 py-4">{referral.suspect}</td>
-                  <td className="whitespace-nowrap px-6 py-4">
+                  <td className="whitespace-nowrap px-6 py-4 truncate max-w-[250px]" title={referral.protocolName}>{referral.protocolName}</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-right">
                     <Button 
                       variant="primary" 
                       className="text-xs"
@@ -120,19 +120,19 @@ export default function CentroPage() {
               <p className="font-semibold text-primary">{selectedReferral?.patientName}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase">Suspeita Clínica</p>
-              <p className="font-semibold text-primary">{selectedReferral?.suspect}</p>
+              <p className="text-xs font-medium text-gray-500 uppercase">Protocolo Selecionado</p>
+              <p className="font-semibold text-primary">{selectedReferral?.protocolName}</p>
             </div>
           </div>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Núcleo de Encaminhamento</label>
+              <label className="text-sm font-medium text-gray-700">Médico Responsável</label>
               <select className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent">
-                <option value="">Selecione o núcleo especializado</option>
-                {SPECIALTY_NUCLEI.map(nucleus => (
-                  <option key={nucleus} value={nucleus}>{nucleus}</option>
-                ))}
+                <option value="">Selecione o médico para o atendimento</option>
+                <option value="dr-fernando">Dr. Fernando Silva (Glaucoma, Catarata)</option>
+                <option value="dra-aline">Dra. Aline Mendes (Retina, Refrativa)</option>
+                <option value="dr-roberto">Dr. Roberto Carlos (Córnea, Superfície Ocular)</option>
               </select>
             </div>
 

@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react'
 import { Sidebar } from './sidebar'
-import { Menu } from 'lucide-react'
+import { Menu, LogOut } from 'lucide-react'
+import Link from 'next/link'
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -22,8 +23,16 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <h2 className="text-lg md:text-xl font-semibold text-primary truncate">Portal do Colaborador</h2>
           </div>
           <div className="flex items-center space-x-2 md:space-x-4">
-            <span className="hidden sm:inline text-sm font-medium text-gray-600">Olá, Usuário</span>
-            <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-accent border-2 border-primary/10" />
+            <div className="hidden sm:flex flex-col text-right">
+              <span className="text-sm font-bold text-gray-700">Olá, Usuário</span>
+              <Link href="/login" className="text-xs text-red-500 hover:text-red-700 font-medium inline-flex items-center justify-end transition-colors mt-0.5" title="Encerrar sessão e voltar ao login">
+                Sair do sistema
+                <LogOut className="h-3 w-3 ml-1" />
+              </Link>
+            </div>
+            <Link href="/login" className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-accent border-2 border-primary/10 flex items-center justify-center text-white hover:ring-2 hover:ring-accent/50 cursor-pointer shadow-sm transition-all text-sm font-bold" title="Sair do sistema">
+              U
+            </Link>
           </div>
         </header>
         <main className="flex-1 p-4 md:p-8">

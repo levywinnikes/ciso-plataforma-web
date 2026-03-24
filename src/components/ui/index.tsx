@@ -68,20 +68,22 @@ export function Modal({
   onClose, 
   title, 
   children,
-  footer 
+  footer,
+  maxWidth = 'max-w-lg'
 }: { 
   isOpen: boolean; 
   onClose: () => void; 
   title: string; 
   children: React.ReactNode;
   footer?: React.ReactNode;
+  maxWidth?: string;
 }) {
   if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
       <div className="fixed inset-0 bg-black/60 transition-opacity" onClick={onClose} />
-      <div className="relative w-full max-w-lg rounded-xl bg-white shadow-xl animate-in fade-in zoom-in duration-200">
+      <div className={cn("relative w-full rounded-xl bg-white shadow-xl animate-in fade-in zoom-in duration-200", maxWidth)}>
         <div className="flex items-center justify-between border-b px-4 py-3 sm:px-6 sm:py-4">
           <h3 className="text-base sm:text-lg font-bold text-primary">{title}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-500 p-1">

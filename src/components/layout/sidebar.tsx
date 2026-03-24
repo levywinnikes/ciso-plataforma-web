@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { LayoutDashboard, Stethoscope, Search, X } from 'lucide-react'
+import { LayoutDashboard, Stethoscope, Search, X, Layers } from 'lucide-react'
 
 const navItems = [
   { name: 'Painel Optometrista', href: '/optometrista', icon: LayoutDashboard },
+  { name: 'Cadastro de Núcleos', href: '/admin', icon: Layers },
   { name: 'Triagem (Centro)', href: '/centro', icon: Search },
   { name: 'Painel Médico', href: '/medico', icon: Stethoscope },
 ]
