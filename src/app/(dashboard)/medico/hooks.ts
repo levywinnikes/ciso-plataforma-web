@@ -1,11 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import {
-  appendSpecialistUpdate,
-  listReferrals,
-} from "@/features/referrals/service";
 import type { Referral } from "@/features/referrals/types";
 
 import type { MedicoPageModel } from "./schema";
@@ -14,12 +10,33 @@ export function useMedicoPageModel(): MedicoPageModel {
   const [selectedReferral, setSelectedReferral] = useState<Referral | null>(
     null,
   );
+  const [referrals, setReferrals] = useState<Referral[]>([]);
   const [notes, setNotes] = useState("");
   const [conduct, setConduct] = useState("");
   const [files, setFiles] = useState<string[]>([]);
 
-  const items = listReferrals().filter(
-    (referral) => referral.status === "Agendado",
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadReferrals() {
+      const response = await fetch("/api/referrals", { cache: "no-store" });
+      const data = (await response.json()) as Referral[];
+
+      if (isMounted) {
+        setReferrals(data);
+      }
+    }
+
+    void loadReferrals();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const items = useMemo(
+    () => referrals.filter((referral) => referral.status === "Agendado"),
+    [referrals],
   );
 
   const handleOpenAtendimento = (referral: Referral) => {
@@ -33,21 +50,47 @@ export function useMedicoPageModel(): MedicoPageModel {
     setFiles((current) => [...current, `arquivo-${current.length + 1}.pdf`]);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedReferral) {
       return;
     }
 
-    appendSpecialistUpdate({
-      referralId: selectedReferral.id,
-      notes,
-      conduct,
-      files: files.map((file, index) => ({
-        id: `SPC-${index + 1}`,
-        name: file,
-        uploadedAt: new Date().toISOString(),
-      })),
-    });
+    const response = await fetch(
+      `/api/referrals/${selectedReferral.id}/specialist`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          notes,
+          conduct,
+          files: files.map((file, index) => ({
+            id: `SPC-${index + 1}`,
+            name: file,
+            uploadedAt: new Date().toISOString(),
+          })),
+        }),
+      },
+    );
+
+    if (response.ok) {
+      setReferrals((current) =>
+        current.map((item) =>
+          item.id === selectedReferral.id
+            ? {
+                ...item,
+                specialistNotes: notes,
+                specialistConduct: conduct,
+                specialistAttachments: files.map((file, index) => ({
+                  id: `SPC-${index + 1}`,
+                  name: file,
+                  uploadedAt: new Date().toISOString(),
+                })),
+                status: "Atendido",
+              }
+            : item,
+        ),
+      );
+    }
 
     setSelectedReferral(null);
   };

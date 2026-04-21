@@ -1,29 +1,15 @@
 import "@/env";
 
-type PrismaClientLike = {
-  [key: string]: unknown;
-};
+import { PrismaClient } from "@prisma/client";
 
-declare global {
-  // eslint-disable-next-line no-var
-  var prisma: PrismaClientLike | undefined;
-}
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
-export function getPrismaClient(): PrismaClientLike {
-  if (global.prisma) {
-    return global.prisma;
-  }
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
+  });
 
-  // Lazy require keeps compilation stable even before prisma generate is executed.
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { PrismaClient } = require("@prisma/client");
-  const prisma = new PrismaClient({
-    log: ["warn", "error"],
-  }) as PrismaClientLike;
-
-  if (process.env.NODE_ENV !== "production") {
-    global.prisma = prisma;
-  }
-
-  return prisma;
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
 }

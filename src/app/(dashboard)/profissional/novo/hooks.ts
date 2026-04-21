@@ -6,7 +6,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { CARE_NUCLEI } from "@/features/referrals/data";
-import { createReferral } from "@/features/referrals/service";
 
 import type {
   NovoEncaminhamentoFormData,
@@ -44,28 +43,32 @@ export function useNovoEncaminhamentoPageModel(): NovoEncaminhamentoPageModel {
     ]);
   };
 
-  const handleFormSubmit = (data: NovoEncaminhamentoFormData) => {
+  const handleFormSubmit = async (data: NovoEncaminhamentoFormData) => {
     if (!selectedNucleus) return;
 
-    createReferral({
-      patientName: data.patientName,
-      patientBirthDate: data.patientBirthDate,
-      patientPhone: data.patientPhone,
-      patientDocument: data.patientDocument || undefined,
-      systemicDiseases: data.systemicDiseases || undefined,
-      clinicalNotes: [data.clinicalSuspect, data.clinicalNotes]
-        .filter(Boolean)
-        .join(" - "),
-      nucleusId: selectedNucleus.id,
-      nucleusName: selectedNucleus.name,
-      documents: documents.map((item) => ({
-        id: item.id,
-        name: item.name,
-        uploadedAt: new Date().toISOString(),
-      })),
+    await fetch("/api/referrals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        patientName: data.patientName,
+        patientBirthDate: data.patientBirthDate,
+        patientPhone: data.patientPhone,
+        patientDocument: data.patientDocument || undefined,
+        systemicDiseases: data.systemicDiseases || undefined,
+        clinicalNotes: [data.clinicalSuspect, data.clinicalNotes]
+          .filter(Boolean)
+          .join(" - "),
+        nucleusId: selectedNucleus.id,
+        documents: documents.map((item) => ({
+          id: item.id,
+          name: item.name,
+          uploadedAt: new Date().toISOString(),
+        })),
+      }),
     });
 
     router.push("/profissional");
+    router.refresh();
   };
 
   return {

@@ -1,14 +1,34 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { listNuclei, listReferrals } from "@/features/referrals/service";
+import { CARE_NUCLEI } from "@/features/referrals/data";
+import type { Referral } from "@/features/referrals/types";
 
 import type { FinanceiroPageModel, NucleusRevenueRow } from "./schema";
 
 export function useFinanceiroPageModel(): FinanceiroPageModel {
-  const referrals = listReferrals();
-  const nuclei = listNuclei();
+  const [referrals, setReferrals] = useState<Referral[]>([]);
+  const nuclei = CARE_NUCLEI;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadReferrals() {
+      const response = await fetch("/api/referrals", { cache: "no-store" });
+      const data = (await response.json()) as Referral[];
+
+      if (isMounted) {
+        setReferrals(data);
+      }
+    }
+
+    void loadReferrals();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const totalReceita = useMemo(
     () =>

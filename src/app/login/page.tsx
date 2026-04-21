@@ -1,28 +1,38 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import React, { useState } from "react";
 
 import { Button, Card, Input } from "@/components/ui";
-import { authenticate, resolveRolePath } from "@/features/auth/service";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    const user = authenticate({ email, password });
+    const result = await signIn("credentials", {
+      email: email.trim().toLowerCase(),
+      password,
+      redirect: false,
+    });
 
-    if (!user) {
-      setError("Credenciais invalidas. Use um dos usuarios de demonstracao.");
+    setLoading(false);
+
+    if (!result?.ok) {
+      setError("Credenciais inválidas. Verifique e-mail e senha.");
       return;
     }
 
-    router.push(resolveRolePath(user.role));
+    router.refresh();
+    router.push("/");
   };
 
   return (
@@ -36,7 +46,7 @@ export default function LoginPage() {
             Acesso à Plataforma
           </h2>
           <p className="mt-2 text-sm text-gray-500">
-            Seu perfil e definido automaticamente pelo tipo de conta.
+            Seu perfil é definido automaticamente pelo tipo de conta.
           </p>
         </div>
 
@@ -45,13 +55,14 @@ export default function LoginPage() {
             <div className="space-y-4 pt-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  E-mail ou Usuário
+                  E-mail
                 </label>
                 <Input
-                  type="text"
+                  type="email"
                   placeholder="admin@ciso.com.br"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
+                  required
                 />
               </div>
               <div className="space-y-2">
@@ -63,28 +74,20 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
+                  required
                 />
               </div>
             </div>
 
             {error ? <p className="text-xs text-red-600">{error}</p> : null}
 
-            <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-600">
-              <p className="font-semibold text-gray-800">
-                Contas de demonstracao
-              </p>
-              <p>admin@ciso.com.br / 123456</p>
-              <p>clinica@ciso.com.br / 123456</p>
-              <p>medico@ciso.com.br / 123456</p>
-              <p>profissional@ciso.com.br / 123456</p>
-            </div>
-
             <Button
               type="submit"
               variant="primary"
               className="h-12 w-full text-base"
+              disabled={loading}
             >
-              Entrar
+              {loading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
         </Card>

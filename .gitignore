@@ -4,6 +4,11 @@
 /node_modules
 /.pnp
 .pnp.js
+
+# local env
+.env
+.env.local
+.env.*.local
 .yarn/install-state.gz
 
 # testing
