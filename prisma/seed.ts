@@ -3,8 +3,87 @@ import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+const CARE_NUCLEI = [
+  {
+    id: "consulta-simples",
+    name: "Consulta Simples",
+    description: "Consulta oftalmologica sem pacote adicional de exames.",
+    chargedPrice: 250,
+    services: [
+      { id: "svc-consulta", name: "Consulta especialista", basePrice: 250 },
+    ],
+  },
+  {
+    id: "glaucoma",
+    name: "Nucleo de Atendimento - Glaucoma",
+    description: "Avaliacao completa para suspeita clinica de glaucoma.",
+    chargedPrice: 650,
+    services: [
+      { id: "svc-consulta-gla", name: "Consulta especialista", basePrice: 250 },
+      { id: "svc-tonometria", name: "Tonometria de aplanacao", basePrice: 70 },
+      { id: "svc-gonioscopia", name: "Gonioscopia", basePrice: 130 },
+      { id: "svc-galilei", name: "Galilei", basePrice: 300 },
+      { id: "svc-oct-papila", name: "OCT papila", basePrice: 315 },
+    ],
+  },
+  {
+    id: "catarata",
+    name: "Nucleo de Atendimento - Catarata",
+    description: "Protocolo pre-operatorio com exames para catarata.",
+    chargedPrice: 850,
+    services: [
+      { id: "svc-consulta-cat", name: "Consulta especialista", basePrice: 250 },
+      { id: "svc-biometria", name: "Biometria ARGUS", basePrice: 235 },
+      { id: "svc-galilei-cat", name: "Galilei", basePrice: 300 },
+      { id: "svc-micro", name: "Microscopia especular", basePrice: 230 },
+      { id: "svc-oct", name: "OCT", basePrice: 315 },
+      { id: "svc-retina-map", name: "Mapeamento de retina", basePrice: 180 },
+    ],
+  },
+  {
+    id: "cirurgia-refrativa",
+    name: "Nucleo de Atendimento - Cirurgia Refrativa",
+    description:
+      "Avaliacao para indicacao e elegibilidade de cirurgia refrativa.",
+    chargedPrice: 550,
+    services: [
+      { id: "svc-consulta-ref", name: "Consulta especialista", basePrice: 250 },
+      { id: "svc-olho-seco", name: "Avaliacao de olho seco", basePrice: 110 },
+      { id: "svc-micro-ref", name: "Microscopia especular", basePrice: 230 },
+      { id: "svc-galilei-ref", name: "Galilei", basePrice: 300 },
+      {
+        id: "svc-retina-map-ref",
+        name: "Mapeamento de retina",
+        basePrice: 180,
+      },
+    ],
+  },
+];
+
 async function main() {
   const passwordHash = await hash("123456", 12);
+
+  // Seed CareNuclei
+  for (const nucleus of CARE_NUCLEI) {
+    const { services, ...nucleusData } = nucleus;
+    await prisma.careNucleus.upsert({
+      where: { id: nucleusData.id },
+      update: {
+        name: nucleusData.name,
+        description: nucleusData.description,
+        chargedPrice: nucleusData.chargedPrice,
+      },
+      create: nucleusData,
+    });
+    for (const svc of services) {
+      await prisma.careNucleusService.upsert({
+        where: { id: svc.id },
+        update: { name: svc.name, basePrice: svc.basePrice },
+        create: { ...svc, nucleusId: nucleusData.id },
+      });
+    }
+    console.log(`✅ Nucleus upserted: ${nucleusData.name}`);
+  }
 
   const users = [
     {
@@ -37,6 +116,7 @@ async function main() {
     },
   ];
 
+  // Seed Users
   for (const user of users) {
     await prisma.user.upsert({
       where: { email: user.email },

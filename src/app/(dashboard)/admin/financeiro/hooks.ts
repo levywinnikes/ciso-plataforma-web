@@ -2,28 +2,32 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { CARE_NUCLEI } from "@/features/referrals/data";
-import type { Referral } from "@/features/referrals/types";
+import type { CareNucleus, Referral } from "@/features/referrals/types";
 
 import type { FinanceiroPageModel, NucleusRevenueRow } from "./schema";
 
 export function useFinanceiroPageModel(): FinanceiroPageModel {
   const [referrals, setReferrals] = useState<Referral[]>([]);
-  const nuclei = CARE_NUCLEI;
+  const [nuclei, setNuclei] = useState<CareNucleus[]>([]);
 
   useEffect(() => {
     let isMounted = true;
 
-    async function loadReferrals() {
-      const response = await fetch("/api/referrals", { cache: "no-store" });
-      const data = (await response.json()) as Referral[];
+    async function loadData() {
+      const [referralsRes, nucleiRes] = await Promise.all([
+        fetch("/api/referrals", { cache: "no-store" }),
+        fetch("/api/nuclei", { cache: "no-store" }),
+      ]);
+      const referralsData = (await referralsRes.json()) as Referral[];
+      const nucleiData = (await nucleiRes.json()) as CareNucleus[];
 
       if (isMounted) {
-        setReferrals(data);
+        setReferrals(referralsData);
+        setNuclei(nucleiData);
       }
     }
 
-    void loadReferrals();
+    void loadData();
 
     return () => {
       isMounted = false;
