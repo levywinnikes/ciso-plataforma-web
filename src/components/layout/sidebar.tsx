@@ -1,34 +1,51 @@
-import Link from 'next/link'
-import { LayoutDashboard, Stethoscope, Search, X, Layers } from 'lucide-react'
-
-const navItems = [
-  { name: 'Painel Optometrista', href: '/optometrista', icon: LayoutDashboard },
-  { name: 'Cadastro de Núcleos', href: '/admin', icon: Layers },
-  { name: 'Triagem (Centro)', href: '/centro', icon: Search },
-  { name: 'Painel Médico', href: '/medico', icon: Stethoscope },
-]
+import {
+  BarChart3,
+  Layers,
+  LayoutDashboard,
+  Search,
+  Stethoscope,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 interface SidebarProps {
-  isOpen?: boolean
-  onClose?: () => void
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const t = useTranslations("sidebar");
+
+  const navItems = [
+    {
+      name: t("nav.professional"),
+      href: "/profissional",
+      icon: LayoutDashboard,
+    },
+    { name: t("nav.admin"), href: "/admin", icon: Layers },
+    { name: t("nav.clinic"), href: "/clinica", icon: Search },
+    { name: t("nav.doctor"), href: "/medico", icon: Stethoscope },
+    { name: t("nav.financial"), href: "/admin/financeiro", icon: BarChart3 },
+  ];
+
   return (
     <>
       {/* Mobile Overlay */}
-      <div 
+      <div
         className={`fixed inset-0 z-40 bg-black/50 transition-opacity lg:hidden ${
-          isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+          isOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={onClose}
       />
 
-      <div className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-primary text-white transition-transform duration-300 lg:static lg:translate-x-0 ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <div
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-primary text-white transition-transform duration-300 lg:static lg:translate-x-0 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         <div className="flex h-20 items-center justify-between border-b border-primary-foreground/10 px-6">
-          <h1 className="text-xl font-bold tracking-tight">CISO Plataforma</h1>
+          <h1 className="text-xl font-bold tracking-tight">{t("brand")}</h1>
           <button onClick={onClose} className="lg:hidden">
             <X className="h-6 w-6" />
           </button>
@@ -46,10 +63,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </Link>
           ))}
         </nav>
-        <div className="border-t border-primary-foreground/10 p-4 font-mono text-xs opacity-50 text-center">
+        <div className="border-t border-primary-foreground/10 p-4 text-center font-mono text-xs opacity-50">
           v1.0.0-prototype
         </div>
       </div>
     </>
-  )
+  );
 }

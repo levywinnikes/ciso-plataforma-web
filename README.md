@@ -1,94 +1,164 @@
-# CISO - Centro Integrado de Saúde Ocular
+# CISO Plataforma Web
 
-O **CISO** é uma plataforma inovadora de Gestão Inteligente para Saúde Ocular. Seu principal objetivo é conectar optometristas (na ponta primária), centros de triagem estruturados e médicos oftalmologistas especialistas, garantindo um fluxo de encaminhamento de pacientes ágil, rastreável e altamente eficiente.
+Plataforma para fluxo completo de encaminhamentos oftalmologicos com perfis separados por tipo de conta:
 
-## 🚀 O Problema e a Solução
+- Administrativo
+- Clinica (triagem)
+- Medico especialista
+- Profissional
 
-Tradicionalmente, os encaminhamentos da visão primária (como os feitos por optometristas) para a oftalmologia especializada passam por papéis, mensagens informais ou guias físicas, causando lentidão, gargalos de informação e muitas vezes o não-retorno do laudo para a base.
+## O que foi reorganizado
 
-**Nossa Solução:** Uma Plataforma Web (SaaS) centralizada baseada em **"Núcleos de Especialidades"**, orquestrando toda a jornada do paciente desde a triagem inicial óptica até o laudo final do cirurgião especialista, com controle rígido de pacotes de exames (Protocolos e Valores).
+- Arquitetura por dominio em src/features
+- Login sem selecao de perfil (perfil vem da conta)
+- Home removida e redirecionada para login
+- Rotas novas:
+  - /admin
+  - /admin/financeiro
+  - /clinica
+  - /medico
+  - /profissional
+  - /profissional/novo
+- Rotas legadas mantidas com redirecionamento:
+  - /optometrista -> /profissional
+  - /optometrista/novo -> /profissional/novo
+  - /centro -> /clinica
 
----
+## Regras de negocio aplicadas
 
-## 👥 Perfis de Acesso e Funcionalidades
+- Nome do paciente: obrigatorio
+- Data de nascimento: obrigatorio
+- Telefone: obrigatorio
+- CPF/Documento: opcional
+- Doencas sistemicas: campo livre opcional
+- Suspeita clinica atualizada: Necessidade Refrativa -> Cirurgia Refrativa
+- Renomeacao para Nucleos de Atendimento
+- Inclusao de Consulta Simples como nucleo
+- Exibicao de composicao, valor bruto, desconto e valor final do nucleo
+- Novo encaminhamento com area para incluir documentos
+- Status do encaminhamento:
+  - Encaminhado
+  - Agendado
+  - Atendido
+- Painel da clinica com triagem contendo:
+  - status
+  - data de agendamento
+  - medico
+- Painel do medico com ficha completa e edicao de:
+  - consideracoes
+  - conduta
+  - anexos
+- Ajuste textual para Profissional no lugar de optometria/optometrista na navegacao principal
 
-A plataforma CISO divide o ecossistema em 4 perfis bem definidos:
-
-### 1. ⚙️ Administrativo (Gestão de Núcleos)
-Responsável por parametrizar o negócio e as finanças.
-- **Catálogo de Exames Base:** Cadastro de todos os equipamentos e exames avulsos disponíveis na clínica, com seus respectivos preços (Ex: OCT, Galilei, Gonioscopia).
-- **Montagem de Protocolos (Núcleos):** Criação de pacotes (Ex: "Núcleo de Pre-Catarata"). O gestor junta múltiplos exames e aplica um valor promocional de "Pacote", mostrando a economia gerada de forma transparente.
-
-### 2. 👁️ Optometrista (Atendimento Primário)
-A ponta inicial de atendimento.
-- **Painel de Encaminhamentos:** Lista todos os pacientes já enviados para a clínica, com o status em tempo real (Encaminhado, Agendado ou Atendido).
-- **Novo Encaminhamento:** Um fluxo poderoso de formulário. O Optometrista coleta os dados do paciente, seu histórico clínico e **seleciona o Núcleo (Protocolo)** desejado. O sistema automaticamente detalha a composição dos exames e calcula a economia gerada.
-- **Laudo Restrito:** Visualiza exclusivamente o laudo de retorno emitido pelo especialista, concluindo o ciclo do paciente de volta à ótica.
-
-### 3. 🛡️ Triagem Técnica (Centro de Operações)
-A inteligência tática entre óticas e médicos.
-- **Recepção e Análise:** Recebe os encaminhamentos, confere os anexos enviados e valida as informações.
-- **Agendamento Inteligente:** Direciona o paciente exatamente para o Médico especialista associado àquela condição/Núcleo (Ex: Direciona um Núcleo de "Glaucoma" para o Dr. Fernando).
-
-### 4. 👨‍⚕️ Médico Especialista
-Focado inteiramente em produtividade clínica.
-- **Agenda do Dia:** Visão rápida de todos os pacientes agendados.
-- **Prontuário Unificado:** Ao acessar o paciente, o médico visualiza em 1 clique um resumo riquíssimo: identificação, doenças sistêmicas, queixa principal extraída da triagem, e quais exames ele precisa analisar.
-- **Laudo Médico:** Emite sua conduta/devolutiva, receita e prescreve cirurgias, finalizando o laudo que volta automaticamente para a tela do Optometrista de origem.
-
----
-
-## 💻 Arquitetura e Tech Stack
-
-O front-end prototype foi desenvolvido com as tecnologias modernas do ecossistema React, focado em alta performance e Design System consistente.
-
-*   **[Next.js 14](https://nextjs.org/):** Framework React (App Router) para navegação rápida e estrutura de pastas declarativa (`/src/app`).
-*   **[Tailwind CSS](https://tailwindcss.com/):** Estilos focados em utilitários, permitindo a construção ágil de layouts responsivos sem arquivos `.css` avulsos.
-*   **[Lucide React](https://lucide.dev/):** Biblioteca de ícones modernos minimalistas.
-*   **[TypeScript](https://www.typescriptlang.org/):** Tipagem estática rigorosa (`/src/data/mocks.ts` e páginas), blindando o código contra erros de run-time na manipulação das Fichas e Encaminhamentos.
-*   **Components UI (`/src/components/ui/`):** Construção customizada em vez de dependência pesada de bibliotecas de componentes. Envolve modais complexas com transições `animate-in`, botões escaláveis e inputs consistentes (`clsx`, `tailwind-merge`).
-
-### 📂 Estrutura de Pastas Principal
+## Estrutura principal
 
 ```text
-ciso-plataforma-web/
-├── src/
-│   ├── app/
-│   │   ├── (dashboard)/            # Rotas protegidas (com sidebar e header)
-│   │   │   ├── admin/              # Painel de Gestão e Criação de Núcleos
-│   │   │   ├── centro/             # Painel de Triagem/Call Center
-│   │   │   ├── medico/             # Painel do Médico Especialista
-│   │   │   └── optometrista/       # Consultórios optométricos e Novo Encaminhamento
-│   │   ├── login/                  # Tela mockup de autenticação
-│   │   └── page.tsx                # Landing Page (Marketing)
-│   ├── components/
-│   │   ├── layout/                 # Shell corporativo (Sidebar responsiva, header)
-│   │   └── ui/                     # System Design: Card, Modals genéricas, Botões
-│   └── data/                       # Mocks.ts: Interfaces e Banco de Dados Falso para MVP
-├── public/                         # Assets estáticos
-└── tailwind.config.ts              # Tokens de Cor (primary: CISO verde escuro, accent: Dourado)
+src/
+  app/
+    api/
+      health/route.ts
+      referrals/route.ts
+    login/page.tsx
+    page.tsx
+    (dashboard)/
+      admin/
+      clinica/
+      medico/
+      profissional/
+  components/
+    forms/field.tsx
+    layout/
+    ui/
+  features/
+    auth/
+    referrals/
+  lib/
+    prisma.ts
+prisma/
+  schema.prisma
+.env.example
 ```
 
----
+## Padroes de organizacao de arquivos
 
-## 🛠️ Como rodar o projeto (Local)
+- `src/app`: paginas e rotas. Arquivos de pagina devem orquestrar fluxo e composicao, evitando concentrar markup estrutural repetido.
+- `src/components/ui`: primitives e building blocks reutilizaveis. O arquivo `index.tsx` deve funcionar apenas como barrel de export.
+- `src/components/forms`: wrappers de formulario compartilhados entre dominios.
+- `src/features`: componentes, tipos, dados e servicos orientados por dominio. Sempre que um bloco visual depender de regra de negocio, ele deve morar aqui e nao em `ui`.
+- `src/lib`: integracoes, helpers de infraestrutura e singletons.
 
-Certifique-se de ter o `Node.js` (preferencialmente v18+) instalado.
+Regras praticas adotadas:
 
-1. **Instale as dependências:**
-   ```bash
-   npm install
-   ```
+- componente de `ui` em arquivo proprio;
+- barrel apenas para exportar, nunca para implementar varios componentes grandes;
+- pagina principal com foco em estado, handlers e composicao;
+- blocos repetidos de negocio extraidos para `features/.../components`;
+- estilos repetidos extraidos para classes semanticas globais apenas quando o padrao aparece em mais de um lugar.
 
-2. **Rode o Servidor de Desenvolvimento:**
-   ```bash
-   npm run dev
-   ```
+## Padroes de CSS e Tailwind
 
-3. **Acesse no Navegador:**
-   Abra `http://localhost:3000`
+- Tokens visuais centralizados em `src/app/globals.css` via CSS custom properties.
+- Classes globais limitadas a padroes transversais como `ui-field`, `ui-table`, `ui-upload-dropzone` e `ui-record-panel`.
+- Tailwind continua sendo a camada principal de composicao local; CSS global entra apenas para reduzir repeticao real.
+- Evitar classes utilitarias longas repetidas em varias telas. Quando houver recorrencia, promover para componente ou classe semantica.
+- Evitar CSS por pagina quando o problema for estrutural; preferir componente reutilizavel.
 
----
+## Qualidade e automacao
 
-> 👨‍💻 Desenvolvido como Protótipo Front-end Funcional (Phase 3). 
-> As ações (Save, Finalizar, etc.) utilizam alertas ou transições visuais reais, simulando perfeitamente a UX/UI e lógica de negócio de pacotes antes de integrar Banco de Dados e Backend definitivo via Supabase/PostgreSQL.
+Comandos disponiveis:
+
+```bash
+npm run lint
+npm run lint:fix
+npm run format
+npm run format:check
+```
+
+Ferramentas adicionadas para sustentar o padrao:
+
+- ESLint com ordenacao de imports
+- remocao de imports nao usados
+- Prettier com ordenacao automatica de classes Tailwind
+
+## Banco de dados (Prisma + PostgreSQL)
+
+1. Copie o arquivo de exemplo:
+
+```bash
+cp .env.example .env
+```
+
+1. Ajuste se necessario e confirme os dados:
+
+```env
+DB_USER=postgres
+DB_PASSWORD=otica123
+```
+
+1. Instale dependencias e gere client Prisma:
+
+```bash
+npm install
+npm run prisma:generate
+```
+
+1. Rode migracao inicial:
+
+```bash
+npm run prisma:migrate -- --name init
+```
+
+## Desenvolvimento
+
+```bash
+npm run dev
+```
+
+Acesse: <http://localhost:3000>
+
+## Contas de demonstracao
+
+- `admin@ciso.com.br` / `123456`
+- `clinica@ciso.com.br` / `123456`
+- `medico@ciso.com.br` / `123456`
+- `profissional@ciso.com.br` / `123456`

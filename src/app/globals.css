@@ -2,13 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+@layer base {
+  :root {
+    --color-canvas: #f5f7f6;
+    --color-canvas-alt: #eef3f1;
+    --color-surface: #ffffff;
+    --color-foreground: #111827;
+    --color-muted: #6b7280;
+    --color-border: #d1d5db;
+    --color-primary: #0a2e2a;
+    --color-accent: #c4a47c;
+  }
+
+  body {
+    color: var(--color-foreground);
+    background: linear-gradient(
+      180deg,
+      var(--color-canvas) 0%,
+      var(--color-canvas-alt) 100%
+    );
+  }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: white;
+@layer components {
+  .ui-field {
+    @apply flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-accent disabled:bg-gray-50 disabled:text-gray-500;
+  }
+
+  .ui-field-area {
+    @apply min-h-[100px];
+  }
+
+  .ui-table {
+    @apply w-full text-left text-sm text-gray-500;
+  }
+
+  .ui-table-head {
+    @apply bg-gray-50 text-xs uppercase text-gray-700;
+  }
+
+  .ui-table-row {
+    @apply bg-white transition-colors hover:bg-gray-50;
+  }
+
+  .ui-table-cell {
+    @apply px-6 py-4;
+  }
+
+  .ui-upload-dropzone {
+    @apply flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 px-4 py-6 text-sm text-gray-600 transition-colors hover:border-primary;
+  }
+
+  .ui-record-panel {
+    @apply overflow-hidden rounded-xl border bg-white text-left text-sm shadow-sm ring-1 ring-gray-100;
+  }
+
+  .ui-record-panel-header {
+    @apply flex items-center justify-between border-b border-primary/10 bg-primary/5 px-5 py-3;
+  }
+
+  .ui-record-section-title {
+    @apply mb-3 text-xs font-bold uppercase tracking-wider text-gray-400;
+  }
+}
+
+@layer utilities {
+  .animate-chart-draw {
+    stroke-dasharray: 2000;
+    stroke-dashoffset: 2000;
+    animation: chartDraw 3s ease-out forwards;
+  }
+}
+
+@keyframes chartDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
 }

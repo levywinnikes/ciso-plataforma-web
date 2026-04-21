@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMINISTRATIVO
+  CLINICA
+  MEDICO
+  PROFISSIONAL
+}
+
+enum ReferralStatus {
+  Encaminhado
+  Agendado
+  Atendido
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         UserRole
+  createdAt    DateTime @default(now())
+}
+
+model CareNucleus {
+  id          String                @id @default(cuid())
+  name        String
+  description String
+  chargedPrice Decimal              @db.Decimal(10, 2)
+  services    CareNucleusService[]
+  referrals   Referral[]
+  createdAt   DateTime              @default(now())
+}
+
+model CareNucleusService {
+  id        String     @id @default(cuid())
+  nucleusId String
+  name      String
+  basePrice Decimal    @db.Decimal(10, 2)
+  nucleus   CareNucleus @relation(fields: [nucleusId], references: [id], onDelete: Cascade)
+}
+
+model Referral {
+  id                  String             @id @default(cuid())
+  patientName         String
+  patientBirthDate    DateTime
+  patientPhone        String
+  patientDocument     String?
+  systemicDiseases    String?
+  clinicalNotes       String?
+  status              ReferralStatus     @default(Encaminhado)
+  doctor              String?
+  appointmentDate     DateTime?
+  specialistNotes     String?
+  specialistConduct   String?
+  nucleusId           String
+  nucleus             CareNucleus        @relation(fields: [nucleusId], references: [id])
+  documents           ReferralDocument[]
+  specialistFiles     ReferralAttachment[]
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+}
+
+model ReferralDocument {
+  id         String   @id @default(cuid())
+  referralId String
+  fileName   String
+  url        String?
+  createdAt  DateTime @default(now())
+  referral   Referral @relation(fields: [referralId], references: [id], onDelete: Cascade)
+}
+
+model ReferralAttachment {
+  id         String   @id @default(cuid())
+  referralId String
+  fileName   String
+  url        String?
+  createdAt  DateTime @default(now())
+  referral   Referral @relation(fields: [referralId], references: [id], onDelete: Cascade)
+}

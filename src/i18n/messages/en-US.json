@@ -1,0 +1,111 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "status": "Status",
+    "patient": "Patient",
+    "doctor": "Doctor",
+    "notAvailable": "-",
+    "toDefine": "To define",
+    "select": "Select"
+  },
+  "layout": {
+    "title": "CISO | Referral Platform",
+    "description": "Referral management, triage and specialized care"
+  },
+  "sidebar": {
+    "brand": "CISO Platform",
+    "nav": {
+      "professional": "Professional Panel",
+      "admin": "Administrative Panel",
+      "clinic": "Clinic Panel (Triage)",
+      "doctor": "Doctor Panel",
+      "financial": "Financial Report"
+    }
+  },
+  "admin": {
+    "title": "Administrative Panel",
+    "subtitle": "Manage care nuclei, services and package discounts.",
+    "newNucleus": "New nucleus",
+    "serviceCatalog": "Service catalog",
+    "serviceNamePlaceholder": "Service name",
+    "servicePricePlaceholder": "Base price",
+    "addService": "Add service",
+    "newNucleusModalTitle": "New care nucleus",
+    "nucleusNamePlaceholder": "Nucleus name",
+    "nucleusDescriptionPlaceholder": "Nucleus description",
+    "nucleusPricePlaceholder": "Final package price",
+    "includedServices": "Included services",
+    "servicesSum": "Services total",
+    "saveNucleus": "Save nucleus"
+  },
+  "clinic": {
+    "title": "Clinic Panel",
+    "subtitle": "Triage, doctor assignment and referral scheduling.",
+    "pendingReferrals": "Pending referrals",
+    "scheduled": "Scheduled",
+    "attended": "Attended",
+    "triageQueue": "Triage queue",
+    "nucleus": "Nucleus",
+    "sendDate": "Sent date",
+    "appointmentDate": "Appointment date",
+    "action": "Action",
+    "triage": "Triage",
+    "saveSchedule": "Save schedule",
+    "referral": "Referral",
+    "scheduleDate": "Schedule date"
+  },
+  "professional": {
+    "title": "Professional Panel",
+    "subtitle": "Track all referrals and specialist feedback.",
+    "newReferral": "New Referral",
+    "referrals": "Referrals",
+    "nucleus": "Care Nucleus",
+    "date": "Date"
+  },
+  "newReferral": {
+    "title": "New Referral",
+    "subtitle": "Standardized registration with required fields and care nucleus.",
+    "patientData": "Patient Data",
+    "patientName": "Patient name",
+    "birthDate": "Birth date",
+    "phone": "Phone",
+    "document": "ID / Document",
+    "optional": "Optional",
+    "clinicalInfo": "Clinical Information",
+    "systemicDiseases": "Systemic diseases",
+    "optionalFreeText": "Optional free text",
+    "clinicalSuspect": "Clinical Suspicion (Warning Signs)",
+    "selectClinicalSuspect": "Select clinical suspicion",
+    "clinicalNotes": "Clinical notes",
+    "clinicalNotesPlaceholder": "Describe symptoms and relevant findings",
+    "documents": "Referral Documents",
+    "includeDocuments": "Attach documents",
+    "careNuclei": "Care Nuclei",
+    "selectNucleus": "Select nucleus",
+    "saveReferral": "Save referral"
+  },
+  "financial": {
+    "title": "Administrative Finance",
+    "subtitle": "Consolidated revenue view by care nuclei.",
+    "expectedRevenue": "Expected revenue",
+    "revenueByNucleus": "Revenue by nucleus",
+    "nucleus": "Nucleus",
+    "referralsQuantity": "Referrals qty",
+    "unitPrice": "Unit price",
+    "revenue": "Revenue"
+  },
+  "doctor": {
+    "title": "Specialist Doctor Panel",
+    "subtitle": "View your daily agenda, review triage and issue conducts.",
+    "agendaToday": "My Agenda - Today",
+    "dateAndTime": "Date & Time",
+    "nucleus": "Care Nucleus",
+    "responsibleDoctor": "Responsible Doctor",
+    "action": "Action",
+    "notAssigned": "Not assigned",
+    "openRecord": "Open Record",
+    "specializedCare": "Specialized Care",
+    "saveCare": "Save care"
+  }
+}

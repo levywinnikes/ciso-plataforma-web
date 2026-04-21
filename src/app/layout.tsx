@@ -1,22 +1,35 @@
-import './globals.css'
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import "./globals.css";
 
-const inter = Inter({ subsets: ['latin'] })
+import type { Metadata } from "next";
+import { Manrope } from "next/font/google";
+import { cookies } from "next/headers";
+import { NextIntlClientProvider } from "next-intl";
+
+import { resolveLocale } from "@/i18n/config";
+import { getMessages } from "@/i18n/messages";
+
+const manrope = Manrope({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'CISO - Centro Integrado de Saúde Ocular',
-  description: 'Plataforma de gestão de fluxo de pacientes oftalmológicos',
-}
+  title: "CISO | Plataforma de Encaminhamentos",
+  description: "Gestao de encaminhamentos, triagem e atendimento especializado",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
+  const locale = resolveLocale(cookies().get("locale")?.value);
+  const messages = getMessages(locale);
+
   return (
-    <html lang="pt-BR">
-      <body className={inter.className}>{children}</body>
+    <html lang={locale}>
+      <body className={manrope.className}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          {children}
+        </NextIntlClientProvider>
+      </body>
     </html>
-  )
+  );
 }

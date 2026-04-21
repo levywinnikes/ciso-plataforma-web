@@ -1,0 +1,111 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "status": "Status",
+    "patient": "Paciente",
+    "doctor": "Médico",
+    "notAvailable": "-",
+    "toDefine": "A definir",
+    "select": "Selecione"
+  },
+  "layout": {
+    "title": "CISO | Plataforma de Encaminhamentos",
+    "description": "Gestão de encaminhamentos, triagem e atendimento especializado"
+  },
+  "sidebar": {
+    "brand": "CISO Plataforma",
+    "nav": {
+      "professional": "Painel Profissional",
+      "admin": "Painel Administrativo",
+      "clinic": "Painel Clínica (Triagem)",
+      "doctor": "Painel Médico",
+      "financial": "Relatório Financeiro"
+    }
+  },
+  "admin": {
+    "title": "Painel Administrativo",
+    "subtitle": "Gestão de núcleos de atendimento, serviços e descontos de pacote.",
+    "newNucleus": "Novo núcleo",
+    "serviceCatalog": "Catálogo de serviços",
+    "serviceNamePlaceholder": "Nome do serviço",
+    "servicePricePlaceholder": "Valor base",
+    "addService": "Adicionar serviço",
+    "newNucleusModalTitle": "Novo núcleo de atendimento",
+    "nucleusNamePlaceholder": "Nome do núcleo",
+    "nucleusDescriptionPlaceholder": "Descrição do núcleo",
+    "nucleusPricePlaceholder": "Valor final do pacote",
+    "includedServices": "Serviços inclusos",
+    "servicesSum": "Soma dos serviços",
+    "saveNucleus": "Salvar núcleo"
+  },
+  "clinic": {
+    "title": "Painel da Clínica",
+    "subtitle": "Triagem, definição de médico e agendamento de encaminhamentos.",
+    "pendingReferrals": "Encaminhamentos pendentes",
+    "scheduled": "Agendados",
+    "attended": "Atendidos",
+    "triageQueue": "Fila de Triagem",
+    "nucleus": "Núcleo",
+    "sendDate": "Data envio",
+    "appointmentDate": "Data agendamento",
+    "action": "Ação",
+    "triage": "Triagem",
+    "saveSchedule": "Salvar agendamento",
+    "referral": "Encaminhamento",
+    "scheduleDate": "Data de agendamento"
+  },
+  "professional": {
+    "title": "Painel do Profissional",
+    "subtitle": "Acompanhe todos os encaminhamentos e o retorno do especialista.",
+    "newReferral": "Novo Encaminhamento",
+    "referrals": "Encaminhamentos",
+    "nucleus": "Núcleo de Atendimento",
+    "date": "Data"
+  },
+  "newReferral": {
+    "title": "Novo Encaminhamento",
+    "subtitle": "Cadastro padronizado com campos obrigatórios e núcleo de atendimento.",
+    "patientData": "Dados do Paciente",
+    "patientName": "Nome do paciente",
+    "birthDate": "Data de nascimento",
+    "phone": "Telefone",
+    "document": "CPF / Documento",
+    "optional": "Opcional",
+    "clinicalInfo": "Informações Clínicas",
+    "systemicDiseases": "Doenças sistêmicas",
+    "optionalFreeText": "Campo livre opcional",
+    "clinicalSuspect": "Suspeita Clínica (Sinais de Alerta)",
+    "selectClinicalSuspect": "Selecione a suspeita clínica",
+    "clinicalNotes": "Observações clínicas",
+    "clinicalNotesPlaceholder": "Descreva sintomas e achados relevantes",
+    "documents": "Documentos do Encaminhamento",
+    "includeDocuments": "Incluir documentos",
+    "careNuclei": "Núcleos de Atendimento",
+    "selectNucleus": "Selecione o núcleo",
+    "saveReferral": "Salvar encaminhamento"
+  },
+  "financial": {
+    "title": "Financeiro Administrativo",
+    "subtitle": "Visão consolidada de faturamento por núcleos de atendimento.",
+    "expectedRevenue": "Receita prevista",
+    "revenueByNucleus": "Receita por núcleo",
+    "nucleus": "Núcleo",
+    "referralsQuantity": "Qtd. encaminhamentos",
+    "unitPrice": "Valor unitário",
+    "revenue": "Receita"
+  },
+  "doctor": {
+    "title": "Painel do Médico Especialista",
+    "subtitle": "Visualize sua agenda do dia, analise as triagens e emita condutas.",
+    "agendaToday": "Minha Agenda - Hoje",
+    "dateAndTime": "Data e Hora",
+    "nucleus": "Núcleo de Atendimento",
+    "responsibleDoctor": "Médico Responsável",
+    "action": "Ação",
+    "notAssigned": "Não atribuído",
+    "openRecord": "Abrir Ficha",
+    "specializedCare": "Atendimento Especializado",
+    "saveCare": "Salvar atendimento"
+  }
+}
