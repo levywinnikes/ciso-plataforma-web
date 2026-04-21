@@ -6,8 +6,10 @@ import { Field } from "@/components/forms/field";
 import {
   Button,
   CardSection,
+  DateInput,
   FileUploadArea,
   Input,
+  PhoneInput,
   Select,
   Textarea,
 } from "@/components/ui";
@@ -69,14 +71,14 @@ export function NovoEncaminhamentoPageView({
                 required
                 error={errors.patientBirthDate?.message}
               >
-                <Input type="date" {...register("patientBirthDate")} />
+                <DateInput {...register("patientBirthDate")} />
               </Field>
               <Field
                 label={t("phone")}
                 required
                 error={errors.patientPhone?.message}
               >
-                <Input {...register("patientPhone")} />
+                <PhoneInput {...register("patientPhone")} />
               </Field>
               <div className="md:col-span-2">
                 <Field

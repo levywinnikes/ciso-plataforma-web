@@ -7,6 +7,38 @@ Plataforma para fluxo completo de encaminhamentos oftalmologicos com perfis sepa
 - Medico especialista
 - Profissional
 
+## Tech Stack
+
+| Camada              | Tecnologia                              |
+| ------------------- | --------------------------------------- |
+| Framework           | Next.js 13.5.6 (App Router)             |
+| Linguagem           | TypeScript 5                            |
+| Estilo              | Tailwind CSS                            |
+| Formularios         | React Hook Form + Zod                   |
+| Internacionalizacao | next-intl (pt-BR / en-US)               |
+| ORM                 | Prisma + PostgreSQL                     |
+| Testes              | Jest + React Testing Library            |
+| Pre-commit          | Husky + lint-staged (ESLint + Prettier) |
+| Pre-push            | Husky (npm run build)                   |
+| Env vars            | Zod (src/env.ts)                        |
+
+## Desenvolvimento
+
+```bash
+npm run dev          # servidor local
+npm run lint         # checar erros de lint
+npm run lint:fix     # corrigir automaticamente
+npm run test         # rodar testes
+npm run build        # build de producao (roda automaticamente no git push)
+```
+
+## Documentacao para IA
+
+Antes de codar, leia:
+
+1. `docs/ai/doc-index.md` — indice de todos os documentos e checklists
+2. `docs/ai/patterns.md` — padroes recorrentes (feature module, i18n, componentes, testes)
+
 ## O que foi reorganizado
 
 - Arquitetura por dominio em src/features
@@ -155,6 +187,15 @@ npm run dev
 ```
 
 Acesse: <http://localhost:3000>
+
+## Guia operacional para IA
+
+Para manter consistencia tecnica e evitar implementacoes fora do padrao:
+
+- Instrucoes operacionais da IA: .github/copilot-instructions.md
+- Indice de documentacao por assunto: docs/ai/doc-index.md
+
+Regra obrigatoria: toda implementacao deve consultar primeiro o indice em docs/ai/doc-index.md e a documentacao do dominio impactado antes de editar codigo.
 
 ## Contas de demonstracao
 

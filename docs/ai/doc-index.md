@@ -1,0 +1,86 @@
+# Indice de Documentacao para IA
+
+Este arquivo e o ponto de entrada obrigatorio para qualquer agente antes de codar.
+
+## Ordem de leitura recomendada
+
+1. README.md
+2. docs/ai/doc-index.md (este arquivo)
+3. Documentos especificos do dominio afetado
+
+## Mapa rapido por assunto
+
+### Visao geral e arquitetura
+
+- README.md
+- docs/ai/patterns.md (padroes recorrentes: feature module, i18n, componentes, testes)
+- src/features (organizacao por dominio)
+- src/components/ui (componentes base)
+- src/components/ui/index.tsx (barrel export — lista completa de componentes)
+- src/components/forms (wrappers de formulario)
+
+### Formularios e validacoes
+
+- src/app/(dashboard)/admin/schema.ts
+- src/app/(dashboard)/admin/hooks.ts
+- src/app/(dashboard)/clinica/schema.ts
+- src/app/(dashboard)/clinica/hooks.ts
+- src/app/(dashboard)/profissional/schema.ts
+- src/app/(dashboard)/profissional/hooks.ts
+- src/app/(dashboard)/profissional/novo/schema.ts
+- src/components/forms/field.tsx
+- docs/ai/patterns.md (secao 1 e 4)
+
+### Internacionalizacao
+
+- i18n.ts
+- middleware.ts
+- src/i18n/request.ts
+- src/i18n/config.ts
+- src/i18n/messages.ts
+- src/i18n/messages/pt-BR.json
+- src/i18n/messages/en-US.json
+
+### Layout e navegacao
+
+- src/app/layout.tsx
+- src/app/(dashboard)/layout.tsx
+- src/components/layout/sidebar.tsx
+- src/components/layout/layout-shell.tsx
+
+### API, servicos e dados
+
+- src/app/api/health/route.ts
+- src/app/api/referrals/route.ts
+- src/features/referrals/service.ts
+- src/features/referrals/types.ts
+- src/features/auth/service.ts
+- src/features/auth/types.ts
+- src/lib/prisma.ts
+- prisma/schema.prisma
+- src/env.ts
+
+### Qualidade e automacao
+
+- package.json (scripts)
+- .husky/pre-commit (lint-staged: ESLint + Prettier em arquivos staged)
+- .husky/pre-push (npm run build: executa antes de git push)
+- .eslintrc.json
+- .prettierrc.json
+- jest.config.ts
+- jest.setup.ts
+
+## Checklist antes de implementar
+
+- O problema ja esta descrito em algum arquivo?
+- Existe componente reutilizavel para o caso?
+- Existe schema de validacao para adaptar ao inves de duplicar?
+- Todos os textos novos estao em chaves de traducao?
+- A mudanca afeta testes existentes?
+
+## Checklist antes de finalizar
+
+- Rodar lint e build com sucesso.
+- Rodar testes quando houver impacto funcional.
+- Atualizar este indice se novos documentos foram criados.
+- Registrar no README quando mudar fluxo estrutural.
