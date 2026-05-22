@@ -17,7 +17,7 @@ describe("scheduleSchema", () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.flatten().fieldErrors.doctor).toContain(
-        "Médico é obrigatório",
+        "errors.doctorRequired",
       );
     }
   });
@@ -30,7 +30,7 @@ describe("scheduleSchema", () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.flatten().fieldErrors.scheduleDate).toContain(
-        "Data é obrigatória",
+        "errors.dateRequired",
       );
     }
   });

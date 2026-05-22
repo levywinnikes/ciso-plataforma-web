@@ -8,9 +8,11 @@ import {
   Select,
   StatCard,
   TableCard,
+  TableShell,
 } from "@/components/ui";
 import { ReferralStatusBadge } from "@/features/referrals/components/referral-status-badge";
 import { formatDate } from "@/features/referrals/utils";
+import { useFormError } from "@/i18n/use-form-error";
 
 import { type ClinicaPageModel, DOCTORS } from "./schema";
 
@@ -21,6 +23,7 @@ interface ClinicaPageViewProps {
 export function ClinicaPageView({ model }: ClinicaPageViewProps) {
   const t = useTranslations("clinic");
   const common = useTranslations("common");
+  const tError = useFormError();
 
   const { register, formState } = model.scheduleForm;
   const errors = formState.errors;
@@ -39,8 +42,8 @@ export function ClinicaPageView({ model }: ClinicaPageViewProps) {
       </div>
 
       <TableCard title={t("triageQueue")}>
-        <table className="ui-table">
-          <thead className="ui-table-head">
+        <TableShell
+          columns={
             <tr>
               <th className="px-6 py-3">{common("patient")}</th>
               <th className="px-6 py-3">{t("nucleus")}</th>
@@ -50,40 +53,39 @@ export function ClinicaPageView({ model }: ClinicaPageViewProps) {
               <th className="px-6 py-3">{common("doctor")}</th>
               <th className="px-6 py-3 text-right">{t("action")}</th>
             </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
-            {model.referrals.map((referral) => (
-              <tr key={referral.id} className="ui-table-row">
-                <td className="ui-table-cell font-medium text-gray-900">
-                  {referral.patientName}
-                </td>
-                <td className="ui-table-cell">{referral.nucleusName}</td>
-                <td className="ui-table-cell">
-                  {formatDate(referral.createdAt)}
-                </td>
-                <td className="ui-table-cell">
-                  <ReferralStatusBadge status={referral.status} />
-                </td>
-                <td className="ui-table-cell">
-                  {referral.appointmentDate
-                    ? new Date(referral.appointmentDate).toLocaleString("pt-BR")
-                    : common("notAvailable")}
-                </td>
-                <td className="ui-table-cell">
-                  {referral.doctor ?? common("notAvailable")}
-                </td>
-                <td className="ui-table-cell text-right">
-                  <Button
-                    variant="outline"
-                    onClick={() => model.handleOpenTriage(referral)}
-                  >
-                    {t("triage")}
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          }
+        >
+          {model.referrals.map((referral) => (
+            <tr key={referral.id} className="ui-table-row">
+              <td className="ui-table-cell font-medium text-gray-900">
+                {referral.patientName}
+              </td>
+              <td className="ui-table-cell">{referral.nucleusName}</td>
+              <td className="ui-table-cell">
+                {formatDate(referral.createdAt)}
+              </td>
+              <td className="ui-table-cell">
+                <ReferralStatusBadge status={referral.status} />
+              </td>
+              <td className="ui-table-cell">
+                {referral.appointmentDate
+                  ? new Date(referral.appointmentDate).toLocaleString("pt-BR")
+                  : common("notAvailable")}
+              </td>
+              <td className="ui-table-cell">
+                {referral.doctor ?? common("notAvailable")}
+              </td>
+              <td className="ui-table-cell text-right">
+                <Button
+                  variant="outline"
+                  onClick={() => model.handleOpenTriage(referral)}
+                >
+                  {t("triage")}
+                </Button>
+              </td>
+            </tr>
+          ))}
+        </TableShell>
       </TableCard>
 
       <Modal
@@ -122,7 +124,9 @@ export function ClinicaPageView({ model }: ClinicaPageViewProps) {
               ))}
             </Select>
             {errors.doctor && (
-              <p className="text-xs text-red-500">{errors.doctor.message}</p>
+              <p className="text-xs text-red-500">
+                {tError(errors.doctor.message)}
+              </p>
             )}
           </div>
           <div className="space-y-2">
@@ -132,7 +136,7 @@ export function ClinicaPageView({ model }: ClinicaPageViewProps) {
             <Input type="datetime-local" {...register("scheduleDate")} />
             {errors.scheduleDate && (
               <p className="text-xs text-red-500">
-                {errors.scheduleDate.message}
+                {tError(errors.scheduleDate.message)}
               </p>
             )}
           </div>

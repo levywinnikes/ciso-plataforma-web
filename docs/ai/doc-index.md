@@ -57,8 +57,20 @@ Este arquivo e o ponto de entrada obrigatorio para qualquer agente antes de coda
 - src/features/auth/service.ts
 - src/features/auth/types.ts
 - src/lib/prisma.ts
+- src/lib/api-auth.ts (helpers obrigatorios de autenticacao/autorizacao em rotas API)
 - prisma/schema.prisma
 - src/env.ts
+- docs/ai/database-structure.md (estrutura das tabelas e relacoes do banco)
+- docs/ai/security-checklist.md (CHECKLIST OBRIGATORIO antes de criar/alterar rota API)
+
+### Modelo de Acesso e Permissoes (OBRIGATORIO LER ANTES DE QUALQUER MUDANCA)
+
+- docs/ai/access-and-permissions.md (roles, vinculacao organizacional, matriz de permissoes, fluxos)
+- docs/ai/user-views.md (telas e views por role, rotas, funcionalidades)
+- docs/ai/api-routes.md (endpoints REST, payloads, respostas, permissoes por endpoint)
+- docs/ai/security-checklist.md (padrao obrigatorio para handlers de API)
+
+> **IMPORTANTE**: Qualquer mudanca que envolva autenticacao, autorizacao, criacao de roles, acesso a dados OU API deve consultar estes documentos primeiro.
 
 ### Qualidade e automacao
 

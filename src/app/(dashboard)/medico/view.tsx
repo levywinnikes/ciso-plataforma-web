@@ -1,6 +1,12 @@
 import { useTranslations } from "next-intl";
 
-import { Button, Modal, PageHeader, TableCard } from "@/components/ui";
+import {
+  Button,
+  Modal,
+  PageHeader,
+  TableCard,
+  TableShell,
+} from "@/components/ui";
 import { MedicalConductForm } from "@/features/referrals/components/medical-conduct-form";
 import { PatientRecord } from "@/features/referrals/components/patient-record";
 import { ReferralStatusBadge } from "@/features/referrals/components/referral-status-badge";
@@ -25,8 +31,8 @@ export function MedicoPageView({ model }: MedicoPageViewProps) {
           title={t("agendaToday")}
           headerClassName="bg-primary text-white"
         >
-          <table className="ui-table">
-            <thead className="ui-table-head">
+          <TableShell
+            columns={
               <tr>
                 <th className="px-6 py-3">{t("dateAndTime")}</th>
                 <th className="px-6 py-3">{common("patient")}</th>
@@ -35,52 +41,51 @@ export function MedicoPageView({ model }: MedicoPageViewProps) {
                 <th className="px-6 py-3">{common("status")}</th>
                 <th className="px-6 py-3 text-right">{t("action")}</th>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {model.items.map((item) => (
-                <tr
-                  key={item.id}
-                  className="ui-table-row cursor-pointer"
-                  onClick={() => model.handleOpenAtendimento(item)}
+            }
+          >
+            {model.items.map((item) => (
+              <tr
+                key={item.id}
+                className="ui-table-row cursor-pointer"
+                onClick={() => model.handleOpenAtendimento(item)}
+              >
+                <td className="ui-table-cell whitespace-nowrap font-medium text-gray-900">
+                  {item.appointmentDate
+                    ? formatDateTime(item.appointmentDate)
+                    : common("notAvailable")}
+                </td>
+                <td className="ui-table-cell whitespace-nowrap">
+                  {item.patientName}
+                </td>
+                <td
+                  className="ui-table-cell max-w-[200px] truncate whitespace-nowrap"
+                  title={item.nucleusName}
                 >
-                  <td className="ui-table-cell whitespace-nowrap font-medium text-gray-900">
-                    {item.appointmentDate
-                      ? formatDateTime(item.appointmentDate)
-                      : common("notAvailable")}
-                  </td>
-                  <td className="ui-table-cell whitespace-nowrap">
-                    {item.patientName}
-                  </td>
-                  <td
-                    className="ui-table-cell max-w-[200px] truncate whitespace-nowrap"
-                    title={item.nucleusName}
+                  {item.nucleusName}
+                </td>
+                <td className="ui-table-cell whitespace-nowrap">
+                  <span className="font-medium text-gray-700">
+                    {item.doctor || t("notAssigned")}
+                  </span>
+                </td>
+                <td className="ui-table-cell whitespace-nowrap">
+                  <ReferralStatusBadge status={item.status} />
+                </td>
+                <td className="ui-table-cell whitespace-nowrap text-right">
+                  <Button
+                    variant="ghost"
+                    className="text-xs font-semibold text-primary hover:bg-primary/5"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      model.handleOpenAtendimento(item);
+                    }}
                   >
-                    {item.nucleusName}
-                  </td>
-                  <td className="ui-table-cell whitespace-nowrap">
-                    <span className="font-medium text-gray-700">
-                      {item.doctor || t("notAssigned")}
-                    </span>
-                  </td>
-                  <td className="ui-table-cell whitespace-nowrap">
-                    <ReferralStatusBadge status={item.status} />
-                  </td>
-                  <td className="ui-table-cell whitespace-nowrap text-right">
-                    <Button
-                      variant="ghost"
-                      className="text-xs font-semibold text-primary hover:bg-primary/5"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        model.handleOpenAtendimento(item);
-                      }}
-                    >
-                      {t("openRecord")}
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    {t("openRecord")}
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </TableShell>
         </TableCard>
       </div>
 

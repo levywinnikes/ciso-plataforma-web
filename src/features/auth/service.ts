@@ -2,7 +2,6 @@ import type { UserRole } from "./types";
 
 const rolePathMap: Record<UserRole, string> = {
   ADMINISTRATIVO: "/admin",
-  CLINICA: "/clinica",
   MEDICO: "/medico",
   PROFISSIONAL: "/profissional",
 };

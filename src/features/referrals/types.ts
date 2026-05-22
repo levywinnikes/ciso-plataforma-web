@@ -28,10 +28,15 @@ export interface Referral {
   patientDocument?: string;
   systemicDiseases?: string;
   clinicalNotes?: string;
+  clinicalSuspicion?: string;
   createdAt: string;
   status: ReferralStatus;
   nucleusId: string;
   nucleusName: string;
+  organizationId?: string;
+  organizationName?: string;
+  createdByUserId?: string;
+  createdByUserName?: string;
   appointmentDate?: string;
   doctor?: string;
   specialistNotes?: string;

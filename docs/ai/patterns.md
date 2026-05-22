@@ -268,3 +268,90 @@ Adicionar nova env var: atualizar `src/env.ts` (schema Zod) e `.env.example`.
 - Importacoes ordenadas por `simple-import-sort` (ESLint vai rejeitar se fora de ordem)
 - Todo arquivo novo deve ser exportado pelo barrel correspondente (`index.tsx`)
 - Rodar `npm run lint` antes de commitar manualmente
+
+---
+
+## 9. Traducao de erros de Zod com `useFormError`
+
+Schemas Zod sao executados fora do contexto React, entao nao podem chamar `useTranslations`. Padrao:
+
+1. Em `schema.ts`, gravar **chaves** como mensagem: `z.string().min(1, { message: "errors.nameRequired" })`.
+2. Em `view.tsx`, traduzir no momento da renderizacao com o hook `useFormError`:
+
+```tsx
+import { useFormError } from "@/i18n/use-form-error";
+
+export function MyView() {
+  const tError = useFormError();
+  // ...
+  return (
+    <FormField error={tError(form.formState.errors.name?.message)}>
+      <Input {...form.register("name")} />
+    </FormField>
+  );
+}
+```
+
+`useFormError` retorna uma funcao tolerante: se a chave nao existir, devolve a string original (fallback seguro).
+
+---
+
+## 10. Handlers de API (resumo — ver checklist completo)
+
+Toda rota em `src/app/api/**` segue obrigatoriamente:
+
+```ts
+import { apiError, requireAdministrativo } from "@/lib/api-auth";
+
+export async function POST(request: NextRequest) {
+  const auth = await requireAdministrativo();
+  if ("error" in auth) return auth.error;
+  // ...
+  if (!parsed.success) return apiError("errors.invalidXxxData", 400);
+}
+```
+
+Detalhes obrigatorios em [`docs/ai/security-checklist.md`](./security-checklist.md).
+
+---
+
+## 11. Estado de loading e erro em paginas que consomem API
+
+Componentes que chamam `fetch` para `/api/**` devem expor erro ao usuario via mensagem i18n:
+
+```tsx
+const [errorMessage, setErrorMessage] = useState<string | null>(null);
+const [isSubmitting, setIsSubmitting] = useState(false);
+const tError = useFormError();
+
+async function submit() {
+  setErrorMessage(null);
+  setIsSubmitting(true);
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      const body = (await response.json()) as { error?: string };
+      setErrorMessage(body.error ?? "errors.genericRequestFailed");
+      return;
+    }
+    // ...
+  } finally {
+    setIsSubmitting(false);
+  }
+}
+
+return (
+  <>
+    {errorMessage ? (
+      <div role="alert" className="...">
+        {tError(errorMessage)}
+      </div>
+    ) : null}
+    <Button disabled={isSubmitting}>
+      {isSubmitting ? common("saving") : common("save")}
+    </Button>
+  </>
+);
+```
+
+Mensagens de loading devem usar `common.loading` e `common.saving` (ja existentes em ambos os JSONs).

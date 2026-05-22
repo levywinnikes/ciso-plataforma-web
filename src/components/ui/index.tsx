@@ -1,14 +1,17 @@
 export { Button } from "./button";
 export { Card } from "./card";
 export { CardSection } from "./card-section";
+export { ConfirmDialog } from "./confirm-dialog";
 export { DateInput } from "./date-input";
 export { FileUploadArea } from "./file-upload-area";
 export { Input } from "./input";
 export { Modal } from "./modal";
 export { PageHeader } from "./page-header";
+export { PasswordInput } from "./password-input";
 export { PhoneInput } from "./phone-input";
 export { Select } from "./select";
 export { StatCard } from "./stat-card";
 export { TableCard } from "./table-card";
+export { TableShell } from "./table-shell";
 export { Textarea } from "./textarea";
 export { cn } from "./utils";

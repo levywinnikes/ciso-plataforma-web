@@ -4,7 +4,6 @@ import type { UserRole } from "../types";
 describe("resolveRolePath", () => {
   const cases: Array<[UserRole, string]> = [
     ["ADMINISTRATIVO", "/admin"],
-    ["CLINICA", "/clinica"],
     ["MEDICO", "/medico"],
     ["PROFISSIONAL", "/profissional"],
   ];
@@ -24,30 +23,12 @@ describe("canAccessPath", () => {
       expect(canAccessPath("ADMINISTRATIVO", "/admin/financeiro")).toBe(true);
     });
 
-    it("cannot access /clinica", () => {
-      expect(canAccessPath("ADMINISTRATIVO", "/clinica")).toBe(false);
-    });
-
     it("cannot access /medico", () => {
       expect(canAccessPath("ADMINISTRATIVO", "/medico")).toBe(false);
     });
 
     it("cannot access /profissional", () => {
       expect(canAccessPath("ADMINISTRATIVO", "/profissional")).toBe(false);
-    });
-  });
-
-  describe("CLINICA", () => {
-    it("can access /clinica", () => {
-      expect(canAccessPath("CLINICA", "/clinica")).toBe(true);
-    });
-
-    it("cannot access /admin", () => {
-      expect(canAccessPath("CLINICA", "/admin")).toBe(false);
-    });
-
-    it("cannot access /medico", () => {
-      expect(canAccessPath("CLINICA", "/medico")).toBe(false);
     });
   });
 
@@ -60,8 +41,8 @@ describe("canAccessPath", () => {
       expect(canAccessPath("MEDICO", "/admin")).toBe(false);
     });
 
-    it("cannot access /clinica", () => {
-      expect(canAccessPath("MEDICO", "/clinica")).toBe(false);
+    it("cannot access /profissional", () => {
+      expect(canAccessPath("MEDICO", "/profissional")).toBe(false);
     });
   });
 
@@ -81,24 +62,14 @@ describe("canAccessPath", () => {
 
   describe("public paths (any role)", () => {
     it("any role can access /login", () => {
-      const roles: UserRole[] = [
-        "ADMINISTRATIVO",
-        "CLINICA",
-        "MEDICO",
-        "PROFISSIONAL",
-      ];
+      const roles: UserRole[] = ["ADMINISTRATIVO", "MEDICO", "PROFISSIONAL"];
       for (const role of roles) {
         expect(canAccessPath(role, "/login")).toBe(true);
       }
     });
 
     it("any role can access /", () => {
-      const roles: UserRole[] = [
-        "ADMINISTRATIVO",
-        "CLINICA",
-        "MEDICO",
-        "PROFISSIONAL",
-      ];
+      const roles: UserRole[] = ["ADMINISTRATIVO", "MEDICO", "PROFISSIONAL"];
       for (const role of roles) {
         expect(canAccessPath(role, "/")).toBe(true);
       }
@@ -111,7 +82,7 @@ describe("canAccessPath", () => {
     });
 
     it("handles mixed case path segments", () => {
-      expect(canAccessPath("CLINICA", "/Clinica")).toBe(true);
+      expect(canAccessPath("MEDICO", "/Medico")).toBe(true);
     });
   });
 });

@@ -32,7 +32,21 @@ export async function middleware(req: NextRequest) {
   }
 
   const role = token.role as UserRole | undefined;
-  if (role && !isPublic(pathname) && !canAccessPath(role, pathname)) {
+
+  // Token sem role e considerado invalido: pode ser um JWT antigo emitido
+  // antes do callback jwt popular o campo, ou um usuario com role nula no
+  // banco. Em qualquer caso, forcamos relogin para evitar acesso indevido.
+  if (!role) {
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("callbackUrl", req.url);
+    const response = NextResponse.redirect(loginUrl);
+    // Limpa o cookie de sessao para que o NextAuth emita um novo token no proximo login.
+    response.cookies.delete("next-auth.session-token");
+    response.cookies.delete("__Secure-next-auth.session-token");
+    return response;
+  }
+
+  if (!canAccessPath(role, pathname)) {
     return NextResponse.redirect(new URL(resolveRolePath(role), req.url));
   }
 

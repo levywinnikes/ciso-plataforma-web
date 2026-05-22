@@ -2,12 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import React, { useState } from "react";
 
-import { Button, Card, Input } from "@/components/ui";
+import { Button, Card, Input, PasswordInput } from "@/components/ui";
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useTranslations("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -27,7 +29,7 @@ export default function LoginPage() {
     setLoading(false);
 
     if (!result?.ok) {
-      setError("Credenciais inválidas. Verifique e-mail e senha.");
+      setError(t("invalidCredentials"));
       return;
     }
 
@@ -39,15 +41,16 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#f5f7f6] p-4">
       <div className="w-full max-w-md space-y-8 duration-500 animate-in fade-in slide-in-from-bottom-4">
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-white shadow-lg">
-            <span className="text-2xl font-bold">CISO</span>
+          <div className="mx-auto mb-4 inline-flex items-center justify-center rounded-2xl bg-primary px-6 py-3 text-white shadow-lg">
+            <span className="text-xl font-bold tracking-wide">
+              {t("brandPrimary")}{" "}
+              <span className="font-light">{t("brandSecondary")}</span>
+            </span>
           </div>
           <h2 className="text-2xl font-bold tracking-tight text-gray-900">
-            Acesso à Plataforma
+            {t("heading")}
           </h2>
-          <p className="mt-2 text-sm text-gray-500">
-            Seu perfil é definido automaticamente pelo tipo de conta.
-          </p>
+          <p className="mt-2 text-sm text-gray-500">{t("subtitle")}</p>
         </div>
 
         <Card className="border-0 p-8 shadow-xl">
@@ -55,11 +58,11 @@ export default function LoginPage() {
             <div className="space-y-4 pt-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  E-mail
+                  {t("emailLabel")}
                 </label>
                 <Input
                   type="email"
-                  placeholder="admin@ciso.com.br"
+                  placeholder={t("emailPlaceholder")}
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   required
@@ -67,11 +70,10 @@ export default function LoginPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Senha
+                  {t("passwordLabel")}
                 </label>
-                <Input
-                  type="password"
-                  placeholder="••••••••"
+                <PasswordInput
+                  placeholder={t("passwordPlaceholder")}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   required
@@ -87,7 +89,7 @@ export default function LoginPage() {
               className="h-12 w-full text-base"
               disabled={loading}
             >
-              {loading ? "Entrando..." : "Entrar"}
+              {loading ? t("submitting") : t("submit")}
             </Button>
           </form>
         </Card>

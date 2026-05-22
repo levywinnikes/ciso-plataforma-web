@@ -28,7 +28,7 @@ describe("LoginPage", () => {
   it("renders email and password fields", () => {
     render(<LoginPage />);
     expect(
-      screen.getByPlaceholderText("admin@ciso.com.br"),
+      screen.getByPlaceholderText("admin@integravisao.com.br"),
     ).toBeInTheDocument();
     expect(screen.getByPlaceholderText("••••••••")).toBeInTheDocument();
   });
@@ -45,8 +45,8 @@ describe("LoginPage", () => {
     });
 
     render(<LoginPage />);
-    fireEvent.change(screen.getByPlaceholderText("admin@ciso.com.br"), {
-      target: { value: "wrong@ciso.com.br" },
+    fireEvent.change(screen.getByPlaceholderText("admin@integravisao.com.br"), {
+      target: { value: "wrong@integravisao.com.br" },
     });
     fireEvent.change(screen.getByPlaceholderText("••••••••"), {
       target: { value: "wrongpass" },
@@ -62,8 +62,8 @@ describe("LoginPage", () => {
     (signIn as jest.Mock).mockResolvedValue({ ok: true });
 
     render(<LoginPage />);
-    fireEvent.change(screen.getByPlaceholderText("admin@ciso.com.br"), {
-      target: { value: "admin@ciso.com.br" },
+    fireEvent.change(screen.getByPlaceholderText("admin@integravisao.com.br"), {
+      target: { value: "admin@integravisao.com.br" },
     });
     fireEvent.change(screen.getByPlaceholderText("••••••••"), {
       target: { value: "123456" },
@@ -83,8 +83,8 @@ describe("LoginPage", () => {
     );
 
     render(<LoginPage />);
-    fireEvent.change(screen.getByPlaceholderText("admin@ciso.com.br"), {
-      target: { value: "admin@ciso.com.br" },
+    fireEvent.change(screen.getByPlaceholderText("admin@integravisao.com.br"), {
+      target: { value: "admin@integravisao.com.br" },
     });
     fireEvent.change(screen.getByPlaceholderText("••••••••"), {
       target: { value: "123456" },
@@ -98,8 +98,8 @@ describe("LoginPage", () => {
     (signIn as jest.Mock).mockResolvedValue({ ok: true });
 
     render(<LoginPage />);
-    fireEvent.change(screen.getByPlaceholderText("admin@ciso.com.br"), {
-      target: { value: "  ADMIN@CISO.COM.BR  " },
+    fireEvent.change(screen.getByPlaceholderText("admin@integravisao.com.br"), {
+      target: { value: "  ADMIN@INTEGRAVISAO.COM.BR  " },
     });
     fireEvent.change(screen.getByPlaceholderText("••••••••"), {
       target: { value: "123456" },
@@ -110,7 +110,7 @@ describe("LoginPage", () => {
       expect(signIn).toHaveBeenCalledWith(
         "credentials",
         expect.objectContaining({
-          email: "admin@ciso.com.br",
+          email: "admin@integravisao.com.br",
           redirect: false,
         }),
       );

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
 
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 function parseBirthDate(value: string): Date {
@@ -19,6 +21,7 @@ function mapReferral(referral: {
   patientDocument: string | null;
   systemicDiseases: string | null;
   clinicalNotes: string | null;
+  clinicalSuspicion: string | null;
   status: "Encaminhado" | "Agendado" | "Atendido";
   doctor: string | null;
   appointmentDate: Date | null;
@@ -26,6 +29,10 @@ function mapReferral(referral: {
   specialistConduct: string | null;
   createdAt: Date;
   nucleusId: string;
+  organizationId: string;
+  organization: { name: string };
+  createdByUserId: string;
+  createdByUser: { name: string; email: string };
   nucleus: { name: string };
   documents: Array<{ id: string; fileName: string; createdAt: Date }>;
   specialistFiles: Array<{ id: string; fileName: string; createdAt: Date }>;
@@ -38,10 +45,15 @@ function mapReferral(referral: {
     patientDocument: referral.patientDocument ?? undefined,
     systemicDiseases: referral.systemicDiseases ?? undefined,
     clinicalNotes: referral.clinicalNotes ?? undefined,
+    clinicalSuspicion: referral.clinicalSuspicion ?? undefined,
     createdAt: referral.createdAt.toISOString().slice(0, 10),
     status: referral.status,
     nucleusId: referral.nucleusId,
     nucleusName: referral.nucleus.name,
+    organizationId: referral.organizationId,
+    organizationName: referral.organization.name,
+    createdByUserId: referral.createdByUserId,
+    createdByUserName: referral.createdByUser.name,
     appointmentDate: referral.appointmentDate?.toISOString() ?? undefined,
     doctor: referral.doctor ?? undefined,
     specialistNotes: referral.specialistNotes ?? undefined,
@@ -60,9 +72,45 @@ function mapReferral(referral: {
 }
 
 export async function GET() {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return NextResponse.json({ message: "Não autenticado" }, { status: 401 });
+  }
+
+  const { role, organizationId, id, isAdmin } = session.user;
+  let where = {};
+
+  if (role === "MEDICO") {
+    if (!organizationId) {
+      return NextResponse.json(
+        { message: "Usuário médico sem organização vinculada" },
+        { status: 403 },
+      );
+    }
+
+    where = { organizationId };
+  }
+
+  if (role === "PROFISSIONAL") {
+    if (!organizationId) {
+      return NextResponse.json(
+        { message: "Usuário profissional sem organização vinculada" },
+        { status: 403 },
+      );
+    }
+
+    where = isAdmin
+      ? { createdByUser: { organizationId } }
+      : { createdByUserId: id };
+  }
+
   const referrals = await prisma.referral.findMany({
+    where,
     include: {
       nucleus: { select: { name: true } },
+      organization: { select: { name: true } },
+      createdByUser: { select: { name: true, email: true } },
       documents: true,
       specialistFiles: true,
     },
@@ -73,17 +121,54 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return NextResponse.json({ message: "Não autenticado" }, { status: 401 });
+  }
+
+  if (session.user.role !== "PROFISSIONAL") {
+    return NextResponse.json(
+      { message: "Apenas profissionais podem criar referrals" },
+      { status: 403 },
+    );
+  }
+
+  if (!session.user.organizationId) {
+    return NextResponse.json(
+      { message: "Usuário profissional sem organização vinculada" },
+      { status: 403 },
+    );
+  }
+
   const body = await request.json();
 
   if (
     !body.patientName ||
     !body.patientBirthDate ||
     !body.patientPhone ||
-    !body.nucleusId
+    !body.nucleusId ||
+    !body.organizationId
   ) {
     return NextResponse.json(
       { message: "Dados obrigatórios ausentes" },
       { status: 400 },
+    );
+  }
+
+  const allowedClinic = await prisma.professionalAccess.findUnique({
+    where: {
+      professionalGroupId_clinicId: {
+        professionalGroupId: session.user.organizationId,
+        clinicId: body.organizationId,
+      },
+    },
+  });
+
+  if (!allowedClinic) {
+    return NextResponse.json(
+      { message: "Clínica de destino não permitida para esta organização" },
+      { status: 403 },
     );
   }
 
@@ -95,7 +180,10 @@ export async function POST(request: Request) {
       patientDocument: body.patientDocument || null,
       systemicDiseases: body.systemicDiseases || null,
       clinicalNotes: body.clinicalNotes || null,
+      clinicalSuspicion: body.clinicalSuspicion || null,
       nucleusId: body.nucleusId,
+      organizationId: body.organizationId,
+      createdByUserId: session.user.id,
       documents: {
         create:
           body.documents?.map((item: { name?: string }) => ({
@@ -105,6 +193,8 @@ export async function POST(request: Request) {
     },
     include: {
       nucleus: { select: { name: true } },
+      organization: { select: { name: true } },
+      createdByUser: { select: { name: true, email: true } },
       documents: true,
       specialistFiles: true,
     },

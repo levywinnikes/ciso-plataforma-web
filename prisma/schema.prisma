@@ -9,9 +9,13 @@ datasource db {
 
 enum UserRole {
   ADMINISTRATIVO
-  CLINICA
   MEDICO
   PROFISSIONAL
+}
+
+enum OrganizationType {
+  CLINICA
+  PROFISSIONAL_GROUP
 }
 
 enum ReferralStatus {
@@ -21,16 +25,20 @@ enum ReferralStatus {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  emailVerified DateTime?
-  name          String
-  image         String?
-  passwordHash  String?
-  role          UserRole  @default(PROFISSIONAL)
-  createdAt     DateTime  @default(now())
-  accounts      Account[]
-  sessions      Session[]
+  id             String        @id @default(cuid())
+  email          String        @unique
+  emailVerified  DateTime?
+  name           String
+  image          String?
+  passwordHash   String?
+  role           UserRole      @default(PROFISSIONAL)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  isAdmin        Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  accounts       Account[]
+  sessions       Session[]
+  createdReferrals Referral[]  @relation("CreatedBy")
 }
 
 model Account {
@@ -67,6 +75,31 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model Organization {
+  id               String              @id @default(cuid())
+  name             String
+  type             OrganizationType
+  cnpj             String?
+  address          String?
+  phone            String?
+  users            User[]
+  referrals        Referral[]          @relation("ReferralOrganization")
+  professionalAccessesOutgoing ProfessionalAccess[] @relation("ProfessionalGroup")
+  professionalAccessesIncoming ProfessionalAccess[] @relation("Clinic")
+  createdAt        DateTime            @default(now())
+}
+
+model ProfessionalAccess {
+  id                   String       @id @default(cuid())
+  professionalGroupId  String
+  professionalGroup    Organization @relation("ProfessionalGroup", fields: [professionalGroupId], references: [id], onDelete: Cascade)
+  clinicId             String
+  clinic               Organization @relation("Clinic", fields: [clinicId], references: [id], onDelete: Cascade)
+  createdAt            DateTime     @default(now())
+
+  @@unique([professionalGroupId, clinicId])
+}
+
 model CareNucleus {
   id          String                @id @default(cuid())
   name        String
@@ -93,6 +126,7 @@ model Referral {
   patientDocument     String?
   systemicDiseases    String?
   clinicalNotes       String?
+  clinicalSuspicion   String?
   status              ReferralStatus     @default(Encaminhado)
   doctor              String?
   appointmentDate     DateTime?
@@ -100,6 +134,10 @@ model Referral {
   specialistConduct   String?
   nucleusId           String
   nucleus             CareNucleus        @relation(fields: [nucleusId], references: [id])
+  organizationId      String
+  organization        Organization       @relation("ReferralOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
+  createdByUserId     String
+  createdByUser       User               @relation("CreatedBy", fields: [createdByUserId], references: [id], onDelete: Cascade)
   documents           ReferralDocument[]
   specialistFiles     ReferralAttachment[]
   createdAt           DateTime           @default(now())

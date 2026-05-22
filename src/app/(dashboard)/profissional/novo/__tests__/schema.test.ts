@@ -25,7 +25,7 @@ describe("novoEncaminhamentoSchema", () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.flatten().fieldErrors.patientName).toContain(
-        "Nome é obrigatório",
+        "errors.patientNameRequired",
       );
     }
   });
@@ -57,7 +57,7 @@ describe("novoEncaminhamentoSchema", () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.flatten().fieldErrors.clinicalSuspect).toContain(
-        "Suspeita clínica é obrigatória",
+        "errors.clinicalSuspectRequired",
       );
     }
   });

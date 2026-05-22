@@ -11,7 +11,7 @@ describe("serviceSchema", () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.flatten().fieldErrors.name).toContain(
-        "Nome é obrigatório",
+        "errors.nameRequired",
       );
     }
   });
@@ -57,7 +57,7 @@ describe("nucleusSchema", () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.flatten().fieldErrors.description).toContain(
-        "Descrição é obrigatória",
+        "errors.descriptionRequired",
       );
     }
   });

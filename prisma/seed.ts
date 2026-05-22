@@ -85,46 +85,123 @@ async function main() {
     console.log(`✅ Nucleus upserted: ${nucleusData.name}`);
   }
 
-  const users = [
-    {
-      id: "USR-1",
-      name: "Levy Administrativo",
-      email: "admin@ciso.com.br",
-      role: "ADMINISTRATIVO" as const,
-      passwordHash,
+  // Seed Organizations
+  const clinica = await prisma.organization.upsert({
+    where: { id: "ORG-CLINICA-1" },
+    update: {},
+    create: {
+      id: "ORG-CLINICA-1",
+      name: "Clínica Padrão",
+      type: "CLINICA",
+      cnpj: "12.345.678/0001-90",
+      address: "Rua das Flores, 123 - São Paulo, SP",
+      phone: "+55 11 3000-0000",
     },
-    {
-      id: "USR-2",
-      name: "Bianca Triagem",
-      email: "clinica@ciso.com.br",
-      role: "CLINICA" as const,
-      passwordHash,
+  });
+  console.log(`✅ Organization created: ${clinica.name}`);
+
+  const professionalGroup = await prisma.organization.upsert({
+    where: { id: "ORG-PROF-1" },
+    update: {},
+    create: {
+      id: "ORG-PROF-1",
+      name: "Grupo Profissional de Oftalmologia",
+      type: "PROFISSIONAL_GROUP",
+      cnpj: "98.765.432/0001-01",
+      address: "Av. Paulista, 1000 - São Paulo, SP",
+      phone: "+55 11 3001-1111",
     },
-    {
-      id: "USR-3",
-      name: "Dr. Fernando Silva",
-      email: "medico@ciso.com.br",
-      role: "MEDICO" as const,
-      passwordHash,
-    },
-    {
-      id: "USR-4",
-      name: "Camila Profissional",
-      email: "profissional@ciso.com.br",
-      role: "PROFISSIONAL" as const,
-      passwordHash,
-    },
-  ];
+  });
+  console.log(`✅ Organization created: ${professionalGroup.name}`);
 
   // Seed Users
-  for (const user of users) {
-    await prisma.user.upsert({
-      where: { email: user.email },
-      update: { passwordHash: user.passwordHash },
-      create: user,
-    });
-    console.log(`✅ User upserted: ${user.email}`);
-  }
+  const adminUser = await prisma.user.upsert({
+    where: { id: "USR-1" },
+    update: {
+      name: "Levy Administrativo",
+      email: "admin@integravisao.com.br",
+      role: "ADMINISTRATIVO",
+      passwordHash,
+      organizationId: null,
+      isAdmin: false,
+    },
+    create: {
+      id: "USR-1",
+      name: "Levy Administrativo",
+      email: "admin@integravisao.com.br",
+      role: "ADMINISTRATIVO",
+      passwordHash,
+      organizationId: null,
+      isAdmin: false,
+    },
+  });
+  console.log(`✅ User created: ${adminUser.email} (ADMINISTRATIVO)`);
+
+  const medicUser = await prisma.user.upsert({
+    where: { id: "USR-2" },
+    update: {
+      name: "Dr. Fernando Silva",
+      email: "medico@integravisao.com.br",
+      role: "MEDICO",
+      passwordHash,
+      organizationId: clinica.id,
+      isAdmin: true,
+    },
+    create: {
+      id: "USR-2",
+      name: "Dr. Fernando Silva",
+      email: "medico@integravisao.com.br",
+      role: "MEDICO",
+      passwordHash,
+      organizationId: clinica.id,
+      isAdmin: true,
+    },
+  });
+  console.log(
+    `✅ User created: ${medicUser.email} (MEDICO, isAdmin=true at ${clinica.name})`,
+  );
+
+  const profUser = await prisma.user.upsert({
+    where: { id: "USR-3" },
+    update: {
+      name: "Camila Profissional",
+      email: "profissional@integravisao.com.br",
+      role: "PROFISSIONAL",
+      passwordHash,
+      organizationId: professionalGroup.id,
+      isAdmin: false,
+    },
+    create: {
+      id: "USR-3",
+      name: "Camila Profissional",
+      email: "profissional@integravisao.com.br",
+      role: "PROFISSIONAL",
+      passwordHash,
+      organizationId: professionalGroup.id,
+      isAdmin: false,
+    },
+  });
+  console.log(
+    `✅ User created: ${profUser.email} (PROFISSIONAL at ${professionalGroup.name})`,
+  );
+
+  // Seed ProfessionalAccess (allows professionalGroup → clinica)
+  const access = await prisma.professionalAccess.upsert({
+    where: {
+      professionalGroupId_clinicId: {
+        professionalGroupId: professionalGroup.id,
+        clinicId: clinica.id,
+      },
+    },
+    update: {},
+    create: {
+      professionalGroupId: professionalGroup.id,
+      clinicId: clinica.id,
+    },
+  });
+  console.log(
+    `✅ ProfessionalAccess created: ${professionalGroup.name} → ${clinica.name}`,
+  );
 }
 
 main()

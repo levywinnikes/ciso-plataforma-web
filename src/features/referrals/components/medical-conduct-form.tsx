@@ -1,6 +1,7 @@
 "use client";
 
 import { FileText, Upload } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Textarea } from "@/components/ui";
 
@@ -21,19 +22,20 @@ export function MedicalConductForm({
   files,
   onAddFile,
 }: MedicalConductFormProps) {
+  const t = useTranslations("medicalConduct");
   return (
     <div className="space-y-5 rounded-xl border border-dashed border-gray-200 bg-gray-50/50 p-5">
       <h4 className="mb-2 flex items-center text-sm font-bold uppercase tracking-wider text-primary">
         <FileText className="mr-2 h-4 w-4" />
-        Laudo e Conduta Médica
+        {t("title")}
       </h4>
 
       <div className="space-y-2">
         <label className="text-xs font-bold uppercase text-gray-700">
-          Considerações Médicas / Parecer Técnico
+          {t("notesLabel")}
         </label>
         <Textarea
-          placeholder="Descreva as análises dos exames, estado clínico, refração detalhada..."
+          placeholder={t("notesPlaceholder")}
           className="min-h-[120px] border-gray-300 shadow-sm focus:border-primary"
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
@@ -42,10 +44,10 @@ export function MedicalConductForm({
 
       <div className="space-y-2">
         <label className="text-xs font-bold uppercase text-gray-700">
-          Conduta / Tratamento (Devolutiva)
+          {t("conductLabel")}
         </label>
         <Textarea
-          placeholder="Ex: Prescrição de colírio X, cirurgia agendada, uso de óculos, etc..."
+          placeholder={t("conductPlaceholder")}
           className="min-h-[120px] border-gray-300 shadow-sm focus:border-primary"
           value={conduct}
           onChange={(e) => onConductChange(e.target.value)}
@@ -54,7 +56,7 @@ export function MedicalConductForm({
 
       <div className="pt-2">
         <label className="mb-2 block text-xs font-bold uppercase text-gray-700">
-          Anexar Exames Compl. / Receituário
+          {t("attachmentsLabel")}
         </label>
         <button
           type="button"
@@ -63,7 +65,7 @@ export function MedicalConductForm({
         >
           <Upload className="mb-2 h-5 w-5 text-gray-400" />
           <p className="text-xs font-medium text-gray-600">
-            Adicionar PDFs ou Imagens
+            {t("addAttachments")}
           </p>
         </button>
         {files.length > 0 && (

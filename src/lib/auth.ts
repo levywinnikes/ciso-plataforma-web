@@ -3,8 +3,39 @@ import { compare } from "bcryptjs";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-import type { UserRole } from "@/features/auth/types";
+import type { JWTPayload, SessionUser, UserRole } from "@/features/auth/types";
 import { prisma } from "@/lib/prisma";
+
+function isTransientDbError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes("Can't reach database server") ||
+    message.includes("terminating connection due to administrator command") ||
+    message.includes("E57P01") ||
+    message.includes("P1001")
+  );
+}
+
+async function findUserWithRetry(email: string) {
+  const maxAttempts = 2;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await prisma.user.findUnique({
+        where: { email },
+        include: { organization: true },
+      });
+    } catch (error) {
+      if (!isTransientDbError(error) || attempt === maxAttempts) {
+        throw error;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    }
+  }
+
+  return null;
+}
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as NextAuthOptions["adapter"],
@@ -20,9 +51,9 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email.trim().toLowerCase() },
-        });
+        const user = await findUserWithRetry(
+          credentials.email.trim().toLowerCase(),
+        );
 
         if (!user || !user.passwordHash) return null;
 
@@ -34,6 +65,9 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role as UserRole,
+          organizationId: user.organizationId,
+          organizationType: user.organization?.type || null,
+          isAdmin: user.isAdmin,
         };
       },
     }),
@@ -41,15 +75,26 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as { role: UserRole }).role;
+        const userPayload = user as any;
+        token.organizationId = userPayload.organizationId || null;
+        token.organizationType = userPayload.organizationType || null;
+        token.isAdmin = userPayload.isAdmin || false;
         token.id = user.id;
+        token.role = userPayload.role;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.role = token.role as UserRole;
-        session.user.id = token.id as string;
+        const jwtPayload = token as unknown as JWTPayload;
+        session.user = {
+          ...session.user,
+          id: jwtPayload.id,
+          role: jwtPayload.role,
+          organizationId: jwtPayload.organizationId,
+          organizationType: jwtPayload.organizationType,
+          isAdmin: jwtPayload.isAdmin,
+        } as SessionUser;
       }
       return session;
     },

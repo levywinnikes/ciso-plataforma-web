@@ -1,10 +1,5 @@
-"use client";
-
-import { useClinicaPageModel } from "./hooks";
-import { ClinicaPageView } from "./view";
+import { redirect } from "next/navigation";
 
 export default function ClinicaPage() {
-  const model = useClinicaPageModel();
-
-  return <ClinicaPageView model={model} />;
+  redirect("/medico");
 }

@@ -1,4 +1,4 @@
-# CISO Plataforma Web
+# Integra Visão Plataforma Web
 
 Plataforma para fluxo completo de encaminhamentos oftalmologicos com perfis separados por tipo de conta:
 
@@ -199,7 +199,7 @@ Regra obrigatoria: toda implementacao deve consultar primeiro o indice em docs/a
 
 ## Contas de demonstracao
 
-- `admin@ciso.com.br` / `123456`
-- `clinica@ciso.com.br` / `123456`
-- `medico@ciso.com.br` / `123456`
-- `profissional@ciso.com.br` / `123456`
+- `admin@integravisao.com.br` / `123456`
+- `clinica@integravisao.com.br` / `123456`
+- `medico@integravisao.com.br` / `123456`
+- `profissional@integravisao.com.br` / `123456`

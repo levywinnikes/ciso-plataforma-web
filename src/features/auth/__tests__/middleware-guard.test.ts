@@ -7,9 +7,9 @@
  * comportamento de redirecionamento: `canAccessPath` e `resolveRolePath`.
  *
  * Comportamento esperado do middleware (validado nos testes E2E / manual):
- *  - Sem token → redireciona para /login?callbackUrl=...
- *  - Token com role ADMINISTRATIVO acessando /clinica → redireciona para /admin
- *  - Token com role CLINICA acessando /admin → redireciona para /clinica
+ *  - Sem token -> redireciona para /login?callbackUrl=...
+ *  - Token com role ADMINISTRATIVO acessando /medico -> redireciona para /admin
+ *  - Token com role MEDICO acessando /admin -> redireciona para /medico
  *  - /login e /api/auth/* → sempre públicos, sem redirecionamento
  */
 
@@ -20,13 +20,8 @@ describe("middleware route guard logic", () => {
   describe("PUBLIC_PATHS — always accessible, no token required", () => {
     const publicPaths = ["/login", "/login?callbackUrl=%2Fadmin"];
 
-    it.each(publicPaths)("path %s is accessible to any role", (path) => {
-      const roles: UserRole[] = [
-        "ADMINISTRATIVO",
-        "CLINICA",
-        "MEDICO",
-        "PROFISSIONAL",
-      ];
+    it.each(publicPaths)("path %s is accessible to any role", () => {
+      const roles: UserRole[] = ["ADMINISTRATIVO", "MEDICO", "PROFISSIONAL"];
       // /login is marked public before the role check runs in middleware
       // canAccessPath handles /login as permissive
       for (const role of roles) {
@@ -41,10 +36,6 @@ describe("middleware route guard logic", () => {
       expect(canAccessPath("ADMINISTRATIVO", "/admin/financeiro")).toBe(true);
     });
 
-    it("CLINICA can access their dashboard", () => {
-      expect(canAccessPath("CLINICA", "/clinica")).toBe(true);
-    });
-
     it("MEDICO can access their dashboard", () => {
       expect(canAccessPath("MEDICO", "/medico")).toBe(true);
     });
@@ -57,13 +48,10 @@ describe("middleware route guard logic", () => {
 
   describe("authenticated user — wrong role for path → must redirect", () => {
     const crossRoleAttempts: Array<[UserRole, string, string]> = [
-      ["CLINICA", "/admin", "/clinica"],
-      ["CLINICA", "/medico", "/clinica"],
       ["MEDICO", "/admin", "/medico"],
-      ["MEDICO", "/clinica", "/medico"],
+      ["MEDICO", "/profissional", "/medico"],
       ["PROFISSIONAL", "/admin", "/profissional"],
-      ["PROFISSIONAL", "/clinica", "/profissional"],
-      ["ADMINISTRATIVO", "/clinica", "/admin"],
+      ["PROFISSIONAL", "/medico", "/profissional"],
       ["ADMINISTRATIVO", "/medico", "/admin"],
       ["ADMINISTRATIVO", "/profissional", "/admin"],
     ];

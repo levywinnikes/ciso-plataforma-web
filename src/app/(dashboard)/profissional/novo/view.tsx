@@ -19,6 +19,7 @@ import {
   formatCurrency,
   getNucleusPriceSummary,
 } from "@/features/referrals/utils";
+import { useFormError } from "@/i18n/use-form-error";
 
 import type { NovoEncaminhamentoPageModel } from "./schema";
 
@@ -31,6 +32,7 @@ export function NovoEncaminhamentoPageView({
 }: NovoEncaminhamentoPageViewProps) {
   const t = useTranslations("newReferral");
   const common = useTranslations("common");
+  const tError = useFormError();
 
   const { register, formState } = model.form;
   const errors = formState.errors;
@@ -61,7 +63,7 @@ export function NovoEncaminhamentoPageView({
                 <Field
                   label={t("patientName")}
                   required
-                  error={errors.patientName?.message}
+                  error={tError(errors.patientName?.message)}
                 >
                   <Input {...register("patientName")} />
                 </Field>
@@ -69,14 +71,14 @@ export function NovoEncaminhamentoPageView({
               <Field
                 label={t("birthDate")}
                 required
-                error={errors.patientBirthDate?.message}
+                error={tError(errors.patientBirthDate?.message)}
               >
                 <DateInput {...register("patientBirthDate")} />
               </Field>
               <Field
                 label={t("phone")}
                 required
-                error={errors.patientPhone?.message}
+                error={tError(errors.patientPhone?.message)}
               >
                 <PhoneInput {...register("patientPhone")} />
               </Field>
@@ -84,7 +86,7 @@ export function NovoEncaminhamentoPageView({
                 <Field
                   label={t("document")}
                   hint={t("optional")}
-                  error={errors.patientDocument?.message}
+                  error={tError(errors.patientDocument?.message)}
                 >
                   <Input {...register("patientDocument")} />
                 </Field>
@@ -99,7 +101,7 @@ export function NovoEncaminhamentoPageView({
               </Field>
               <Field
                 label={t("clinicalSuspect")}
-                error={errors.clinicalSuspect?.message}
+                error={tError(errors.clinicalSuspect?.message)}
               >
                 <Select {...register("clinicalSuspect")}>
                   <option value="">{t("selectClinicalSuspect")}</option>
@@ -136,7 +138,7 @@ export function NovoEncaminhamentoPageView({
             <Field
               label={t("selectNucleus")}
               required
-              error={errors.nucleusId?.message}
+              error={tError(errors.nucleusId?.message)}
             >
               <Select {...register("nucleusId")}>
                 <option value="">{common("select")}</option>

@@ -9,9 +9,10 @@ export const DOCTORS = [
   "Dr. Roberto Almeida",
 ] as const;
 
+// Mensagens sao chaves i18n resolvidas pela view via useTranslations().
 export const scheduleSchema = z.object({
-  doctor: z.string().min(1, "Médico é obrigatório"),
-  scheduleDate: z.string().min(1, "Data é obrigatória"),
+  doctor: z.string().min(1, "errors.doctorRequired"),
+  scheduleDate: z.string().min(1, "errors.dateRequired"),
 });
 
 export type ScheduleFormData = z.infer<typeof scheduleSchema>;
