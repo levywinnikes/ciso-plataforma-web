@@ -5,6 +5,7 @@ import { Manrope } from "next/font/google";
 import { cookies } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
+import NextTopLoader from "nextjs-toploader";
 
 import { AppSessionProvider } from "@/components/providers/session-provider";
 import { Toaster } from "@/components/ui/toaster";
@@ -30,6 +31,11 @@ export default async function RootLayout({
       <body className={manrope.className}>
         <AppSessionProvider>
           <NextIntlClientProvider locale={locale} messages={messages}>
+            <NextTopLoader
+              color="#10b981"
+              showSpinner={false}
+              shadow="0 0 10px #10b981,0 0 5px #10b981"
+            />
             {children}
           </NextIntlClientProvider>
           <Toaster />
