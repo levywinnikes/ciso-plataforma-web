@@ -30,4 +30,7 @@ export interface ProfissionalPageModel {
   isModalOpen: boolean;
   openModal: (referral: Referral) => void;
   closeModal: () => void;
+
+  // Actions
+  deleteReferral: (id: string) => Promise<void>;
 }

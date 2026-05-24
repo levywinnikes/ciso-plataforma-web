@@ -110,6 +110,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       href: "/admin/usuarios",
       icon: Users,
     },
+    organizationUsers: {
+      name: "Colaboradores", // hardcoded temporarily if translation doesn't exist
+      href: "/organizacao/usuarios",
+      icon: Users,
+    },
     accesses: {
       name: t("nav.accesses"),
       href: "/admin/acessos",
@@ -215,10 +220,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </button>
         </div>
         <nav className="flex-1 space-y-3 overflow-y-auto px-4 py-6">
-          {role === "PROFISSIONAL"
-            ? renderNavLink(navItems.professional)
-            : null}
-          {role === "MEDICO" ? renderNavLink(navItems.doctor) : null}
+          {role === "PROFISSIONAL" ? (
+            <>
+              {renderNavLink(navItems.professional)}
+              {renderNavLink(navItems.organizationUsers)}
+            </>
+          ) : null}
+          {role === "MEDICO" ? (
+            <>
+              {renderNavLink(navItems.doctor)}
+              {renderNavLink(navItems.organizationUsers)}
+            </>
+          ) : null}
 
           {role === "ADMINISTRATIVO"
             ? adminSections.map((section) => {

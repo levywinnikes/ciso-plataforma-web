@@ -1,4 +1,10 @@
-import { ChevronLeft, ChevronRight, Eye, PlusCircle } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  PlusCircle,
+  Trash2,
+} from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
@@ -141,7 +147,7 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
                 <td className="ui-table-cell whitespace-nowrap">
                   <ReferralStatusBadge status={referral.status} />
                 </td>
-                <td className="ui-table-cell text-right">
+                <td className="ui-table-cell space-x-1 text-right">
                   <Button
                     variant="ghost"
                     className="p-2"
@@ -150,6 +156,24 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
                   >
                     <Eye className="h-4 w-4 text-emerald-700" />
                   </Button>
+                  {referral.status === "Encaminhado" && (
+                    <Button
+                      variant="ghost"
+                      className="p-2"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            "Tem certeza que deseja excluir este encaminhamento?",
+                          )
+                        ) {
+                          model.deleteReferral(referral.id);
+                        }
+                      }}
+                      title="Excluir"
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  )}
                 </td>
               </tr>
             ))

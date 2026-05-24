@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 
 import type { Referral } from "@/features/referrals/types";
+import { useAppToast } from "@/hooks/use-app-toast";
 
 import type { ProfissionalPageModel, ReferralFilters } from "./schema";
 
 const ITEMS_PER_PAGE = 10;
 
 export function useProfissionalPageModel(): ProfissionalPageModel {
+  const toast = useAppToast();
   const [isLoading, setIsLoading] = useState(true);
   const [referrals, setReferrals] = useState<Referral[]>([]);
 
@@ -104,8 +106,27 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
   };
 
   const closeModal = () => {
-    setSelectedReferral(null);
     setIsModalOpen(false);
+    setTimeout(() => setSelectedReferral(null), 200);
+  };
+
+  const deleteReferral = async (id: string) => {
+    try {
+      const response = await fetch(`/api/referrals/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || "Erro ao excluir encaminhamento");
+      }
+
+      toast.success("Encaminhamento excluído.");
+
+      setReferrals((prev) => prev.filter((r) => r.id !== id));
+    } catch (error: any) {
+      toast.error(error.message || "Não foi possível excluir.");
+    }
   };
 
   return {
@@ -122,5 +143,6 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
     isModalOpen,
     openModal,
     closeModal,
+    deleteReferral,
   };
 }
