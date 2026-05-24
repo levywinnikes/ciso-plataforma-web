@@ -308,8 +308,8 @@
   },
   "doctor": {
     "title": "Painel do Médico Especialista",
-    "subtitle": "Visualize sua agenda do dia, analise as triagens e emita condutas.",
-    "agendaToday": "Minha Agenda - Hoje",
+    "subtitle": "Visualize as triagens pendentes, sua agenda do dia e emita condutas.",
+    "agendaToday": "Triagens Pendentes e Agenda",
     "dateAndTime": "Data e Hora",
     "nucleus": "Núcleo de Atendimento",
     "responsibleDoctor": "Médico Responsável",

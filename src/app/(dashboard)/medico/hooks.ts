@@ -35,7 +35,11 @@ export function useMedicoPageModel(): MedicoPageModel {
   }, []);
 
   const items = useMemo(
-    () => referrals.filter((referral) => referral.status === "Agendado"),
+    () =>
+      referrals.filter(
+        (referral) =>
+          referral.status === "Agendado" || referral.status === "Encaminhado",
+      ),
     [referrals],
   );
 
