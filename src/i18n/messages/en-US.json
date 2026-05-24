@@ -369,6 +369,8 @@
     "invalidUserData": "Invalid user data.",
     "invalidRoleForOrganization": "Invalid role for this organization.",
     "passwordTooShort": "Password must be at least 8 characters.",
+    "emailAlreadyExists": "Email already registered. Please use another one.",
+    "invalidEmail": "Invalid email format.",
     "genericRequestFailed": "Could not complete the operation. Please try again."
   }
 }

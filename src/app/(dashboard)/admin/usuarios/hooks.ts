@@ -4,6 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { useAppToast } from "@/hooks/use-app-toast";
+
 import { type AdminUserFormData, adminUserSchema } from "./schema";
 
 export function useAdminUsersForm(onSuccess?: () => void) {
@@ -13,7 +15,7 @@ export function useAdminUsersForm(onSuccess?: () => void) {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const toast = useAppToast();
 
   async function extractErrorKey(response: Response): Promise<string> {
     try {
@@ -25,7 +27,6 @@ export function useAdminUsersForm(onSuccess?: () => void) {
   }
 
   async function onSubmit(data: AdminUserFormData) {
-    setErrorMessage(null);
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/users/globals", {
@@ -35,16 +36,17 @@ export function useAdminUsersForm(onSuccess?: () => void) {
       });
 
       if (!response.ok) {
-        setErrorMessage(await extractErrorKey(response));
+        toast.error(await extractErrorKey(response));
         return;
       }
 
       form.reset();
+      toast.success("Usuário criado com sucesso!");
       if (onSuccess) onSuccess();
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  return { form, onSubmit, isSubmitting, errorMessage, setErrorMessage };
+  return { form, onSubmit, isSubmitting };
 }

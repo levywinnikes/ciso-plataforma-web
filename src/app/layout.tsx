@@ -7,6 +7,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 
 import { AppSessionProvider } from "@/components/providers/session-provider";
+import { Toaster } from "@/components/ui/toaster";
 import { resolveLocale } from "@/i18n/config";
 
 const manrope = Manrope({ subsets: ["latin"] });
@@ -31,6 +32,7 @@ export default async function RootLayout({
           <NextIntlClientProvider locale={locale} messages={messages}>
             {children}
           </NextIntlClientProvider>
+          <Toaster />
         </AppSessionProvider>
       </body>
     </html>

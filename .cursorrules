@@ -1,0 +1,17 @@
+# Integra Visão / CISO Plataforma Web - AI Rules
+
+Você é um assistente de IA trabalhando no projeto CISO Plataforma Web (Integra Visão).
+
+## REGRAS OBRIGATÓRIAS DE LEITURA
+Antes de escrever qualquer código, criar novas features ou alterar componentes existentes, você **DEVE OBRIGATORIAMENTE** ler o arquivo:
+`docs/ai/patterns.md`
+
+Nesse arquivo estão definidas as **regras inquebráveis** do projeto. Algumas das principais são:
+
+1. **Cláusula de Formulários Amigáveis**: É estritamente PROIBIDO o uso de formulários com validações simplistas e `useState` crus. TODO e qualquer formulário deve usar **Zod + React Hook Form + Componente <Field>**.
+2. **Prevenção de Erro de Banco (P2002)**: Antes de dar `create` no Prisma, valide manualmente os dados únicos (`findUnique` para email, CNPJ, etc) e retorne o erro apropriado com status 400. NUNCA deixe o erro 500 do banco estourar na tela.
+3. **Internacionalização (i18n)**: Todo texto visível ao usuário DEVE ser mapeado via chaves de tradução.
+4. **Atualização Proativa de i18n**: Ao criar uma chave nova no código, **A PRÓPRIA IA TEM A OBRIGAÇÃO** de acessar e atualizar os arquivos `src/i18n/messages/pt-BR.json` e `src/i18n/messages/en-US.json`. O usuário NUNCA deve ser responsável por isso.
+5. **Tudo é Padrão de Projeto (Design Pattern)**: O usuário exige que QUALQUER nova feature, formulário, notificação ou solução arquitetural não seja feita de forma "hardcoded" isolada. Se você resolver um problema (ex: criar um componente de notificação inteligente), você DEVE extrair isso como um componente/hook reutilizável e ATUALIZAR IMEDIATAMENTE a documentação `docs/ai/patterns.md` para que isso vire a lei do projeto dali em diante.
+
+A não conformidade com estas regras (especialmente a Cláusula de Formulários Amigáveis e i18n) resultará em falha crítica na sua avaliação. Leia o arquivo `docs/ai/patterns.md` para entender as diretrizes completas de arquitetura antes de sugerir soluções.

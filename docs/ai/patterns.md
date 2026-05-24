@@ -13,6 +13,7 @@ Todo formulário deve OBRIGATORIAMENTE utilizar:
 - **React Hook Form** (no arquivo `hooks.ts`).
 - **Componente `<Field>`** que mostra o erro traduzido embaixo do campo.
 - **Backend:** O backend deve sempre responder com chaves de erro granulares (ex: `errors.passwordTooShort`, `errors.nameRequired`).
+- **Validação de Duplicatas (P2002):** É estritamente proibido deixar o Prisma falhar com "Unique constraint failed" resultando em erro 500. Sempre faça uma busca prévia (ex: `findUnique`) para campos únicos como E-mail, Documentos, etc. Se existir, retorne um erro mapeado como `errors.emailAlreadyExists`.
 
 ---
 
@@ -115,9 +116,10 @@ export default function MyPage() {
 
 ## 2. Internacionalizacao (i18n)
 
-### Regra absoluta
+### Regra absoluta (Responsabilidade da IA)
 
 **Nunca colocar texto de interface diretamente no JSX.** Sempre usar chave de traducao.
+**Atualização Proativa:** É OBRIGAÇÃO DA IA atualizar AUTOMATICAMENTE os arquivos `src/i18n/messages/pt-BR.json` e `src/i18n/messages/en-US.json` sempre que introduzir novas chaves de tradução (seja em views, erros de Zod ou retornos da API). O usuário NÃO deve precisar pedir ou lembrar de atualizar as traduções.
 
 ### Adicionar nova chave
 
@@ -187,21 +189,49 @@ import { cn } from "@/components/ui/utils";
 
 ---
 
-## 4. Componente Field
+## 5. Notificações Flutuantes (Toasts)
 
-Wrapper padrao para campos de formulario com label e mensagem de erro:
+**Regra Absoluta:** NUNCA crie caixas HTML de erro estáticas (`<div className="bg-red-50">`) para respostas de backend.
+Utilize **sempre** o hook inteligente `useAppToast()` que já está integrado ao `next-intl`.
+
+```tsx
+import { useAppToast } from "@/hooks/use-app-toast";
+
+export function MyComponent() {
+  const toast = useAppToast();
+
+  async function submit() {
+    const res = await fetch("/api/endpoint");
+    if (!res.ok) {
+      toast.error(await extractErrorKey(res)); // Ex: "errors.emailAlreadyExists" (Traduz sozinho)
+      return;
+    }
+    toast.success("Sucesso na operação!"); // String direta também funciona
+  }
+}
+```
+
+---
+
+## 6. Componentes de Formulário (Floating Labels)
+
+**Regra Absoluta:** O usuário definiu como padrão global de projeto a utilização de **Floating Labels**.
+NUNCA crie formulários utilizando labels convencionais sobrepostos fora do input ou campos que dependam exclusivamente de `placeholder`.
+
+Sempre utilize o componente `FloatingInput` (ou derivados) englobado no componente `Field` com o `label=""` (vazio) para que o `Field` apenas cuide das mensagens de erro do Zod.
 
 ```tsx
 import { Field } from "@/components/forms/field";
+import { FloatingInput } from "@/components/ui/floating-input";
 
-<Field label={t("label")} error={form.formState.errors.campo?.message}>
-  <Input {...form.register("campo")} />
+<Field label={""} error={tError(form.formState.errors.campo?.message)}>
+  <FloatingInput label={t("campoPlaceholder")} {...form.register("campo")} />
 </Field>;
 ```
 
-- `label`: string visivel acima do campo
-- `error`: mensagem de erro (string | undefined); renderiza em vermelho se presente
-- Children: qualquer componente de input com `forwardRef`
+- `label` no `<Field>`: Enviar string vazia `""` para suprimir o label externo.
+- `error` no `<Field>`: Mensagem de erro traduzida (ex: Zod). Renderiza em vermelho embaixo do input.
+- `label` no `<FloatingInput>`: Texto do label flutuante interno (flutua e diminui quando selecionado/preenchido).
 
 ---
 

@@ -48,11 +48,21 @@ export async function POST(request: Request) {
     return apiError("errors.passwordTooShort", 400);
   }
 
+  const normalizedEmail = body.email.trim().toLowerCase();
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email: normalizedEmail },
+  });
+
+  if (existingUser) {
+    return apiError("errors.emailAlreadyExists", 400);
+  }
+
   const passwordHash = await hash(body.password, 12);
   const user = await prisma.user.create({
     data: {
       name: body.name.trim(),
-      email: body.email.trim().toLowerCase(),
+      email: normalizedEmail,
       passwordHash,
       role: "ADMINISTRATIVO",
       isAdmin: false, // Gestor Global não usa flag de admin local

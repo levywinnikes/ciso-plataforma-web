@@ -8,11 +8,12 @@ import {
   Button,
   CardSection,
   ConfirmDialog,
-  Input,
+  FloatingInput,
   PageHeader,
   TableCard,
   TableShell,
 } from "@/components/ui";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { useFormError } from "@/i18n/use-form-error";
 
 import { useAdminUsersForm } from "./hooks";
@@ -34,6 +35,7 @@ export function AdminUsersView() {
   const [pendingDeleteUserId, setPendingDeleteUserId] = useState<string | null>(
     null,
   );
+  const toast = useAppToast();
 
   async function extractErrorKey(response: Response): Promise<string> {
     try {
@@ -45,12 +47,11 @@ export function AdminUsersView() {
   }
 
   async function loadUsers() {
-    setErrorMessage(null);
     const response = await fetch("/api/users/globals", {
       cache: "no-store",
     });
     if (!response.ok) {
-      setErrorMessage(await extractErrorKey(response));
+      toast.error(await extractErrorKey(response));
       return;
     }
     setRows((await response.json()) as UserRow[]);
@@ -61,16 +62,15 @@ export function AdminUsersView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { form, onSubmit, isSubmitting, errorMessage, setErrorMessage } =
-    useAdminUsersForm(loadUsers);
+  const { form, onSubmit, isSubmitting } = useAdminUsersForm(loadUsers);
 
   async function deleteUser(id: string) {
-    setErrorMessage(null);
     const response = await fetch(`/api/users/${id}`, { method: "DELETE" });
     if (!response.ok) {
-      setErrorMessage(await extractErrorKey(response));
+      toast.error(await extractErrorKey(response));
       return;
     }
+    toast.success("Usuário excluído com sucesso!");
     await loadUsers();
   }
 
@@ -78,23 +78,14 @@ export function AdminUsersView() {
     <div className="space-y-6">
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
 
-      {errorMessage ? (
-        <div
-          className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-          role="alert"
-        >
-          {tError(errorMessage)}
-        </div>
-      ) : null}
-
       <CardSection title={t("createTitle")}>
         <form
           className="grid gap-3 md:grid-cols-2"
           onSubmit={form.handleSubmit(onSubmit)}
         >
           <Field label={""} error={tError(form.formState.errors.name?.message)}>
-            <Input
-              placeholder={t("namePlaceholder")}
+            <FloatingInput
+              label={t("namePlaceholder")}
               {...form.register("name")}
             />
           </Field>
@@ -103,9 +94,9 @@ export function AdminUsersView() {
             label={""}
             error={tError(form.formState.errors.email?.message)}
           >
-            <Input
+            <FloatingInput
               type="email"
-              placeholder={t("emailPlaceholder")}
+              label={t("emailPlaceholder")}
               {...form.register("email")}
             />
           </Field>
@@ -114,14 +105,14 @@ export function AdminUsersView() {
             label={""}
             error={tError(form.formState.errors.password?.message)}
           >
-            <Input
+            <FloatingInput
               type="password"
-              placeholder={t("passwordPlaceholder")}
+              label={t("passwordPlaceholder")}
               {...form.register("password")}
             />
           </Field>
 
-          <div className="flex items-start pt-1">
+          <div className="flex h-14 items-center">
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? common("saving") : t("createAction")}
             </Button>

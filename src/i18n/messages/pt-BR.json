@@ -369,6 +369,8 @@
     "invalidUserData": "Dados de usuário inválidos.",
     "invalidRoleForOrganization": "Role inválida para esta organização.",
     "passwordTooShort": "Senha deve ter ao menos 8 caracteres.",
+    "emailAlreadyExists": "E-mail já cadastrado. Por favor, utilize outro.",
+    "invalidEmail": "Formato de e-mail inválido.",
     "genericRequestFailed": "Não foi possível concluir a operação. Tente novamente."
   }
 }

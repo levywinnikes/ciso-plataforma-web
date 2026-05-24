@@ -14,6 +14,7 @@ import {
   TableCard,
   TableShell,
 } from "@/components/ui";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { useFormError } from "@/i18n/use-form-error";
 
 interface OrganizationRow {
@@ -67,7 +68,6 @@ export function OrganizationManagementPage({
     null,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [newUserName, setNewUserName] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
@@ -89,18 +89,17 @@ export function OrganizationManagementPage({
       cache: "no-store",
     });
     if (!response.ok) {
-      setErrorMessage(await extractErrorKey(response));
+      toast.error(tError(await extractErrorKey(response)));
       return;
     }
     setRows((await response.json()) as OrganizationRow[]);
-  }, [type]);
+  }, [type, tError, toast]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
   async function createOrganization() {
-    setErrorMessage(null);
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/organizations", {
@@ -118,7 +117,7 @@ export function OrganizationManagementPage({
       });
 
       if (!response.ok) {
-        setErrorMessage(await extractErrorKey(response));
+        toast.error(tError(await extractErrorKey(response)));
         return;
       }
 
@@ -128,6 +127,7 @@ export function OrganizationManagementPage({
       setAdminName("");
       setAdminEmail("");
       setAdminPassword("");
+      toast.success(t("createSuccess"));
       await load();
     } finally {
       setIsSubmitting(false);
@@ -135,12 +135,11 @@ export function OrganizationManagementPage({
   }
 
   async function deleteOrganization(id: string) {
-    setErrorMessage(null);
     const response = await fetch(`/api/organizations/${id}`, {
       method: "DELETE",
     });
     if (!response.ok) {
-      setErrorMessage(await extractErrorKey(response));
+      toast.error(tError(await extractErrorKey(response)));
       return;
     }
     await load();
@@ -151,7 +150,7 @@ export function OrganizationManagementPage({
       cache: "no-store",
     });
     if (!response.ok) {
-      setErrorMessage(await extractErrorKey(response));
+      toast.error(tError(await extractErrorKey(response)));
       return;
     }
     setUsers((await response.json()) as UserRow[]);
@@ -164,10 +163,9 @@ export function OrganizationManagementPage({
   }
 
   async function deleteUser(userId: string) {
-    setErrorMessage(null);
     const response = await fetch(`/api/users/${userId}`, { method: "DELETE" });
     if (!response.ok) {
-      setErrorMessage(await extractErrorKey(response));
+      toast.error(tError(await extractErrorKey(response)));
       return;
     }
     if (selectedOrgId) {
@@ -178,7 +176,6 @@ export function OrganizationManagementPage({
 
   async function createUser() {
     if (!selectedOrgId) return;
-    setErrorMessage(null);
     setIsCreatingUser(true);
     try {
       const role = type === "CLINICA" ? "MEDICO" : "PROFISSIONAL";
@@ -198,7 +195,7 @@ export function OrganizationManagementPage({
       );
 
       if (!response.ok) {
-        setErrorMessage(await extractErrorKey(response));
+        toast.error(tError(await extractErrorKey(response)));
         return;
       }
 
@@ -206,6 +203,7 @@ export function OrganizationManagementPage({
       setNewUserEmail("");
       setNewUserPassword("");
       setNewUserIsAdmin(false);
+      toast.success(t("createUserSuccess"));
       await loadUsers(selectedOrgId);
       await load();
     } finally {
@@ -223,7 +221,6 @@ export function OrganizationManagementPage({
 
   async function updateOrganization() {
     if (!editingId) return;
-    setErrorMessage(null);
     setIsSubmitting(true);
     try {
       const response = await fetch(`/api/organizations/${editingId}`, {
@@ -237,11 +234,12 @@ export function OrganizationManagementPage({
       });
 
       if (!response.ok) {
-        setErrorMessage(await extractErrorKey(response));
+        toast.error(tError(await extractErrorKey(response)));
         return;
       }
 
       setIsEditModalOpen(false);
+      toast.success(t("updateSuccess"));
       await load();
     } finally {
       setIsSubmitting(false);
@@ -251,15 +249,6 @@ export function OrganizationManagementPage({
   return (
     <div className="space-y-6">
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
-
-      {errorMessage ? (
-        <div
-          className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-          role="alert"
-        >
-          {tError(errorMessage)}
-        </div>
-      ) : null}
 
       <CardSection title={t("createTitle")}>
         <div className="grid gap-3 md:grid-cols-2">
