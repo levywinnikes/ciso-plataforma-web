@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 
 import { CARE_NUCLEI } from "@/features/referrals/data";
 import type { CareNucleus, NucleusService } from "@/features/referrals/types";
+import { useAppToast } from "@/hooks/use-app-toast";
+import { useFormError } from "@/i18n/use-form-error";
 
 import type {
   AdminPageModel,
@@ -44,6 +46,7 @@ function buildServiceCatalog(nucleiList: CareNucleus[]): NucleusService[] {
 
 export function useAdminPageModel(): AdminPageModel {
   const [nuclei, setNuclei] = useState<CareNucleus[]>(CARE_NUCLEI);
+  const [isLoading, setIsLoading] = useState(true);
   const [services, setServices] = useState<NucleusService[]>(INITIAL_SERVICES);
   const [isNucleusModalOpen, setIsNucleusModalOpen] = useState(false);
   const [isEditNucleusModalOpen, setIsEditNucleusModalOpen] = useState(false);
@@ -55,13 +58,20 @@ export function useAdminPageModel(): AdminPageModel {
   const [editingNucleusId, setEditingNucleusId] = useState<string | null>(null);
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
 
+  const toast = useAppToast();
+  const tError = useFormError();
+
   useEffect(() => {
     let isMounted = true;
 
     async function loadNuclei() {
+      setIsLoading(true);
       try {
         const response = await fetch("/api/nuclei", { cache: "no-store" });
-        if (!response.ok) return;
+        if (!response.ok) {
+          setIsLoading(false);
+          return;
+        }
 
         const nucleiData = (await response.json()) as CareNucleus[];
         if (!isMounted) return;
@@ -70,6 +80,12 @@ export function useAdminPageModel(): AdminPageModel {
         setServices(buildServiceCatalog(nucleiData));
       } catch {
         // Keep local fallback when API is unavailable.
+        if (isMounted) {
+          setNuclei(CARE_NUCLEI);
+          setServices(buildServiceCatalog(CARE_NUCLEI));
+        }
+      } finally {
+        if (isMounted) setIsLoading(false);
       }
     }
 
@@ -171,11 +187,21 @@ export function useAdminPageModel(): AdminPageModel {
       description: target.description,
       price: target.chargedPrice,
     });
+    setSelectedServiceIds(target.services.map((s) => s.id));
     setIsEditNucleusModalOpen(true);
   };
 
   const handleUpdateNucleus = async (data: NucleusFormData) => {
     if (!editingNucleusId) return;
+
+    const updatedServices = services.filter((service) =>
+      selectedServiceIds.includes(service.id),
+    );
+
+    if (updatedServices.length === 0) {
+      toast.error(tError("errors.atLeastOneService") ?? "");
+      return;
+    }
 
     const response = await fetch(`/api/nuclei/${editingNucleusId}`, {
       method: "PATCH",
@@ -186,10 +212,22 @@ export function useAdminPageModel(): AdminPageModel {
         name: data.name,
         description: data.description,
         chargedPrice: data.price,
+        services: updatedServices.map((service) => ({
+          name: service.name,
+          basePrice: service.basePrice,
+        })),
       }),
     });
 
-    if (!response.ok) return;
+    if (!response.ok) {
+      let errorKey = "errors.genericRequestFailed";
+      try {
+        const body = await response.json();
+        if (body.error) errorKey = body.error;
+      } catch {}
+      toast.error(tError(errorKey) ?? "");
+      return;
+    }
 
     const updated = (await response.json()) as CareNucleus;
 
@@ -197,8 +235,10 @@ export function useAdminPageModel(): AdminPageModel {
       current.map((item) => (item.id === updated.id ? updated : item)),
     );
 
+    toast.success("Núcleo atualizado com sucesso!");
     setIsEditNucleusModalOpen(false);
     setEditingNucleusId(null);
+    setSelectedServiceIds([]);
   };
 
   const deleteNucleus = async (nucleusId: string) => {
@@ -206,13 +246,22 @@ export function useAdminPageModel(): AdminPageModel {
       method: "DELETE",
     });
 
-    if (!response.ok) return;
+    if (!response.ok) {
+      let errorKey = "errors.genericRequestFailed";
+      try {
+        const body = await response.json();
+        if (body.error) errorKey = body.error;
+      } catch {}
+      toast.error(tError(errorKey) ?? "");
+      return;
+    }
 
     setNuclei((current) => {
       const nextNuclei = current.filter((item) => item.id !== nucleusId);
       setServices(buildServiceCatalog(nextNuclei));
       return nextNuclei;
     });
+    toast.success("Núcleo excluído com sucesso!");
   };
 
   const openEditServiceModal = (serviceId: string) => {
@@ -309,7 +358,10 @@ export function useAdminPageModel(): AdminPageModel {
   };
 
   const handleCreateNucleus = async (data: NucleusFormData) => {
-    if (selectedServices.length === 0) return;
+    if (selectedServices.length === 0) {
+      toast.error(tError("errors.atLeastOneService") ?? "");
+      return;
+    }
 
     const response = await fetch("/api/nuclei", {
       method: "POST",
@@ -327,7 +379,15 @@ export function useAdminPageModel(): AdminPageModel {
       }),
     });
 
-    if (!response.ok) return;
+    if (!response.ok) {
+      let errorKey = "errors.genericRequestFailed";
+      try {
+        const body = await response.json();
+        if (body.error) errorKey = body.error;
+      } catch {}
+      toast.error(tError(errorKey) ?? "");
+      return;
+    }
 
     const createdNucleus = (await response.json()) as CareNucleus;
     setNuclei((current) => {
@@ -336,6 +396,7 @@ export function useAdminPageModel(): AdminPageModel {
       return nextNuclei;
     });
 
+    toast.success("Núcleo criado com sucesso!");
     nucleusForm.reset();
     setSelectedServiceIds([]);
     setIsNucleusModalOpen(false);
@@ -343,6 +404,7 @@ export function useAdminPageModel(): AdminPageModel {
 
   return {
     nuclei,
+    isLoading,
     services,
     isNucleusModalOpen,
     isEditNucleusModalOpen,

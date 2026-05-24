@@ -6,6 +6,7 @@ declare module "next-auth" {
     role: UserRole;
     organizationId: string | null;
     organizationType: OrganizationType | null;
+    organizationName: string | null;
     isAdmin: boolean;
   }
 
@@ -15,6 +16,7 @@ declare module "next-auth" {
       role: UserRole;
       organizationId: string | null;
       organizationType: OrganizationType | null;
+      organizationName: string | null;
       isAdmin: boolean;
       name?: string | null;
       email?: string | null;
@@ -29,6 +31,7 @@ declare module "next-auth/jwt" {
     id: string;
     organizationId: string | null;
     organizationType: OrganizationType | null;
+    organizationName: string | null;
     isAdmin: boolean;
   }
 }

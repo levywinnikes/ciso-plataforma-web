@@ -33,6 +33,7 @@ export interface ManagedServiceRow {
 
 export interface AdminPageModel {
   nuclei: CareNucleus[];
+  isLoading: boolean;
   services: NucleusService[];
   filteredServices: NucleusService[];
   isNucleusModalOpen: boolean;

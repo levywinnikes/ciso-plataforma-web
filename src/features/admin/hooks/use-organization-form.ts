@@ -32,7 +32,7 @@ export const createLocalUserSchema = z.object({
   name: z.string().min(1, "errors.required"),
   email: z.string().email("errors.invalidEmail"),
   password: z.string().min(8, "errors.passwordTooShort"),
-  isAdmin: z.boolean().default(false),
+  isAdmin: z.boolean(),
 });
 
 export type CreateLocalUserData = z.infer<typeof createLocalUserSchema>;
@@ -74,7 +74,7 @@ export function useCreateOrganizationForm(
           const body = await response.json();
           if (body.error) errorKey = body.error;
         } catch {}
-        toast.error(tError(errorKey));
+        toast.error(tError(errorKey) ?? "");
         return;
       }
 
@@ -118,7 +118,7 @@ export function useEditOrganizationForm(
           const body = await response.json();
           if (body.error) errorKey = body.error;
         } catch {}
-        toast.error(tError(errorKey));
+        toast.error(tError(errorKey) ?? "");
         return;
       }
 
@@ -170,7 +170,7 @@ export function useCreateLocalUserForm(
           const body = await response.json();
           if (body.error) errorKey = body.error;
         } catch {}
-        toast.error(tError(errorKey));
+        toast.error(tError(errorKey) ?? "");
         return;
       }
 

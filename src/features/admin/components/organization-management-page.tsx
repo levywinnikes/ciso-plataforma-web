@@ -1,8 +1,11 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { OrganizationType } from "@prisma/client";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { Field } from "@/components/forms/field";
 import {
@@ -20,7 +23,6 @@ import { useAppToast } from "@/hooks/use-app-toast";
 import { useFormError } from "@/i18n/use-form-error";
 
 import {
-  useCreateLocalUserForm,
   useCreateOrganizationForm,
   useEditOrganizationForm,
 } from "../hooks/use-organization-form";
@@ -86,7 +88,7 @@ export function OrganizationManagementPage({
       cache: "no-store",
     });
     if (!response.ok) {
-      toast.error(tError(await extractErrorKey(response)));
+      toast.error(tError(await extractErrorKey(response)) ?? "");
       setIsLoading(false);
       return;
     }
@@ -110,7 +112,7 @@ export function OrganizationManagementPage({
       method: "DELETE",
     });
     if (!response.ok) {
-      toast.error(tError(await extractErrorKey(response)));
+      toast.error(tError(await extractErrorKey(response)) ?? "");
       return;
     }
     toast.success(
@@ -127,7 +129,7 @@ export function OrganizationManagementPage({
       cache: "no-store",
     });
     if (!response.ok) {
-      toast.error(tError(await extractErrorKey(response)));
+      toast.error(tError(await extractErrorKey(response)) ?? "");
       setIsUsersLoading(false);
       return;
     }
@@ -143,7 +145,7 @@ export function OrganizationManagementPage({
   async function deleteUser(userId: string) {
     const response = await fetch(`/api/users/${userId}`, { method: "DELETE" });
     if (!response.ok) {
-      toast.error(tError(await extractErrorKey(response)));
+      toast.error(tError(await extractErrorKey(response)) ?? "");
       return;
     }
     toast.success("Usuário removido com sucesso!");
@@ -336,6 +338,9 @@ export function OrganizationManagementPage({
       {selectedOrgId && (
         <UsersModal
           organizationId={selectedOrgId}
+          organizationName={
+            rows.find((row) => row.id === selectedOrgId)?.name ?? ""
+          }
           type={type}
           users={users}
           isLoading={isUsersLoading}
@@ -461,6 +466,7 @@ function EditOrganizationModal({
 
 function UsersModal({
   organizationId,
+  organizationName,
   type,
   users,
   isLoading,
@@ -472,6 +478,7 @@ function UsersModal({
   common,
 }: {
   organizationId: string;
+  organizationName: string;
   type: OrganizationType;
   users: UserRow[];
   isLoading: boolean;
@@ -482,75 +489,201 @@ function UsersModal({
   tError: any;
   common: any;
 }) {
+  const commonUsers = useTranslations("adminGlobal.users");
+  const toast = useAppToast();
   const role = type === "CLINICA" ? "MEDICO" : "PROFISSIONAL";
-  const { form, onSubmit, isSubmitting } = useCreateLocalUserForm(
-    organizationId,
-    role,
-    onSuccess,
-  );
+
+  const [editingUser, setEditingUser] = useState<UserRow | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm({
+    resolver: zodResolver(
+      z.object({
+        name: z.string().min(1, "errors.required"),
+        email: z.string().email("errors.invalidEmail"),
+        password: editingUser
+          ? z
+              .string()
+              .min(8, "errors.passwordTooShort")
+              .optional()
+              .or(z.literal(""))
+          : z.string().min(8, "errors.passwordTooShort"),
+        isAdmin: z.boolean().default(false),
+      }),
+    ),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      isAdmin: false,
+    },
+  });
+
+  useEffect(() => {
+    if (editingUser) {
+      form.reset({
+        name: editingUser.name,
+        email: editingUser.email,
+        password: "",
+        isAdmin: editingUser.isAdmin,
+      });
+    } else {
+      form.reset({
+        name: "",
+        email: "",
+        password: "",
+        isAdmin: false,
+      });
+    }
+  }, [editingUser, form]);
+
+  async function onSubmit(data: any) {
+    setIsSubmitting(true);
+    try {
+      if (editingUser) {
+        const payload: any = {
+          name: data.name,
+          email: data.email,
+          isAdmin: data.isAdmin,
+        };
+        if (data.password) {
+          payload.password = data.password;
+        }
+
+        const response = await fetch(`/api/users/${editingUser.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          let errorKey = "errors.genericRequestFailed";
+          try {
+            const body = await response.json();
+            if (body.error) errorKey = body.error;
+          } catch {}
+          toast.error(tError(errorKey));
+          return;
+        }
+
+        toast.success("Usuário atualizado com sucesso!");
+        setEditingUser(null);
+      } else {
+        const response = await fetch(
+          `/api/organizations/${organizationId}/users`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...data, role }),
+          },
+        );
+
+        if (!response.ok) {
+          let errorKey = "errors.genericRequestFailed";
+          try {
+            const body = await response.json();
+            if (body.error) errorKey = body.error;
+          } catch {}
+          toast.error(tError(errorKey));
+          return;
+        }
+
+        toast.success("Usuário criado com sucesso!");
+      }
+
+      form.reset({
+        name: "",
+        email: "",
+        password: "",
+        isAdmin: false,
+      });
+      await onSuccess();
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <Modal
       isOpen={true}
       onClose={onClose}
-      title={t("usersModalTitle")}
+      title={t("usersModalTitle", { name: organizationName })}
       maxWidth="max-w-4xl"
     >
-      <div className="space-y-4 pt-4">
+      <div className="space-y-6 pt-4">
         <div className="rounded-md border bg-gray-50 p-4">
           <h4 className="mb-4 text-sm font-semibold text-gray-900">
-            {t("createTitle")}
+            {editingUser
+              ? `Editar usuário: ${editingUser.name}`
+              : commonUsers("createTitle")}
           </h4>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="grid items-start gap-3 md:grid-cols-2 lg:grid-cols-4"
-          >
-            <Field
-              label={""}
-              error={tError(form.formState.errors.name?.message)}
-            >
-              <FloatingInput
-                required
-                label={t("namePlaceholder")}
-                {...form.register("name")}
-              />
-            </Field>
-
-            <Field
-              label={""}
-              error={tError(form.formState.errors.email?.message)}
-            >
-              <FloatingInput
-                required
-                type="email"
-                label={t("adminEmailPlaceholder")}
-                {...form.register("email")}
-              />
-            </Field>
-
-            <Field
-              label={""}
-              error={tError(form.formState.errors.password?.message)}
-            >
-              <FloatingInput
-                required
-                type="password"
-                label={t("adminPasswordPlaceholder")}
-                {...form.register("password")}
-              />
-            </Field>
-
-            <div className="flex flex-col gap-2 pt-1">
-              <label className="flex h-10 cursor-pointer items-center gap-2 rounded-md border bg-white px-2 text-sm text-gray-700 transition-colors hover:bg-gray-50">
-                <input
-                  type="checkbox"
-                  className="rounded border-gray-300 text-primary focus:ring-primary"
-                  {...form.register("isAdmin")}
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field
+                label={""}
+                error={tError(form.formState.errors.name?.message)}
+              >
+                <FloatingInput
+                  required
+                  label={commonUsers("namePlaceholder")}
+                  {...form.register("name")}
                 />
-                Admin Local
-              </label>
-              <Button type="submit" isLoading={isSubmitting} className="w-full">
-                {t("createAction")}
+              </Field>
+
+              <Field
+                label={""}
+                error={tError(form.formState.errors.email?.message)}
+              >
+                <FloatingInput
+                  required
+                  type="email"
+                  label={commonUsers("emailPlaceholder")}
+                  {...form.register("email")}
+                />
+              </Field>
+
+              <Field
+                label={""}
+                error={tError(form.formState.errors.password?.message)}
+              >
+                <FloatingInput
+                  required={!editingUser}
+                  type="password"
+                  label={
+                    editingUser
+                      ? commonUsers("newPasswordPlaceholder")
+                      : commonUsers("passwordPlaceholder")
+                  }
+                  {...form.register("password")}
+                />
+              </Field>
+
+              <div className="flex items-center pt-2">
+                <label className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-md border bg-white px-3 text-sm text-gray-700 transition-colors hover:bg-gray-50">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    {...form.register("isAdmin")}
+                  />
+                  {commonUsers("isAdminLabel")}
+                </label>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              {editingUser && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditingUser(null)}
+                >
+                  Cancelar Edição
+                </Button>
+              )}
+              <Button type="submit" isLoading={isSubmitting}>
+                {editingUser
+                  ? "Salvar Alterações"
+                  : commonUsers("createAction")}
               </Button>
             </div>
           </form>
@@ -559,10 +692,12 @@ function UsersModal({
         <TableShell
           columns={
             <tr>
-              <th className="px-4 py-2">{t("colName")}</th>
-              <th className="px-4 py-2">{t("colEmail")}</th>
-              <th className="px-4 py-2">{t("colAdmin")}</th>
-              <th className="px-4 py-2 text-right">{t("colActions")}</th>
+              <th className="px-4 py-2">{commonUsers("colName")}</th>
+              <th className="px-4 py-2">{commonUsers("colEmail")}</th>
+              <th className="px-4 py-2">{commonUsers("colAdmin")}</th>
+              <th className="px-4 py-2 text-right">
+                {commonUsers("colActions")}
+              </th>
             </tr>
           }
         >
@@ -609,14 +744,23 @@ function UsersModal({
                   </span>
                 </td>
                 <td className="ui-table-cell text-right">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="text-red-600 hover:bg-red-50"
-                    onClick={() => onDeleteUser(user.id)}
-                  >
-                    {t("deleteUserAction")}
-                  </Button>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setEditingUser(user)}
+                    >
+                      {commonUsers("editAction")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="text-red-600 hover:bg-red-50"
+                      onClick={() => onDeleteUser(user.id)}
+                    >
+                      {t("deleteUserAction")}
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))
