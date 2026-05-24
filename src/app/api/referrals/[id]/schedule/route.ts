@@ -33,7 +33,7 @@ export async function PATCH(
   const referral = await prisma.referral.findFirst({
     where: {
       id: params.id,
-      organizationId: session.user.organizationId,
+      clinicId: session.user.organizationId,
     },
   });
 

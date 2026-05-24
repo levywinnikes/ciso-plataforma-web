@@ -83,8 +83,8 @@ model Organization {
   address          String?
   phone            String?
   users            User[]
-  referrals        Referral[]          @relation("ReferralOrganization")
-  referralsSent    Referral[]          @relation("ReferralProfessionalGroup")
+  referrals        Referral[]          @relation("ReferralClinic")
+  referralsSent    Referral[]          @relation("ReferralOffice")
   professionalAccessesOutgoing ProfessionalAccess[] @relation("ProfessionalGroup")
   professionalAccessesIncoming ProfessionalAccess[] @relation("Clinic")
   createdAt        DateTime            @default(now())
@@ -135,10 +135,10 @@ model Referral {
   specialistConduct   String?
   nucleusId           String
   nucleus             CareNucleus        @relation(fields: [nucleusId], references: [id])
-  organizationId      String
-  organization        Organization       @relation("ReferralOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
-  professionalGroupId String
-  professionalGroup   Organization       @relation("ReferralProfessionalGroup", fields: [professionalGroupId], references: [id], onDelete: Cascade)
+  clinicId            String
+  clinic              Organization       @relation("ReferralClinic", fields: [clinicId], references: [id], onDelete: Cascade)
+  officeId            String
+  office              Organization       @relation("ReferralOffice", fields: [officeId], references: [id], onDelete: Cascade)
   createdByUserId     String
   createdByUser       User               @relation("CreatedBy", fields: [createdByUserId], references: [id], onDelete: Cascade)
   documents           ReferralDocument[]

@@ -29,8 +29,10 @@ function mapReferral(referral: {
   specialistConduct: string | null;
   createdAt: Date;
   nucleusId: string;
-  organizationId: string;
-  organization: { name: string };
+  clinicId: string;
+  clinic: { name: string };
+  officeId: string;
+  office: { name: string };
   createdByUserId: string;
   createdByUser: { name: string; email: string };
   nucleus: { name: string };
@@ -50,8 +52,10 @@ function mapReferral(referral: {
     status: referral.status,
     nucleusId: referral.nucleusId,
     nucleusName: referral.nucleus.name,
-    organizationId: referral.organizationId,
-    organizationName: referral.organization.name,
+    clinicId: referral.clinicId,
+    clinicName: referral.clinic.name,
+    officeId: referral.officeId,
+    officeName: referral.office.name,
     createdByUserId: referral.createdByUserId,
     createdByUserName: referral.createdByUser.name,
     appointmentDate: referral.appointmentDate?.toISOString() ?? undefined,
@@ -89,7 +93,7 @@ export async function GET() {
       );
     }
 
-    where = { organizationId };
+    where = { clinicId: organizationId };
   }
 
   if (role === "PROFISSIONAL") {
@@ -109,7 +113,8 @@ export async function GET() {
     where,
     include: {
       nucleus: { select: { name: true } },
-      organization: { select: { name: true } },
+      clinic: { select: { name: true } },
+      office: { select: { name: true } },
       createdByUser: { select: { name: true, email: true } },
       documents: true,
       specialistFiles: true,
@@ -148,7 +153,7 @@ export async function POST(request: Request) {
     !body.patientBirthDate ||
     !body.patientPhone ||
     !body.nucleusId ||
-    !body.organizationId
+    !body.clinicId
   ) {
     return NextResponse.json(
       { message: "Dados obrigatórios ausentes" },
@@ -169,8 +174,8 @@ export async function POST(request: Request) {
       clinicalNotes: body.clinicalNotes || null,
       clinicalSuspicion: body.clinicalSuspicion || null,
       nucleusId: body.nucleusId,
-      organizationId: body.organizationId,
-      professionalGroupId: session.user.organizationId,
+      clinicId: body.clinicId,
+      officeId: session.user.organizationId,
       createdByUserId: session.user.id,
       documents: {
         create:
@@ -181,7 +186,8 @@ export async function POST(request: Request) {
     },
     include: {
       nucleus: { select: { name: true } },
-      organization: { select: { name: true } },
+      clinic: { select: { name: true } },
+      office: { select: { name: true } },
       createdByUser: { select: { name: true, email: true } },
       documents: true,
       specialistFiles: true,
