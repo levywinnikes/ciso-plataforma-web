@@ -38,7 +38,7 @@ export async function DELETE(
   return NextResponse.json({ success: true });
 }
 
-export async function PUT(
+export async function PATCH(
   request: Request,
   { params }: { params: { id: string } },
 ) {
