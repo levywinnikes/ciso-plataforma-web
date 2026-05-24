@@ -23,6 +23,7 @@ export const novoEncaminhamentoSchema = z.object({
   clinicalNotes: z.string().optional(),
   clinicalSuspect: z.string().min(1, "errors.clinicalSuspectRequired"),
   nucleusId: z.string().min(1, "errors.nucleusRequired"),
+  clinicId: z.string().min(1, "errors.clinicRequired"),
 });
 
 export type NovoEncaminhamentoFormData = z.infer<
@@ -34,10 +35,16 @@ export interface UploadedDocument {
   name: string;
 }
 
+export interface ClinicOption {
+  id: string;
+  name: string;
+}
+
 export interface NovoEncaminhamentoPageModel {
   form: UseFormReturn<NovoEncaminhamentoFormData>;
   onSubmit: (event: React.BaseSyntheticEvent) => void;
   documents: UploadedDocument[];
   selectedNucleus?: CareNucleus;
+  clinics: ClinicOption[];
   handleFakeUpload: () => void;
 }

@@ -156,21 +156,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const allowedClinic = await prisma.professionalAccess.findUnique({
-    where: {
-      professionalGroupId_clinicId: {
-        professionalGroupId: session.user.organizationId,
-        clinicId: body.organizationId,
-      },
-    },
-  });
-
-  if (!allowedClinic) {
-    return NextResponse.json(
-      { message: "Clínica de destino não permitida para esta organização" },
-      { status: 403 },
-    );
-  }
+  // FIXME: validação de ProfessionalAccess removida temporariamente.
+  // Será reativada quando o painel de Acessos for recriado.
 
   const referral = await prisma.referral.create({
     data: {

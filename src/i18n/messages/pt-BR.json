@@ -292,6 +292,7 @@
     "documents": "Documentos do Encaminhamento",
     "includeDocuments": "Incluir documentos",
     "careNuclei": "Núcleos de Atendimento",
+    "selectClinic": "Selecione a clínica destino",
     "selectNucleus": "Selecione o núcleo",
     "saveReferral": "Salvar encaminhamento"
   },
@@ -373,6 +374,7 @@
     "phoneRequired": "Telefone é obrigatório",
     "phoneMinDigits": "Telefone deve ter pelo menos 10 dígitos",
     "clinicalSuspectRequired": "Suspeita clínica é obrigatória",
+    "clinicRequired": "Selecione a clínica destino",
     "nucleusRequired": "Selecione um núcleo de atendimento",
     "unauthorized": "Não autenticado. Faça login novamente.",
     "forbidden": "Acesso negado.",

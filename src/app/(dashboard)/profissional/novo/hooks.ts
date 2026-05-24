@@ -2,12 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { CARE_NUCLEI } from "@/features/referrals/data";
 
 import type {
+  ClinicOption,
   NovoEncaminhamentoFormData,
   NovoEncaminhamentoPageModel,
   UploadedDocument,
@@ -28,10 +29,23 @@ export function useNovoEncaminhamentoPageModel(): NovoEncaminhamentoPageModel {
       clinicalNotes: "",
       clinicalSuspect: "",
       nucleusId: "",
+      clinicId: "",
     },
   });
 
   const [documents, setDocuments] = useState<UploadedDocument[]>([]);
+  const [clinics, setClinics] = useState<ClinicOption[]>([]);
+
+  useEffect(() => {
+    fetch("/api/referrals/clinics")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setClinics(data);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch clinics", err));
+  }, []);
 
   const nucleusId = form.watch("nucleusId");
   const selectedNucleus = CARE_NUCLEI.find((item) => item.id === nucleusId);
@@ -59,6 +73,7 @@ export function useNovoEncaminhamentoPageModel(): NovoEncaminhamentoPageModel {
           .filter(Boolean)
           .join(" - "),
         nucleusId: selectedNucleus.id,
+        organizationId: data.clinicId,
         documents: documents.map((item) => ({
           id: item.id,
           name: item.name,
@@ -76,6 +91,7 @@ export function useNovoEncaminhamentoPageModel(): NovoEncaminhamentoPageModel {
     onSubmit: form.handleSubmit(handleFormSubmit),
     documents,
     selectedNucleus,
+    clinics,
     handleFakeUpload,
   };
 }

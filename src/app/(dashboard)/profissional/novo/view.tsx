@@ -6,10 +6,8 @@ import { Field } from "@/components/forms/field";
 import {
   Button,
   CardSection,
-  DateInput,
   FileUploadArea,
-  Input,
-  PhoneInput,
+  FloatingInput,
   Select,
   Textarea,
 } from "@/components/ui";
@@ -60,35 +58,43 @@ export function NovoEncaminhamentoPageView({
           <CardSection title={t("patientData")}>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="md:col-span-2">
-                <Field
-                  label={t("patientName")}
-                  required
-                  error={tError(errors.patientName?.message)}
-                >
-                  <Input {...register("patientName")} />
+                <Field label={""} error={tError(errors.patientName?.message)}>
+                  <FloatingInput
+                    required
+                    label={t("patientName")}
+                    {...register("patientName")}
+                  />
                 </Field>
               </div>
               <Field
-                label={t("birthDate")}
-                required
+                label={""}
                 error={tError(errors.patientBirthDate?.message)}
               >
-                <DateInput {...register("patientBirthDate")} />
+                <FloatingInput
+                  type="date"
+                  required
+                  label={t("birthDate")}
+                  {...register("patientBirthDate")}
+                />
               </Field>
-              <Field
-                label={t("phone")}
-                required
-                error={tError(errors.patientPhone?.message)}
-              >
-                <PhoneInput {...register("patientPhone")} />
+              <Field label={""} error={tError(errors.patientPhone?.message)}>
+                <FloatingInput
+                  mask="phone"
+                  required
+                  label={t("phone")}
+                  {...register("patientPhone")}
+                />
               </Field>
               <div className="md:col-span-2">
                 <Field
-                  label={t("document")}
+                  label={""}
                   hint={t("optional")}
                   error={tError(errors.patientDocument?.message)}
                 >
-                  <Input {...register("patientDocument")} />
+                  <FloatingInput
+                    label={t("document")}
+                    {...register("patientDocument")}
+                  />
                 </Field>
               </div>
             </div>
@@ -135,6 +141,23 @@ export function NovoEncaminhamentoPageView({
             title={t("careNuclei")}
             titleClassName="mb-4 text-lg font-bold text-primary"
           >
+            <div className="mb-4 border-b pb-4">
+              <Field
+                label={t("selectClinic")}
+                required
+                error={tError(errors.clinicId?.message)}
+              >
+                <Select {...register("clinicId")}>
+                  <option value="">{common("select")}</option>
+                  {model.clinics.map((clinic) => (
+                    <option key={clinic.id} value={clinic.id}>
+                      {clinic.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            </div>
+
             <Field
               label={t("selectNucleus")}
               required
