@@ -95,6 +95,7 @@ export function AdminUsersView() {
         >
           <Field label={""} error={tError(form.formState.errors.name?.message)}>
             <FloatingInput
+              required
               label={t("namePlaceholder")}
               {...form.register("name")}
             />
@@ -105,6 +106,7 @@ export function AdminUsersView() {
             error={tError(form.formState.errors.email?.message)}
           >
             <FloatingInput
+              required
               type="email"
               label={t("emailPlaceholder")}
               {...form.register("email")}
@@ -116,6 +118,7 @@ export function AdminUsersView() {
             error={tError(form.formState.errors.password?.message)}
           >
             <FloatingInput
+              required
               type="password"
               label={t("passwordPlaceholder")}
               {...form.register("password")}
@@ -259,6 +262,7 @@ function EditUserModal({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
         <Field label={""} error={tError(form.formState.errors.name?.message)}>
           <FloatingInput
+            required
             label={t("namePlaceholder")}
             {...form.register("name")}
           />
@@ -266,6 +270,7 @@ function EditUserModal({
 
         <Field label={""} error={tError(form.formState.errors.email?.message)}>
           <FloatingInput
+            required
             type="email"
             label={t("emailPlaceholder")}
             {...form.register("email")}

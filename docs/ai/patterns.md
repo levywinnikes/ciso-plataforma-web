@@ -214,22 +214,27 @@ export function MyComponent() {
 
 ---
 
-## 6. Componentes de Formulário (Floating Labels)
+## 6. Componentes de Formulário (Floating Labels e Obrigatoriedade)
 
-**Regra Absoluta:** O usuário definiu como padrão global de projeto a utilização de **Floating Labels**.
+**Regra Absoluta:** O usuário definiu como padrão global de projeto a utilização de **Floating Labels** e **Feedback Visual de Obrigatoriedade**.
 NUNCA crie formulários utilizando labels convencionais sobrepostos fora do input ou campos que dependam exclusivamente de `placeholder`.
 
-Sempre utilize o componente `FloatingInput` (ou derivados) englobado no componente `Field` com o `label=""` (vazio) para que o `Field` apenas cuide das mensagens de erro do Zod.
+Sempre utilize o componente `FloatingInput` (ou derivados) englobado no componente `Field` com o `label=""` (vazio) para que o `Field` apenas cuide das mensagens de erro do Zod. Todo campo que for obrigatório no Schema Zod DEVE obrigatoriamente ter a flag `required` no `FloatingInput`.
 
 ```tsx
 import { Field } from "@/components/forms/field";
 import { FloatingInput } from "@/components/ui/floating-input";
 
 <Field label={""} error={tError(form.formState.errors.campo?.message)}>
-  <FloatingInput label={t("campoPlaceholder")} {...form.register("campo")} />
+  <FloatingInput
+    required
+    label={t("campoPlaceholder")}
+    {...form.register("campo")}
+  />
 </Field>;
 ```
 
+- `required` no `<FloatingInput>`: Exibe um asterisco vermelho automaticamente na interface para avisar o usuário de antemão que aquele campo é obrigatório (Feedback visual preventivo).
 - `label` no `<Field>`: Enviar string vazia `""` para suprimir o label externo.
 - `error` no `<Field>`: Mensagem de erro traduzida (ex: Zod). Renderiza em vermelho embaixo do input.
 - `label` no `<FloatingInput>`: Texto do label flutuante interno (flutua e diminui quando selecionado/preenchido).
@@ -303,14 +308,22 @@ Adicionar nova env var: atualizar `src/env.ts` (schema Zod) e `.env.example`.
 
 ---
 
-## 8. Regras de qualidade (resumo)
+## 7. Padrão de UX Híbrido (Loadings e Transições)
 
-- Nenhum texto de UI hardcoded — sempre chave de traducao
-- Nenhuma duplicacao de regra de negocio — reutilizar schema existente se aplicavel
-- Novos componentes com `forwardRef` quando forem inputs de formulario
-- Importacoes ordenadas por `simple-import-sort` (ESLint vai rejeitar se fora de ordem)
-- Todo arquivo novo deve ser exportado pelo barrel correspondente (`index.tsx`)
-- Rodar `npm run lint` antes de commitar manualmente
+Sempre garanta que ações assíncronas do usuário forneçam feedback visual elegante sem congelar a tela.
+
+- **Loading Inicial (Skeleton):** Durante o `fetch` inicial das tabelas ou listagens da tela, utilize o `<Skeleton>` do Shadcn UI/Componentes customizados reproduzindo fielmente as linhas da tabela (nunca exiba "vazio" ou esconda a tabela).
+- **Ações Individuais (Botões):** Botões de "Salvar", "Criar" ou "Avançar" devem implementar a flag `isLoading={true}` quando uma operação de banco de dados for disparada, acionando o Spinner nativo do botão.
+- **Operações Globais/Página:** Utilize a `<OverlayLoader>` (Opacidade Full-Screen) apenas em processos que afetam o contexto global (como mudança de empresa ou relatórios complexos).
+- **Barra de Progresso (TopLoader):** A navegação entre as páginas via Menu ou rotas do Next.js já está automaticamente coberta pelo `NextTopLoader`.
+
+## 8. Componentes Inteligentes e Reutilizáveis (Sem Hardcode)
+
+É estritamente proibido criar lógicas visuais ou formatações complexas diretamente na "raíz" da tela (`page.tsx` ou `view.tsx`).
+
+- **Componentes de Input Genéricos:** Todo elemento de input, máscara ou layout que possa ser reaproveitado deve ficar encapsulado em `src/components/ui/` (ex: `FloatingInput`).
+- **Máscaras Nativas:** Em vez de instalar pacotes de terceiros pesados para formatar strings, crie a inteligência no próprio componente reutilizável (ex: a prop `mask="cnpj"` ou `mask="phone"` no `FloatingInput`).
+- **Não polua o código mestre:** Deixe o código mestre (o arquivo principal da tela) responsável apenas pela injeção do componente genérico através do React Hook Form. Isso garante uniformidade de UI/UX em todo o projeto.
 
 ---
 
