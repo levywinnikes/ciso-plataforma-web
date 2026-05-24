@@ -272,18 +272,10 @@ export function AdminPageView({ model }: AdminPageViewProps) {
           </Field>
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center">
               <p className="text-sm font-semibold text-gray-700">
                 {t("includedServices")}
               </p>
-              <Button
-                type="button"
-                variant="outline"
-                className="h-8 px-2 text-xs"
-                onClick={() => model.setIsServiceModalOpen(true)}
-              >
-                {t("addService")}
-              </Button>
             </div>
 
             <Input
