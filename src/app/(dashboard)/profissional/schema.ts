@@ -11,6 +11,7 @@ export interface ReferralFilters {
 
 export interface ProfissionalPageModel {
   // Data
+  isLoading: boolean;
   referrals: Referral[];
   filteredReferrals: Referral[];
 

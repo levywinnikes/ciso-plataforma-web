@@ -9,6 +9,7 @@ import type { ProfissionalPageModel, ReferralFilters } from "./schema";
 const ITEMS_PER_PAGE = 10;
 
 export function useProfissionalPageModel(): ProfissionalPageModel {
+  const [isLoading, setIsLoading] = useState(true);
   const [referrals, setReferrals] = useState<Referral[]>([]);
 
   // Filtering
@@ -32,11 +33,17 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
     let isMounted = true;
 
     async function loadReferrals() {
-      const response = await fetch("/api/referrals", { cache: "no-store" });
-      const data = (await response.json()) as Referral[];
+      try {
+        const response = await fetch("/api/referrals", { cache: "no-store" });
+        const data = (await response.json()) as Referral[];
 
-      if (isMounted) {
-        setReferrals(data);
+        if (isMounted) {
+          setReferrals(data);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
 
@@ -102,6 +109,7 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
   };
 
   return {
+    isLoading,
     referrals,
     filteredReferrals: paginatedReferrals, // We return the paginated list as the final list to render
     currentPage,

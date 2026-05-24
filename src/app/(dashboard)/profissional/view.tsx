@@ -8,6 +8,7 @@ import {
   Modal,
   PageHeader,
   Select,
+  Skeleton,
   TableCard,
   TableShell,
 } from "@/components/ui";
@@ -94,33 +95,65 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
             </tr>
           }
         >
-          {model.filteredReferrals.map((referral) => (
-            <tr key={referral.id} className="ui-table-row">
-              <td className="ui-table-cell whitespace-nowrap font-medium text-gray-900">
-                {referral.patientName}
-              </td>
-              <td className="ui-table-cell">{referral.nucleusName}</td>
-              <td className="ui-table-cell whitespace-nowrap">
-                {formatDate(referral.createdAt)}
-              </td>
-              <td className="ui-table-cell whitespace-nowrap">
-                {referral.doctor ?? common("toDefine")}
-              </td>
-              <td className="ui-table-cell whitespace-nowrap">
-                <ReferralStatusBadge status={referral.status} />
-              </td>
-              <td className="ui-table-cell text-right">
-                <Button
-                  variant="ghost"
-                  className="p-2"
-                  onClick={() => model.openModal(referral)}
-                  title="Visualizar"
-                >
-                  <Eye className="h-4 w-4 text-emerald-700" />
-                </Button>
+          {model.isLoading ? (
+            Array.from({ length: 5 }).map((_, idx) => (
+              <tr key={`skel-${idx}`} className="ui-table-row">
+                <td className="ui-table-cell">
+                  <Skeleton className="h-4 w-32" />
+                </td>
+                <td className="ui-table-cell">
+                  <Skeleton className="h-4 w-24" />
+                </td>
+                <td className="ui-table-cell">
+                  <Skeleton className="h-4 w-24" />
+                </td>
+                <td className="ui-table-cell">
+                  <Skeleton className="h-4 w-24" />
+                </td>
+                <td className="ui-table-cell">
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </td>
+                <td className="ui-table-cell"></td>
+              </tr>
+            ))
+          ) : model.filteredReferrals.length === 0 ? (
+            <tr className="ui-table-row">
+              <td
+                colSpan={6}
+                className="ui-table-cell py-8 text-center text-gray-500"
+              >
+                Nenhum encaminhamento encontrado.
               </td>
             </tr>
-          ))}
+          ) : (
+            model.filteredReferrals.map((referral) => (
+              <tr key={referral.id} className="ui-table-row">
+                <td className="ui-table-cell whitespace-nowrap font-medium text-gray-900">
+                  {referral.patientName}
+                </td>
+                <td className="ui-table-cell">{referral.nucleusName}</td>
+                <td className="ui-table-cell whitespace-nowrap">
+                  {formatDate(referral.createdAt)}
+                </td>
+                <td className="ui-table-cell whitespace-nowrap">
+                  {referral.doctor ?? common("toDefine")}
+                </td>
+                <td className="ui-table-cell whitespace-nowrap">
+                  <ReferralStatusBadge status={referral.status} />
+                </td>
+                <td className="ui-table-cell text-right">
+                  <Button
+                    variant="ghost"
+                    className="p-2"
+                    onClick={() => model.openModal(referral)}
+                    title="Visualizar"
+                  >
+                    <Eye className="h-4 w-4 text-emerald-700" />
+                  </Button>
+                </td>
+              </tr>
+            ))
+          )}
         </TableShell>
 
         {/* Pagination Controls */}
