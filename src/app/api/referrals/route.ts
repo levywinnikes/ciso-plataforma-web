@@ -55,6 +55,9 @@ function mapReferral(referral: {
     nucleusId: referral.nucleusId,
     nucleusName: referral.nucleusSnapshotName,
     nucleusPrice: Number(referral.nucleusSnapshotPrice),
+    nucleusSnapshotServices: (referral as any).nucleusSnapshotServices as
+      | Array<{ name: string; basePrice: number }>
+      | undefined,
     clinicId: referral.clinicId,
     clinicName: referral.clinic.name,
     officeId: referral.officeId,
@@ -169,6 +172,7 @@ export async function POST(request: Request) {
 
   const nucleus = await prisma.careNucleus.findUnique({
     where: { id: body.nucleusId },
+    include: { services: true },
   });
 
   if (!nucleus) {
@@ -190,6 +194,12 @@ export async function POST(request: Request) {
       nucleusId: body.nucleusId,
       nucleusSnapshotName: nucleus.name,
       nucleusSnapshotPrice: nucleus.chargedPrice,
+      nucleusSnapshotServices: nucleus.services.map((s) => ({
+        name: s.name,
+        basePrice: s.basePrice.toNumber
+          ? s.basePrice.toNumber()
+          : Number(s.basePrice),
+      })),
       clinicId: body.clinicId,
       officeId: session.user.organizationId,
       createdByUserId: session.user.id,

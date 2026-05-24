@@ -254,7 +254,7 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
               </div>
               <div>
                 <span className="block text-sm font-medium text-gray-500">
-                  Valor do Encaminhamento (Legado)
+                  Valor
                 </span>
                 <span className="block text-gray-900">
                   {model.selectedReferral.nucleusPrice !== undefined
@@ -264,6 +264,31 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
                     : "-"}
                 </span>
               </div>
+
+              {/* Lista de Serviços do Snapshot */}
+              {model.selectedReferral.nucleusSnapshotServices &&
+                model.selectedReferral.nucleusSnapshotServices.length > 0 && (
+                  <div className="col-span-2 mt-2 rounded-md border border-gray-100 bg-gray-50 p-3">
+                    <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-500">
+                      Serviços Contratados no Pacote
+                    </span>
+                    <ul className="space-y-1">
+                      {model.selectedReferral.nucleusSnapshotServices.map(
+                        (svc, idx) => (
+                          <li
+                            key={idx}
+                            className="flex justify-between text-sm text-gray-700"
+                          >
+                            <span>{svc.name}</span>
+                            <span className="font-medium text-gray-900">
+                              {formatCurrency(svc.basePrice)}
+                            </span>
+                          </li>
+                        ),
+                      )}
+                    </ul>
+                  </div>
+                )}
 
               {/* Retorno do Especialista */}
               <div>

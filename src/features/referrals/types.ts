@@ -34,6 +34,7 @@ export interface Referral {
   nucleusId: string;
   nucleusName: string;
   nucleusPrice?: number;
+  nucleusSnapshotServices?: Array<{ name: string; basePrice: number }>;
   clinicId?: string;
   clinicName?: string;
   officeId?: string;
