@@ -33,8 +33,11 @@ export interface Referral {
   status: ReferralStatus;
   nucleusId: string;
   nucleusName: string;
-  organizationId?: string;
-  organizationName?: string;
+  nucleusPrice?: number;
+  clinicId?: string;
+  clinicName?: string;
+  officeId?: string;
+  officeName?: string;
   createdByUserId?: string;
   createdByUserName?: string;
   appointmentDate?: string;
