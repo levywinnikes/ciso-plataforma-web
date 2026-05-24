@@ -12,7 +12,11 @@ import {
   TableShell,
 } from "@/components/ui";
 import { ReferralStatusBadge } from "@/features/referrals/components/referral-status-badge";
-import { formatDate } from "@/features/referrals/utils";
+import {
+  formatCurrency,
+  formatDate,
+  formatDateTime,
+} from "@/features/referrals/utils";
 
 import type { ProfissionalPageModel } from "./schema";
 
@@ -169,6 +173,7 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
         {model.selectedReferral && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
+              {/* Paciente Info */}
               <div>
                 <span className="block text-sm font-medium text-gray-500">
                   Paciente
@@ -179,12 +184,66 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
               </div>
               <div>
                 <span className="block text-sm font-medium text-gray-500">
+                  Nascimento
+                </span>
+                <span className="block text-gray-900">
+                  {formatDate(model.selectedReferral.patientBirthDate)}
+                </span>
+              </div>
+              <div>
+                <span className="block text-sm font-medium text-gray-500">
+                  Documento
+                </span>
+                <span className="block text-gray-900">
+                  {model.selectedReferral.patientDocument || "-"}
+                </span>
+              </div>
+              <div>
+                <span className="block text-sm font-medium text-gray-500">
+                  Telefone
+                </span>
+                <span className="block text-gray-900">
+                  {model.selectedReferral.patientPhone}
+                </span>
+              </div>
+
+              {/* Status e Contexto */}
+              <div>
+                <span className="block text-sm font-medium text-gray-500">
                   Status
                 </span>
                 <span className="mt-1 block">
                   <ReferralStatusBadge status={model.selectedReferral.status} />
                 </span>
               </div>
+              <div>
+                <span className="block text-sm font-medium text-gray-500">
+                  Data de Criação
+                </span>
+                <span className="block text-gray-900">
+                  {formatDateTime(model.selectedReferral.createdAt)}
+                </span>
+              </div>
+
+              {/* Organização (De onde para Onde) */}
+              <div>
+                <span className="block text-sm font-medium text-gray-500">
+                  Consultório de Origem
+                </span>
+                <span className="block text-gray-900">
+                  {model.selectedReferral.officeName || "-"}
+                </span>
+              </div>
+              <div>
+                <span className="block text-sm font-medium text-gray-500">
+                  Clínica Destino
+                </span>
+                <span className="block text-gray-900">
+                  {model.selectedReferral.clinicName || "-"}
+                </span>
+              </div>
+
+              {/* Núcleo e Valor */}
               <div>
                 <span className="block text-sm font-medium text-gray-500">
                   Núcleo
@@ -195,12 +254,18 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
               </div>
               <div>
                 <span className="block text-sm font-medium text-gray-500">
-                  Clínica Destino
+                  Valor do Encaminhamento (Legado)
                 </span>
                 <span className="block text-gray-900">
-                  {model.selectedReferral.clinicName}
+                  {model.selectedReferral.nucleusPrice !== undefined
+                    ? formatCurrency(
+                        Number(model.selectedReferral.nucleusPrice),
+                      )
+                    : "-"}
                 </span>
               </div>
+
+              {/* Retorno do Especialista */}
               <div>
                 <span className="block text-sm font-medium text-gray-500">
                   Médico Atribuído
@@ -211,24 +276,73 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
               </div>
               <div>
                 <span className="block text-sm font-medium text-gray-500">
-                  Data de Criação
+                  Data do Agendamento
                 </span>
                 <span className="block text-gray-900">
-                  {formatDate(model.selectedReferral.createdAt)}
+                  {model.selectedReferral.appointmentDate
+                    ? formatDateTime(model.selectedReferral.appointmentDate)
+                    : "A definir"}
                 </span>
               </div>
             </div>
 
-            {model.selectedReferral.clinicalNotes && (
-              <div className="border-t border-gray-100 pt-2">
-                <span className="mb-1 block text-sm font-medium text-gray-500">
-                  Notas Clínicas
-                </span>
-                <p className="whitespace-pre-wrap text-sm text-gray-900">
-                  {model.selectedReferral.clinicalNotes}
-                </p>
-              </div>
-            )}
+            {/* Informações Clínicas Extensas */}
+            <div className="space-y-4 border-t border-gray-100 pt-4">
+              {model.selectedReferral.clinicalSuspicion && (
+                <div>
+                  <span className="mb-1 block text-sm font-medium text-gray-500">
+                    Suspeita Clínica
+                  </span>
+                  <p className="whitespace-pre-wrap text-sm text-gray-900">
+                    {model.selectedReferral.clinicalSuspicion}
+                  </p>
+                </div>
+              )}
+
+              {model.selectedReferral.systemicDiseases && (
+                <div>
+                  <span className="mb-1 block text-sm font-medium text-gray-500">
+                    Doenças Sistêmicas
+                  </span>
+                  <p className="whitespace-pre-wrap text-sm text-gray-900">
+                    {model.selectedReferral.systemicDiseases}
+                  </p>
+                </div>
+              )}
+
+              {model.selectedReferral.clinicalNotes && (
+                <div>
+                  <span className="mb-1 block text-sm font-medium text-gray-500">
+                    Notas Clínicas (Profissional)
+                  </span>
+                  <p className="whitespace-pre-wrap text-sm text-gray-900">
+                    {model.selectedReferral.clinicalNotes}
+                  </p>
+                </div>
+              )}
+
+              {model.selectedReferral.specialistConduct && (
+                <div>
+                  <span className="mb-1 block text-sm font-medium text-gray-500">
+                    Conduta do Especialista
+                  </span>
+                  <p className="whitespace-pre-wrap text-sm text-gray-900">
+                    {model.selectedReferral.specialistConduct}
+                  </p>
+                </div>
+              )}
+
+              {model.selectedReferral.specialistNotes && (
+                <div>
+                  <span className="mb-1 block text-sm font-medium text-gray-500">
+                    Notas do Especialista
+                  </span>
+                  <p className="whitespace-pre-wrap text-sm text-gray-900">
+                    {model.selectedReferral.specialistNotes}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </Modal>
