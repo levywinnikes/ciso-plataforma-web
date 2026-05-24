@@ -86,26 +86,30 @@ export function AdminPageView({ model }: AdminPageViewProps) {
           </div>
         ) : (
           model.nuclei.map((nucleus) => (
-            <div key={nucleus.id} className="space-y-2">
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => model.openEditNucleusModal(nucleus.id)}
-                >
-                  {t("editNucleusAction")}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="text-red-600 hover:bg-red-50"
-                  onClick={() => setPendingDeleteNucleusId(nucleus.id)}
-                >
-                  {t("deleteNucleusAction")}
-                </Button>
-              </div>
-              <NucleusCard nucleus={nucleus} />
-            </div>
+            <NucleusCard
+              key={nucleus.id}
+              nucleus={nucleus}
+              actions={
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-8 px-3 text-xs"
+                    onClick={() => model.openEditNucleusModal(nucleus.id)}
+                  >
+                    {t("editNucleusAction")}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-8 px-3 text-xs text-red-600 hover:bg-red-50"
+                    onClick={() => setPendingDeleteNucleusId(nucleus.id)}
+                  >
+                    {t("deleteNucleusAction")}
+                  </Button>
+                </>
+              }
+            />
           ))
         )}
       </div>
