@@ -184,7 +184,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     {
       key: "operations" as const,
       label: t("sections.operations"),
-      items: [navItems.nuclei, navItems.services, navItems.accesses],
+      items: [navItems.nuclei, navItems.services],
     },
     {
       key: "analytics" as const,

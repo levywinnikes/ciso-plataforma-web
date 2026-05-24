@@ -25,11 +25,6 @@ export default function AdminPage() {
       href: "/admin/usuarios",
     },
     {
-      title: t("accessesTitle"),
-      description: t("accessesDescription"),
-      href: "/admin/acessos",
-    },
-    {
       title: t("servicesTitle"),
       description: t("servicesDescription"),
       href: "/admin/servicos",
