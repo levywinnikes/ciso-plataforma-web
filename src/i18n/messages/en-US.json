@@ -14,7 +14,9 @@
     "yes": "Yes",
     "no": "No",
     "loading": "Loading...",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "hello": "Hello, {name}",
+    "logout": "Sign out"
   },
   "layout": {
     "title": "Integra Visão | Referral Platform",
@@ -94,7 +96,7 @@
     "accessesTitle": "Professional Access",
     "accessesDescription": "Define which professional groups can refer to each clinic.",
     "servicesTitle": "Services Management",
-    "servicesDescription": "Full CRUD for services linked to care nuclei.",
+    "servicesDescription": "Complete management of services linked to care nuclei.",
     "nucleiTitle": "Nuclei Management",
     "nucleiDescription": "Create nuclei, select services, and manage existing services.",
     "financialTitle": "Financial Report",
@@ -161,7 +163,7 @@
     },
     "organizations": {
       "title": "Organizations",
-      "subtitle": "Global CRUD for clinics and professional groups.",
+      "subtitle": "Centralized management for clinics and professional groups.",
       "createTitle": "New organization",
       "namePlaceholder": "Organization name",
       "typeClinic": "Clinic",
@@ -185,7 +187,7 @@
     },
     "users": {
       "title": "Users",
-      "subtitle": "Global CRUD for users by organization.",
+      "subtitle": "Management of administrator users with global platform access.",
       "scopeTitle": "Selected organization",
       "createTitle": "New user",
       "namePlaceholder": "Full name",
@@ -199,6 +201,12 @@
       "colRole": "Role",
       "colAdmin": "Admin",
       "colActions": "Actions",
+      "editAction": "Edit",
+      "editTitle": "Edit user",
+      "saveEditAction": "Save changes",
+      "passwordSection": "Password Reset (Optional)",
+      "newPasswordPlaceholder": "New password",
+      "confirmPasswordPlaceholder": "Confirm new password",
       "deleteAction": "Delete",
       "yes": "Yes",
       "no": "No",
@@ -218,7 +226,7 @@
     },
     "services": {
       "title": "Services Management",
-      "subtitle": "Full CRUD of services by care nucleus.",
+      "subtitle": "Complete management of services by care nucleus.",
       "newService": "New service",
       "searchTitle": "Search",
       "searchPlaceholder": "Search by service or nucleus",
@@ -371,6 +379,7 @@
     "passwordTooShort": "Password must be at least 8 characters.",
     "emailAlreadyExists": "Email already registered. Please use another one.",
     "invalidEmail": "Invalid email format.",
+    "passwordsDoNotMatch": "Passwords do not match.",
     "genericRequestFailed": "Could not complete the operation. Please try again."
   }
 }

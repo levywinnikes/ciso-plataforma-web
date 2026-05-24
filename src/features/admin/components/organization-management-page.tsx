@@ -46,6 +46,7 @@ export function OrganizationManagementPage({
   const t = useTranslations(namespace);
   const common = useTranslations("common");
   const tError = useFormError();
+  const toast = useAppToast();
 
   const [rows, setRows] = useState<OrganizationRow[]>([]);
   const [name, setName] = useState("");

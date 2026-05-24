@@ -2,12 +2,24 @@
 
 import { LogOut, Menu } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import React, { useState } from "react";
 
+import { LanguageSwitcher } from "./language-switcher";
 import { Sidebar } from "./sidebar";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { data: session } = useSession();
+  const t = useTranslations("common");
+
+  const userName = session?.user?.name || "Usuário";
+  const userInitial = userName.charAt(0).toUpperCase();
+
+  const isGlobalAdmin = session?.user?.role === "ADMINISTRATIVO";
+  const orgName = session?.user?.organizationName;
+  const userRole = isGlobalAdmin ? "Gestor Global" : orgName || "Usuário";
 
   return (
     <div className="flex min-h-screen overflow-x-hidden bg-surface">
@@ -25,27 +37,34 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               Portal do Colaborador
             </h2>
           </div>
-          <div className="flex items-center space-x-2 md:space-x-4">
-            <div className="hidden flex-col text-right sm:flex">
-              <span className="text-sm font-bold text-gray-700">
-                Olá, Usuário
-              </span>
+          <div className="flex items-center space-x-4 md:space-x-6">
+            <LanguageSwitcher />
+
+            <div className="flex items-center space-x-2 border-l border-gray-200 pl-4 md:space-x-4 md:pl-6">
+              <div className="hidden flex-col text-right sm:flex">
+                <span className="text-sm font-bold text-gray-700">
+                  {t("hello", { name: userName.split(" ")[0] })}
+                </span>
+                <span className="text-[10px] font-semibold uppercase text-gray-400">
+                  {userRole}
+                </span>
+                <Link
+                  href="/login"
+                  className="mt-1 inline-flex items-center justify-end text-xs font-medium text-red-500 transition-colors hover:text-red-700"
+                  title={t("logout")}
+                >
+                  {t("logout")}
+                  <LogOut className="ml-1 h-3 w-3" />
+                </Link>
+              </div>
               <Link
                 href="/login"
-                className="mt-0.5 inline-flex items-center justify-end text-xs font-medium text-red-500 transition-colors hover:text-red-700"
-                title="Encerrar sessão e voltar ao login"
+                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-primary/10 bg-accent text-sm font-bold text-white shadow-sm transition-all hover:ring-2 hover:ring-accent/50 md:h-10 md:w-10"
+                title={t("logout")}
               >
-                Sair do sistema
-                <LogOut className="ml-1 h-3 w-3" />
+                {userInitial}
               </Link>
             </div>
-            <Link
-              href="/login"
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-primary/10 bg-accent text-sm font-bold text-white shadow-sm transition-all hover:ring-2 hover:ring-accent/50 md:h-10 md:w-10"
-              title="Sair do sistema"
-            >
-              U
-            </Link>
           </div>
         </header>
         <main className="flex-1 p-4 md:p-8">

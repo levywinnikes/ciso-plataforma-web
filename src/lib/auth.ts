@@ -67,6 +67,7 @@ export const authOptions: NextAuthOptions = {
           role: user.role as UserRole,
           organizationId: user.organizationId,
           organizationType: user.organization?.type || null,
+          organizationName: user.organization?.name || null,
           isAdmin: user.isAdmin,
         };
       },
@@ -78,6 +79,7 @@ export const authOptions: NextAuthOptions = {
         const userPayload = user as any;
         token.organizationId = userPayload.organizationId || null;
         token.organizationType = userPayload.organizationType || null;
+        token.organizationName = userPayload.organizationName || null;
         token.isAdmin = userPayload.isAdmin || false;
         token.id = user.id;
         token.role = userPayload.role;
@@ -93,6 +95,7 @@ export const authOptions: NextAuthOptions = {
           role: jwtPayload.role,
           organizationId: jwtPayload.organizationId,
           organizationType: jwtPayload.organizationType,
+          organizationName: jwtPayload.organizationName,
           isAdmin: jwtPayload.isAdmin,
         } as SessionUser;
       }

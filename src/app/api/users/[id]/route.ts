@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 
 interface UpdateUserBody {
   name?: string;
+  email?: string;
   password?: string;
   isAdmin?: boolean;
 }
@@ -24,11 +25,13 @@ export async function PATCH(
   const body = (await request.json()) as UpdateUserBody;
   const data: {
     name?: string;
+    email?: string;
     passwordHash?: string;
     isAdmin?: boolean;
   } = {};
 
   if (body.name?.trim()) data.name = body.name.trim();
+  if (body.email?.trim()) data.email = body.email.trim();
   if (typeof body.isAdmin === "boolean") data.isAdmin = body.isAdmin;
   if (body.password) {
     if (body.password.length < 8) {

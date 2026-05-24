@@ -7,6 +7,7 @@ export interface JWTPayload {
   role: UserRole;
   organizationId: string | null;
   organizationType: OrganizationType | null;
+  organizationName: string | null;
   isAdmin: boolean;
 }
 
@@ -18,5 +19,6 @@ export interface SessionUser {
   role: UserRole;
   organizationId: string | null;
   organizationType: OrganizationType | null;
+  organizationName: string | null;
   isAdmin: boolean;
 }

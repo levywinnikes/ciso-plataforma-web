@@ -14,7 +14,9 @@
     "yes": "Sim",
     "no": "Não",
     "loading": "Carregando...",
-    "saving": "Salvando..."
+    "saving": "Salvando...",
+    "hello": "Olá, {name}",
+    "logout": "Sair do sistema"
   },
   "layout": {
     "title": "Integra Visão | Plataforma de Encaminhamentos",
@@ -94,7 +96,7 @@
     "accessesTitle": "Acessos Profissionais",
     "accessesDescription": "Defina quais grupos profissionais podem encaminhar para cada clínica.",
     "servicesTitle": "Gestão de Serviços",
-    "servicesDescription": "CRUD completo dos serviços vinculados aos núcleos.",
+    "servicesDescription": "Gestão completa dos serviços vinculados aos núcleos.",
     "nucleiTitle": "Gestão de Núcleos",
     "nucleiDescription": "Cadastre núcleos, selecione serviços e gerencie serviços existentes.",
     "financialTitle": "Relatório Financeiro",
@@ -161,7 +163,7 @@
     },
     "organizations": {
       "title": "Organizações",
-      "subtitle": "CRUD global de clínicas e grupos profissionais.",
+      "subtitle": "Gestão centralizada de clínicas e grupos profissionais.",
       "createTitle": "Nova organização",
       "namePlaceholder": "Nome da organização",
       "typeClinic": "Clínica",
@@ -185,7 +187,7 @@
     },
     "users": {
       "title": "Usuários",
-      "subtitle": "CRUD global de usuários por organização.",
+      "subtitle": "Gestão de usuários administradores com acesso global à plataforma.",
       "scopeTitle": "Organização selecionada",
       "createTitle": "Novo usuário",
       "namePlaceholder": "Nome completo",
@@ -199,6 +201,12 @@
       "colRole": "Role",
       "colAdmin": "Admin",
       "colActions": "Ações",
+      "editAction": "Editar",
+      "editTitle": "Editar usuário",
+      "saveEditAction": "Salvar alterações",
+      "passwordSection": "Redefinição de Senha (Opcional)",
+      "newPasswordPlaceholder": "Nova senha",
+      "confirmPasswordPlaceholder": "Confirmar nova senha",
       "deleteAction": "Excluir",
       "yes": "Sim",
       "no": "Não",
@@ -218,7 +226,7 @@
     },
     "services": {
       "title": "Gestão de Serviços",
-      "subtitle": "CRUD completo de serviços por núcleo de atendimento.",
+      "subtitle": "Gestão completa de serviços por núcleo de atendimento.",
       "newService": "Novo serviço",
       "searchTitle": "Busca",
       "searchPlaceholder": "Buscar por serviço ou núcleo",
@@ -371,6 +379,7 @@
     "passwordTooShort": "Senha deve ter ao menos 8 caracteres.",
     "emailAlreadyExists": "E-mail já cadastrado. Por favor, utilize outro.",
     "invalidEmail": "Formato de e-mail inválido.",
+    "passwordsDoNotMatch": "As senhas não coincidem.",
     "genericRequestFailed": "Não foi possível concluir a operação. Tente novamente."
   }
 }

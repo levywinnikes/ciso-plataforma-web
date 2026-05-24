@@ -1,9 +1,11 @@
 import type { ButtonHTMLAttributes } from "react";
 
+import { Spinner } from "./spinner";
 import { cn } from "./utils";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "outline" | "ghost" | "accent";
+  isLoading?: boolean;
 }
 
 const variants = {
@@ -16,6 +18,9 @@ const variants = {
 export function Button({
   className,
   variant = "primary",
+  isLoading,
+  children,
+  disabled,
   ...props
 }: ButtonProps) {
   return (
@@ -25,7 +30,11 @@ export function Button({
         variants[variant],
         className,
       )}
+      disabled={disabled || isLoading}
       {...props}
-    />
+    >
+      {isLoading && <Spinner className="mr-2 h-4 w-4" />}
+      {children}
+    </button>
   );
 }
