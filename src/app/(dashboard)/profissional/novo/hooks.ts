@@ -73,7 +73,7 @@ export function useNovoEncaminhamentoPageModel(): NovoEncaminhamentoPageModel {
           .filter(Boolean)
           .join(" - "),
         nucleusId: selectedNucleus.id,
-        organizationId: data.clinicId,
+        clinicId: data.clinicId,
         documents: documents.map((item) => ({
           id: item.id,
           name: item.name,
