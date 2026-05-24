@@ -223,121 +223,124 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
         isOpen={model.isModalOpen}
         onClose={model.closeModal}
         title="Detalhes do Encaminhamento"
+        maxWidth="max-w-3xl"
       >
         <p className="mb-6 text-sm text-gray-500">
           Visualização em modo somente leitura.
         </p>
         {model.selectedReferral && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              {/* Paciente Info */}
-              <div>
-                <span className="block text-sm font-medium text-gray-500">
-                  Paciente
-                </span>
-                <span className="block text-gray-900">
-                  {model.selectedReferral.patientName}
-                </span>
+          <div className="space-y-8">
+            {/* Section 1: Paciente */}
+            <div className="rounded-lg border border-gray-100 p-5">
+              <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-primary">
+                Dados do Paciente
+              </h4>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                  <span className="block text-xs font-semibold uppercase text-gray-500">
+                    Nome Completo
+                  </span>
+                  <span className="mt-1 block text-sm font-medium text-gray-900">
+                    {model.selectedReferral.patientName}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs font-semibold uppercase text-gray-500">
+                    Nascimento
+                  </span>
+                  <span className="mt-1 block text-sm font-medium text-gray-900">
+                    {formatDate(model.selectedReferral.patientBirthDate)}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs font-semibold uppercase text-gray-500">
+                    Documento
+                  </span>
+                  <span className="mt-1 block text-sm font-medium text-gray-900">
+                    {model.selectedReferral.patientDocument || "-"}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs font-semibold uppercase text-gray-500">
+                    Telefone
+                  </span>
+                  <span className="mt-1 block text-sm font-medium text-gray-900">
+                    {model.selectedReferral.patientPhone}
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className="block text-sm font-medium text-gray-500">
-                  Nascimento
-                </span>
-                <span className="block text-gray-900">
-                  {formatDate(model.selectedReferral.patientBirthDate)}
-                </span>
-              </div>
-              <div>
-                <span className="block text-sm font-medium text-gray-500">
-                  Documento
-                </span>
-                <span className="block text-gray-900">
-                  {model.selectedReferral.patientDocument || "-"}
-                </span>
-              </div>
-              <div>
-                <span className="block text-sm font-medium text-gray-500">
-                  Telefone
-                </span>
-                <span className="block text-gray-900">
-                  {model.selectedReferral.patientPhone}
-                </span>
-              </div>
+            </div>
 
-              {/* Status e Contexto */}
-              <div>
-                <span className="block text-sm font-medium text-gray-500">
-                  Status
-                </span>
-                <span className="mt-1 block">
-                  <ReferralStatusBadge status={model.selectedReferral.status} />
-                </span>
-              </div>
-              <div>
-                <span className="block text-sm font-medium text-gray-500">
-                  Data de Criação
-                </span>
-                <span className="block text-gray-900">
-                  {formatDateTime(model.selectedReferral.createdAt)}
-                </span>
-              </div>
+            {/* Section 2: Contexto e Encaminhamento */}
+            <div className="rounded-lg border border-gray-100 p-5">
+              <h4 className="mb-4 flex items-center justify-between text-sm font-bold uppercase tracking-wider text-primary">
+                <span>Detalhes do Encaminhamento</span>
+                <ReferralStatusBadge status={model.selectedReferral.status} />
+              </h4>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                  <span className="block text-xs font-semibold uppercase text-gray-500">
+                    Data de Criação
+                  </span>
+                  <span className="mt-1 block text-sm font-medium text-gray-900">
+                    {formatDateTime(model.selectedReferral.createdAt)}
+                  </span>
+                </div>
 
-              {/* Organização (De onde para Onde) */}
-              <div>
-                <span className="block text-sm font-medium text-gray-500">
-                  Consultório de Origem
-                </span>
-                <span className="block text-gray-900">
-                  {model.selectedReferral.officeName || "-"}
-                </span>
-              </div>
-              <div>
-                <span className="block text-sm font-medium text-gray-500">
-                  Clínica Destino
-                </span>
-                <span className="block text-gray-900">
-                  {model.selectedReferral.clinicName || "-"}
-                </span>
-              </div>
-
-              {/* Núcleo e Valor */}
-              <div>
-                <span className="block text-sm font-medium text-gray-500">
-                  Núcleo
-                </span>
-                <span className="block text-gray-900">
-                  {model.selectedReferral.nucleusName}
-                </span>
-              </div>
-              <div>
-                <span className="block text-sm font-medium text-gray-500">
-                  Valor
-                </span>
-                <span className="block text-gray-900">
-                  {model.selectedReferral.nucleusPrice !== undefined
-                    ? formatCurrency(
-                        Number(model.selectedReferral.nucleusPrice),
-                      )
-                    : "-"}
-                </span>
+                <div>
+                  <span className="block text-xs font-semibold uppercase text-gray-500">
+                    Consultório de Origem
+                  </span>
+                  <span className="mt-1 block text-sm font-medium text-gray-900">
+                    {model.selectedReferral.officeName || "-"}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs font-semibold uppercase text-gray-500">
+                    Clínica Destino
+                  </span>
+                  <span className="mt-1 block text-sm font-medium text-gray-900">
+                    {model.selectedReferral.clinicName || "-"}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs font-semibold uppercase text-gray-500">
+                    Núcleo
+                  </span>
+                  <span className="mt-1 block text-sm font-medium text-gray-900">
+                    {model.selectedReferral.nucleusName}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs font-semibold uppercase text-gray-500">
+                    Valor Acordado
+                  </span>
+                  <span className="mt-1 block text-lg font-bold text-emerald-600">
+                    {model.selectedReferral.nucleusPrice !== undefined
+                      ? formatCurrency(
+                          Number(model.selectedReferral.nucleusPrice),
+                        )
+                      : "-"}
+                  </span>
+                </div>
               </div>
 
               {/* Lista de Serviços do Snapshot */}
               {model.selectedReferral.nucleusSnapshotServices &&
                 model.selectedReferral.nucleusSnapshotServices.length > 0 && (
-                  <div className="col-span-2 mt-2 rounded-md border border-gray-100 bg-gray-50 p-3">
-                    <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-500">
-                      Serviços Contratados no Pacote
+                  <div className="mt-6 rounded-md border border-emerald-100 bg-emerald-50/50 p-4">
+                    <span className="mb-3 block text-xs font-bold uppercase tracking-wider text-emerald-800">
+                      Serviços Inclusos
                     </span>
-                    <ul className="space-y-1">
+                    <ul className="space-y-2">
                       {model.selectedReferral.nucleusSnapshotServices.map(
                         (svc, idx) => (
                           <li
                             key={idx}
-                            className="flex justify-between text-sm text-gray-700"
+                            className="flex justify-between border-b border-emerald-100/50 pb-2 text-sm last:border-0 last:pb-0"
                           >
-                            <span>{svc.name}</span>
-                            <span className="font-medium text-gray-900">
+                            <span className="text-emerald-900">{svc.name}</span>
+                            <span className="font-semibold text-emerald-700">
                               {formatCurrency(svc.basePrice)}
                             </span>
                           </li>
@@ -346,80 +349,91 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
                     </ul>
                   </div>
                 )}
+            </div>
 
-              {/* Retorno do Especialista */}
-              <div>
-                <span className="block text-sm font-medium text-gray-500">
-                  Médico Atribuído
-                </span>
-                <span className="block text-gray-900">
-                  {model.selectedReferral.doctor || "A definir"}
-                </span>
-              </div>
-              <div>
-                <span className="block text-sm font-medium text-gray-500">
-                  Data do Agendamento
-                </span>
-                <span className="block text-gray-900">
-                  {model.selectedReferral.appointmentDate
-                    ? formatDateTime(model.selectedReferral.appointmentDate)
-                    : "A definir"}
-                </span>
+            {/* Section 3: Retorno do Especialista */}
+            <div className="rounded-lg border border-gray-100 bg-blue-50/30 p-5">
+              <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-blue-800">
+                Retorno da Especialidade
+              </h4>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                  <span className="block text-xs font-semibold uppercase text-blue-600/70">
+                    Médico Atribuído
+                  </span>
+                  <span className="mt-1 block text-sm font-medium text-blue-900">
+                    {model.selectedReferral.doctor || "A definir"}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs font-semibold uppercase text-blue-600/70">
+                    Data do Agendamento
+                  </span>
+                  <span className="mt-1 block text-sm font-medium text-blue-900">
+                    {model.selectedReferral.appointmentDate
+                      ? formatDateTime(model.selectedReferral.appointmentDate)
+                      : "A definir"}
+                  </span>
+                </div>
               </div>
             </div>
 
             {/* Informações Clínicas Extensas */}
-            <div className="space-y-4 border-t border-gray-100 pt-4">
+            <div className="space-y-6">
+              <h4 className="border-b border-gray-100 pb-2 text-sm font-bold uppercase tracking-wider text-primary">
+                Notas e Observações Clínicas
+              </h4>
+
               {model.selectedReferral.clinicalSuspicion && (
-                <div>
-                  <span className="mb-1 block text-sm font-medium text-gray-500">
+                <div className="rounded-md bg-gray-50 p-4">
+                  <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-500">
                     Suspeita Clínica
                   </span>
-                  <p className="whitespace-pre-wrap text-sm text-gray-900">
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
                     {model.selectedReferral.clinicalSuspicion}
                   </p>
                 </div>
               )}
 
               {model.selectedReferral.systemicDiseases && (
-                <div>
-                  <span className="mb-1 block text-sm font-medium text-gray-500">
+                <div className="rounded-md bg-gray-50 p-4">
+                  <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-500">
                     Doenças Sistêmicas
                   </span>
-                  <p className="whitespace-pre-wrap text-sm text-gray-900">
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
                     {model.selectedReferral.systemicDiseases}
                   </p>
                 </div>
               )}
 
               {model.selectedReferral.clinicalNotes && (
-                <div>
-                  <span className="mb-1 block text-sm font-medium text-gray-500">
+                <div className="rounded-md bg-gray-50 p-4">
+                  <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-500">
                     Notas Clínicas (Profissional)
                   </span>
-                  <p className="whitespace-pre-wrap text-sm text-gray-900">
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
                     {model.selectedReferral.clinicalNotes}
                   </p>
                 </div>
               )}
 
               {model.selectedReferral.specialistConduct && (
-                <div>
-                  <span className="mb-1 block text-sm font-medium text-gray-500">
+                <div className="rounded-md border border-blue-100 bg-blue-50/50 p-4">
+                  <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-blue-800">
                     Conduta do Especialista
                   </span>
-                  <p className="whitespace-pre-wrap text-sm text-gray-900">
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-blue-900">
                     {model.selectedReferral.specialistConduct}
                   </p>
                 </div>
               )}
 
               {model.selectedReferral.specialistNotes && (
-                <div>
-                  <span className="mb-1 block text-sm font-medium text-gray-500">
+                <div className="rounded-md border border-blue-100 bg-blue-50/50 p-4">
+                  <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-blue-800">
                     Notas do Especialista
                   </span>
-                  <p className="whitespace-pre-wrap text-sm text-gray-900">
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-blue-900">
                     {model.selectedReferral.specialistNotes}
                   </p>
                 </div>
