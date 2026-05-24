@@ -116,6 +116,8 @@ Agrupa usuários em entidades de negócio (clínicas e grupos de profissionais).
 ### Relações
 
 - 1 Organization tem vários User
+- 1 Organization (CLINICA) tem vários Referral (recebidos)
+- 1 Organization (PROFISSIONAL_GROUP) tem vários Referral (enviados)
 - 1 Organization (PROFISSIONAL_GROUP) pode ter vários ProfessionalAccess (outgoing)
 - 1 Organization (CLINICA) pode ter vários ProfessionalAccess (incoming)
 
@@ -189,31 +191,33 @@ Lista os serviços que compõem cada núcleo.
 
 É a tabela central do fluxo operacional da plataforma.
 
-| Campo             | Tipo           | Obrigatório | Regras                                      |
-| ----------------- | -------------- | ----------- | ------------------------------------------- |
-| id                | String         | Sim         | Chave primária                              |
-| patientName       | String         | Sim         | Nome do paciente                            |
-| patientBirthDate  | DateTime       | Sim         | Data de nascimento                          |
-| patientPhone      | String         | Sim         | Telefone normalizado                        |
-| patientDocument   | String         | Não         | CPF/documento opcional                      |
-| systemicDiseases  | String         | Não         | Campo livre                                 |
-| clinicalNotes     | String         | Não         | Observações do encaminhamento               |
-| clinicalSuspicion | String         | Não         | Hipótese diagnóstica (suspeita clínica)     |
-| status            | ReferralStatus | Sim         | Default `Encaminhado`                       |
-| doctor            | String         | Não         | Médico responsável, quando agendado         |
-| appointmentDate   | DateTime       | Não         | Data do agendamento                         |
-| specialistNotes   | String         | Não         | Considerações do especialista               |
-| specialistConduct | String         | Não         | Conduta médica                              |
-| nucleusId         | String         | Sim         | FK para `CareNucleus.id`                    |
-| organizationId    | String         | Sim         | FK para `Organization.id` (clínica destino) |
-| createdByUserId   | String         | Sim         | FK para `User.id` (PROFISSIONAL que enviou) |
-| createdAt         | DateTime       | Sim         | Default `now()`                             |
-| updatedAt         | DateTime       | Sim         | Atualizado automaticamente                  |
+| Campo               | Tipo           | Obrigatório | Regras                                      |
+| ------------------- | -------------- | ----------- | ------------------------------------------- |
+| id                  | String         | Sim         | Chave primária                              |
+| patientName         | String         | Sim         | Nome do paciente                            |
+| patientBirthDate    | DateTime       | Sim         | Data de nascimento                          |
+| patientPhone        | String         | Sim         | Telefone normalizado                        |
+| patientDocument     | String         | Não         | CPF/documento opcional                      |
+| systemicDiseases    | String         | Não         | Campo livre                                 |
+| clinicalNotes       | String         | Não         | Observações do encaminhamento               |
+| clinicalSuspicion   | String         | Não         | Hipótese diagnóstica (suspeita clínica)     |
+| status              | ReferralStatus | Sim         | Default `Encaminhado`                       |
+| doctor              | String         | Não         | Médico responsável, quando agendado         |
+| appointmentDate     | DateTime       | Não         | Data do agendamento                         |
+| specialistNotes     | String         | Não         | Considerações do especialista               |
+| specialistConduct   | String         | Não         | Conduta médica                              |
+| nucleusId           | String         | Sim         | FK para `CareNucleus.id`                    |
+| organizationId      | String         | Sim         | FK para `Organization.id` (clínica destino) |
+| professionalGroupId | String         | Sim         | FK para `Organization.id` (grupo origem)    |
+| createdByUserId     | String         | Sim         | FK para `User.id` (PROFISSIONAL que enviou) |
+| createdAt           | DateTime       | Sim         | Default `now()`                             |
+| updatedAt           | DateTime       | Sim         | Atualizado automaticamente                  |
 
 ### Relações
 
 - 1 Referral pertence a 1 CareNucleus
-- 1 Referral pertence a 1 Organization (clínica)
+- 1 Referral pertence a 1 Organization (clínica destino)
+- 1 Referral pertence a 1 Organization (grupo profissional de origem)
 - 1 Referral foi criado por 1 User (PROFISSIONAL)
 - 1 Referral tem vários ReferralDocument
 - 1 Referral tem vários ReferralAttachment

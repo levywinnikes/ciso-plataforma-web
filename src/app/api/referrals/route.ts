@@ -170,6 +170,7 @@ export async function POST(request: Request) {
       clinicalSuspicion: body.clinicalSuspicion || null,
       nucleusId: body.nucleusId,
       organizationId: body.organizationId,
+      professionalGroupId: session.user.organizationId,
       createdByUserId: session.user.id,
       documents: {
         create:
