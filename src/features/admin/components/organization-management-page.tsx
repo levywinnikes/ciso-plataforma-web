@@ -69,6 +69,12 @@ export function OrganizationManagementPage({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const [newUserName, setNewUserName] = useState("");
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
+  const [newUserIsAdmin, setNewUserIsAdmin] = useState(false);
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+
   async function extractErrorKey(response: Response): Promise<string> {
     try {
       const body = (await response.json()) as { error?: string };
@@ -166,6 +172,44 @@ export function OrganizationManagementPage({
     }
     if (selectedOrgId) {
       await loadUsers(selectedOrgId);
+      await load();
+    }
+  }
+
+  async function createUser() {
+    if (!selectedOrgId) return;
+    setErrorMessage(null);
+    setIsCreatingUser(true);
+    try {
+      const role = type === "CLINICA" ? "MEDICO" : "PROFISSIONAL";
+      const response = await fetch(
+        `/api/organizations/${selectedOrgId}/users`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: newUserName,
+            email: newUserEmail,
+            password: newUserPassword,
+            isAdmin: newUserIsAdmin,
+            role,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        setErrorMessage(await extractErrorKey(response));
+        return;
+      }
+
+      setNewUserName("");
+      setNewUserEmail("");
+      setNewUserPassword("");
+      setNewUserIsAdmin(false);
+      await loadUsers(selectedOrgId);
+      await load();
+    } finally {
+      setIsCreatingUser(false);
     }
   }
 
@@ -355,9 +399,54 @@ export function OrganizationManagementPage({
         isOpen={isUsersModalOpen}
         onClose={() => setIsUsersModalOpen(false)}
         title={t("usersModalTitle")}
-        maxWidth="max-w-2xl"
+        maxWidth="max-w-4xl"
       >
         <div className="space-y-4">
+          <div className="mb-6 rounded-md border bg-gray-50 p-4">
+            <h4 className="mb-3 text-sm font-medium text-gray-900">
+              {t("createTitle")}
+            </h4>
+            <div className="grid items-end gap-3 md:grid-cols-2 lg:grid-cols-4">
+              <Input
+                placeholder={t("namePlaceholder")}
+                value={newUserName}
+                onChange={(event) => setNewUserName(event.target.value)}
+              />
+              <Input
+                type="email"
+                placeholder={t("adminEmailPlaceholder")}
+                value={newUserEmail}
+                onChange={(event) => setNewUserEmail(event.target.value)}
+              />
+              <Input
+                type="password"
+                placeholder={t("adminPasswordPlaceholder")}
+                value={newUserPassword}
+                onChange={(event) => setNewUserPassword(event.target.value)}
+              />
+              <div className="flex gap-2">
+                <label className="mb-2 flex w-full items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={newUserIsAdmin}
+                    onChange={(event) =>
+                      setNewUserIsAdmin(event.target.checked)
+                    }
+                  />
+                  Admin Local
+                </label>
+                <Button
+                  type="button"
+                  onClick={createUser}
+                  disabled={isCreatingUser}
+                  className="whitespace-nowrap"
+                >
+                  {isCreatingUser ? common("saving") : t("createAction")}
+                </Button>
+              </div>
+            </div>
+          </div>
+
           {users.length === 0 ? (
             <p className="text-sm text-gray-500">{t("noUsersFound")}</p>
           ) : (

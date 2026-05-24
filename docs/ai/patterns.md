@@ -4,7 +4,19 @@ Este documento descreve os padroes recorrentes do projeto. A IA deve consultar e
 
 ---
 
-## 1. Modulo de feature (pagina de dashboard)
+## 1. Cláusula de Formulários Amigáveis (OBRIGATÓRIO)
+
+**REGRA ABSOLUTA**: É expressamente proibido construir formulários de criação/edição usando estados crus (`useState`) ou agrupar validações no backend de forma genérica (ex: `errors.invalidData`).
+Todo formulário deve OBRIGATORIAMENTE utilizar:
+
+- **Zod** para validação (no arquivo `schema.ts`).
+- **React Hook Form** (no arquivo `hooks.ts`).
+- **Componente `<Field>`** que mostra o erro traduzido embaixo do campo.
+- **Backend:** O backend deve sempre responder com chaves de erro granulares (ex: `errors.passwordTooShort`, `errors.nameRequired`).
+
+---
+
+## 2. Modulo de feature (pagina de dashboard)
 
 Cada pagina de dashboard segue a estrutura:
 
@@ -175,16 +187,16 @@ import { cn } from "@/components/ui/utils";
 
 ---
 
-## 4. Componente FormField
+## 4. Componente Field
 
 Wrapper padrao para campos de formulario com label e mensagem de erro:
 
 ```tsx
-import { FormField } from "@/components/forms/field";
+import { Field } from "@/components/forms/field";
 
-<FormField label={t("label")} error={form.formState.errors.campo?.message}>
+<Field label={t("label")} error={form.formState.errors.campo?.message}>
   <Input {...form.register("campo")} />
-</FormField>;
+</Field>;
 ```
 
 - `label`: string visivel acima do campo
@@ -285,9 +297,9 @@ export function MyView() {
   const tError = useFormError();
   // ...
   return (
-    <FormField error={tError(form.formState.errors.name?.message)}>
+    <Field error={tError(form.formState.errors.name?.message)}>
       <Input {...form.register("name")} />
-    </FormField>
+    </Field>
   );
 }
 ```
@@ -316,6 +328,8 @@ Detalhes obrigatorios em [`docs/ai/security-checklist.md`](./security-checklist.
 ---
 
 ## 11. Estado de loading e erro em paginas que consomem API
+
+**REGRA ABSOLUTA**: "Erros tímidos" (silent failures) são terminantemente proibidos. Nunca faça um `if (!response.ok) return;` sem avisar o usuário. Tudo o que der erro no sistema deve exibir uma mensagem visual clara (alert box, toast) usando os arquivos de tradução.
 
 Componentes que chamam `fetch` para `/api/**` devem expor erro ao usuario via mensagem i18n:
 

@@ -125,6 +125,52 @@ Authorization: Bearer <admin_token>
 
 ## Usuários (ADMINISTRATIVO + Admin Local)
 
+### Listar Gestores Globais (Administradores)
+
+```
+GET /users/globals
+Authorization: Bearer <admin_token>
+```
+
+**Resposta (200):**
+
+```json
+[
+  {
+    "id": "user_admin_1",
+    "email": "admin@integravisao.com.br",
+    "name": "Admin Principal",
+    "role": "ADMINISTRATIVO",
+    "isAdmin": false,
+    "createdAt": "2025-01-01T10:00:00Z"
+  }
+]
+```
+
+**Acesso:** Apenas ADMINISTRATIVO
+
+### Criar Gestor Global (Administrador)
+
+```
+POST /users/globals
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+```
+
+**Payload:**
+
+```json
+{
+  "email": "novo_admin@integravisao.com.br",
+  "name": "Novo Admin",
+  "password": "senha_segura_123"
+}
+```
+
+**Resposta (201):** Usuário criado com `role=ADMINISTRATIVO` e `organizationId=null`.
+
+**Acesso:** Apenas ADMINISTRATIVO
+
 ### Listar usuários de uma organização
 
 ```
@@ -632,6 +678,7 @@ GET /health
 | -------------------------- | ------------- | ------------- | ------------- | ---------------- |
 | `/organizations`           | Admin         | Admin         | Admin         | Admin            |
 | `/organizations/:id/users` | Admin/isAdmin | Admin/isAdmin | Admin/isAdmin | Admin/isAdmin    |
+| `/users/globals`           | Admin         | Admin         | —             | —                |
 | `/nuclei`                  | Todos         | Admin         | Admin         | Admin            |
 | `/referrals`               | Prof/Med      | Prof          | Med           | Admin/Prof(novo) |
 | `/professional-access`     | Admin         | Admin         | —             | Admin            |
