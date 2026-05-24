@@ -14,21 +14,15 @@ export async function PATCH(
     return NextResponse.json({ message: "Não autenticado" }, { status: 401 });
   }
 
-  if (session.user.role !== "MEDICO" || !session.user.organizationId) {
+  // Apenas quem loga como clínica (MEDICO/ADMINISTRATIVO associado a clínica) pode agendar
+  if (!session.user.organizationId) {
     return NextResponse.json(
-      { message: "Apenas médicos da clínica podem agendar referrals" },
+      { message: "Apenas clínicas podem agendar atendimentos" },
       { status: 403 },
     );
   }
 
   const body = await request.json();
-
-  if (!body.doctor || !body.appointmentDate) {
-    return NextResponse.json(
-      { message: "Dados obrigatórios ausentes" },
-      { status: 400 },
-    );
-  }
 
   const referral = await prisma.referral.findFirst({
     where: {
@@ -44,11 +38,20 @@ export async function PATCH(
     );
   }
 
+  if (referral.status !== "Encaminhado") {
+    return NextResponse.json(
+      { message: "Somente encaminhamentos pendentes podem ser agendados" },
+      { status: 400 },
+    );
+  }
+
   const updated = await prisma.referral.update({
     where: { id: params.id },
     data: {
-      doctor: body.doctor,
-      appointmentDate: new Date(body.appointmentDate),
+      doctor: body.doctor || null,
+      appointmentDate: body.appointmentDate
+        ? new Date(body.appointmentDate)
+        : null,
       status: "Agendado",
     },
   });
@@ -56,7 +59,7 @@ export async function PATCH(
   return NextResponse.json({
     id: updated.id,
     doctor: updated.doctor,
-    appointmentDate: updated.appointmentDate?.toISOString(),
+    appointmentDate: updated.appointmentDate,
     status: updated.status,
   });
 }

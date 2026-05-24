@@ -7,6 +7,7 @@ import {
   TableCard,
   TableShell,
 } from "@/components/ui";
+import { AppointmentForm } from "@/features/referrals/components/appointment-form";
 import { MedicalConductForm } from "@/features/referrals/components/medical-conduct-form";
 import { PatientRecord } from "@/features/referrals/components/patient-record";
 import { ReferralStatusBadge } from "@/features/referrals/components/referral-status-badge";
@@ -102,13 +103,23 @@ export function MedicoPageView({ model }: MedicoPageViewProps) {
             >
               {common("cancel")}
             </Button>
-            <Button
-              variant="primary"
-              onClick={model.handleSave}
-              className="flex items-center bg-green-700 hover:bg-green-800"
-            >
-              {t("saveCare")}
-            </Button>
+            {model.selectedReferral?.status === "Encaminhado" ? (
+              <Button
+                variant="primary"
+                onClick={model.handleSchedule}
+                className="flex items-center"
+              >
+                Salvar Agendamento
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                onClick={model.handleSave}
+                className="flex items-center bg-green-700 hover:bg-green-800"
+              >
+                {t("saveCare")}
+              </Button>
+            )}
           </>
         }
       >
@@ -116,14 +127,24 @@ export function MedicoPageView({ model }: MedicoPageViewProps) {
           {model.selectedReferral && (
             <PatientRecord referral={model.selectedReferral} />
           )}
-          <MedicalConductForm
-            notes={model.notes}
-            onNotesChange={model.setNotes}
-            conduct={model.conduct}
-            onConductChange={model.setConduct}
-            files={model.files}
-            onAddFile={model.handleAddFile}
-          />
+          {model.selectedReferral?.status === "Encaminhado" ? (
+            <AppointmentForm
+              doctor={model.appointmentDoctor}
+              onDoctorChange={model.setAppointmentDoctor}
+              appointmentDate={model.appointmentDate}
+              onAppointmentDateChange={model.setAppointmentDate}
+              availableDoctors={model.availableDoctors}
+            />
+          ) : (
+            <MedicalConductForm
+              notes={model.notes}
+              onNotesChange={model.setNotes}
+              conduct={model.conduct}
+              onConductChange={model.setConduct}
+              files={model.files}
+              onAddFile={model.handleAddFile}
+            />
+          )}
         </div>
       </Modal>
     </div>
