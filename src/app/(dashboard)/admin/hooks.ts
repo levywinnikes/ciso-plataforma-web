@@ -187,7 +187,11 @@ export function useAdminPageModel(): AdminPageModel {
       description: target.description,
       price: target.chargedPrice,
     });
-    setSelectedServiceIds(target.services.map((s) => s.id));
+    const catalogIds = target.services
+      .map((s) => services.find((cs) => cs.name === s.name)?.id)
+      .filter((id): id is string => id !== undefined);
+
+    setSelectedServiceIds(catalogIds);
     setIsEditNucleusModalOpen(true);
   };
 

@@ -161,78 +161,94 @@ export function OrganizationManagementPage({
 
       <CardSection title={t("createTitle")}>
         <form
-          className="grid gap-3 md:grid-cols-2"
+          className="space-y-6"
           onSubmit={createForm.handleSubmit(onCreateSubmit)}
         >
-          <Field
-            label={""}
-            error={tError(createForm.formState.errors.name?.message)}
-          >
-            <FloatingInput
-              required
-              label={t("namePlaceholder")}
-              {...createForm.register("name")}
-            />
-          </Field>
+          <div>
+            <h3 className="mb-3 border-b border-gray-100 pb-2 text-sm font-medium text-gray-900">
+              {t("orgSectionTitle")}
+            </h3>
+            <div className="grid gap-3 md:grid-cols-3">
+              <Field
+                label={""}
+                error={tError(createForm.formState.errors.name?.message)}
+              >
+                <FloatingInput
+                  required
+                  label={t("namePlaceholder")}
+                  {...createForm.register("name")}
+                />
+              </Field>
 
-          <Field
-            label={""}
-            error={tError(createForm.formState.errors.cnpj?.message)}
-          >
-            <FloatingInput
-              label={t("cnpjPlaceholder")}
-              mask="cnpj"
-              {...createForm.register("cnpj")}
-            />
-          </Field>
+              <Field
+                label={""}
+                error={tError(createForm.formState.errors.cnpj?.message)}
+              >
+                <FloatingInput
+                  label={t("cnpjPlaceholder")}
+                  mask="cnpj"
+                  {...createForm.register("cnpj")}
+                />
+              </Field>
 
-          <Field
-            label={""}
-            error={tError(createForm.formState.errors.phone?.message)}
-          >
-            <FloatingInput
-              label={t("phonePlaceholder")}
-              mask="phone"
-              {...createForm.register("phone")}
-            />
-          </Field>
+              <Field
+                label={""}
+                error={tError(createForm.formState.errors.phone?.message)}
+              >
+                <FloatingInput
+                  label={t("phonePlaceholder")}
+                  mask="phone"
+                  {...createForm.register("phone")}
+                />
+              </Field>
+            </div>
+          </div>
 
-          <Field
-            label={""}
-            error={tError(createForm.formState.errors.adminName?.message)}
-          >
-            <FloatingInput
-              required
-              label={t("adminNamePlaceholder")}
-              {...createForm.register("adminName")}
-            />
-          </Field>
+          <div>
+            <h3 className="mb-3 border-b border-gray-100 pb-2 text-sm font-medium text-gray-900">
+              {t("adminSectionTitle")}
+            </h3>
+            <div className="grid gap-3 md:grid-cols-3">
+              <Field
+                label={""}
+                error={tError(createForm.formState.errors.adminName?.message)}
+              >
+                <FloatingInput
+                  required
+                  label={t("adminNamePlaceholder")}
+                  {...createForm.register("adminName")}
+                />
+              </Field>
 
-          <Field
-            label={""}
-            error={tError(createForm.formState.errors.adminEmail?.message)}
-          >
-            <FloatingInput
-              required
-              type="email"
-              label={t("adminEmailPlaceholder")}
-              {...createForm.register("adminEmail")}
-            />
-          </Field>
+              <Field
+                label={""}
+                error={tError(createForm.formState.errors.adminEmail?.message)}
+              >
+                <FloatingInput
+                  required
+                  type="email"
+                  label={t("adminEmailPlaceholder")}
+                  {...createForm.register("adminEmail")}
+                />
+              </Field>
 
-          <Field
-            label={""}
-            error={tError(createForm.formState.errors.adminPassword?.message)}
-          >
-            <FloatingInput
-              required
-              type="password"
-              label={t("adminPasswordPlaceholder")}
-              {...createForm.register("adminPassword")}
-            />
-          </Field>
+              <Field
+                label={""}
+                error={tError(
+                  createForm.formState.errors.adminPassword?.message,
+                )}
+              >
+                <FloatingInput
+                  required
+                  type="password"
+                  label={t("adminPasswordPlaceholder")}
+                  {...createForm.register("adminPassword")}
+                />
+              </Field>
+            </div>
+          </div>
 
-          <div className="mt-2 flex items-center md:col-span-2">
+          <div className="flex items-center pt-2">
             <Button type="submit" isLoading={isCreating}>
               {t("createAction")}
             </Button>
