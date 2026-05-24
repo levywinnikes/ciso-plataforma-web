@@ -135,6 +135,8 @@ model Referral {
   specialistConduct   String?
   nucleusId           String
   nucleus             CareNucleus        @relation(fields: [nucleusId], references: [id])
+  nucleusSnapshotName String
+  nucleusSnapshotPrice Decimal           @db.Decimal(10, 2)
   clinicId            String
   clinic              Organization       @relation("ReferralClinic", fields: [clinicId], references: [id], onDelete: Cascade)
   officeId            String

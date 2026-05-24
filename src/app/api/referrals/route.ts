@@ -29,6 +29,8 @@ function mapReferral(referral: {
   specialistConduct: string | null;
   createdAt: Date;
   nucleusId: string;
+  nucleusSnapshotName: string;
+  nucleusSnapshotPrice: any;
   clinicId: string;
   clinic: { name: string };
   officeId: string;
@@ -51,7 +53,8 @@ function mapReferral(referral: {
     createdAt: referral.createdAt.toISOString().slice(0, 10),
     status: referral.status,
     nucleusId: referral.nucleusId,
-    nucleusName: referral.nucleus.name,
+    nucleusName: referral.nucleusSnapshotName,
+    nucleusPrice: Number(referral.nucleusSnapshotPrice),
     clinicId: referral.clinicId,
     clinicName: referral.clinic.name,
     officeId: referral.officeId,
@@ -164,6 +167,17 @@ export async function POST(request: Request) {
   // FIXME: validação de ProfessionalAccess removida temporariamente.
   // Será reativada quando o painel de Acessos for recriado.
 
+  const nucleus = await prisma.careNucleus.findUnique({
+    where: { id: body.nucleusId },
+  });
+
+  if (!nucleus) {
+    return NextResponse.json(
+      { message: "Núcleo de atendimento não encontrado" },
+      { status: 404 },
+    );
+  }
+
   const referral = await prisma.referral.create({
     data: {
       patientName: body.patientName,
@@ -174,6 +188,8 @@ export async function POST(request: Request) {
       clinicalNotes: body.clinicalNotes || null,
       clinicalSuspicion: body.clinicalSuspicion || null,
       nucleusId: body.nucleusId,
+      nucleusSnapshotName: nucleus.name,
+      nucleusSnapshotPrice: nucleus.chargedPrice,
       clinicId: body.clinicId,
       officeId: session.user.organizationId,
       createdByUserId: session.user.id,

@@ -191,27 +191,29 @@ Lista os serviços que compõem cada núcleo.
 
 É a tabela central do fluxo operacional da plataforma.
 
-| Campo               | Tipo           | Obrigatório | Regras                                      |
-| ------------------- | -------------- | ----------- | ------------------------------------------- |
-| id                  | String         | Sim         | Chave primária                              |
-| patientName         | String         | Sim         | Nome do paciente                            |
-| patientBirthDate    | DateTime       | Sim         | Data de nascimento                          |
-| patientPhone        | String         | Sim         | Telefone normalizado                        |
-| patientDocument     | String         | Não         | CPF/documento opcional                      |
-| systemicDiseases    | String         | Não         | Campo livre                                 |
-| clinicalNotes       | String         | Não         | Observações do encaminhamento               |
-| clinicalSuspicion   | String         | Não         | Hipótese diagnóstica (suspeita clínica)     |
-| status              | ReferralStatus | Sim         | Default `Encaminhado`                       |
-| doctor              | String         | Não         | Médico responsável, quando agendado         |
-| appointmentDate     | DateTime       | Não         | Data do agendamento                         |
-| specialistNotes     | String         | Não         | Considerações do especialista               |
-| specialistConduct   | String         | Não         | Conduta médica                              |
-| nucleusId           | String         | Sim         | FK para `CareNucleus.id`                    |
-| organizationId      | String         | Sim         | FK para `Organization.id` (clínica destino) |
-| professionalGroupId | String         | Sim         | FK para `Organization.id` (grupo origem)    |
-| createdByUserId     | String         | Sim         | FK para `User.id` (PROFISSIONAL que enviou) |
-| createdAt           | DateTime       | Sim         | Default `now()`                             |
-| updatedAt           | DateTime       | Sim         | Atualizado automaticamente                  |
+| Campo                | Tipo           | Obrigatório | Regras                                      |
+| -------------------- | -------------- | ----------- | ------------------------------------------- |
+| id                   | String         | Sim         | Chave primária                              |
+| patientName          | String         | Sim         | Nome do paciente                            |
+| patientBirthDate     | DateTime       | Sim         | Data de nascimento                          |
+| patientPhone         | String         | Sim         | Telefone normalizado                        |
+| patientDocument      | String         | Não         | CPF/documento opcional                      |
+| systemicDiseases     | String         | Não         | Campo livre                                 |
+| clinicalNotes        | String         | Não         | Observações do encaminhamento               |
+| clinicalSuspicion    | String         | Não         | Hipótese diagnóstica (suspeita clínica)     |
+| status               | ReferralStatus | Sim         | Default `Encaminhado`                       |
+| doctor               | String         | Não         | Médico responsável, quando agendado         |
+| appointmentDate      | DateTime       | Não         | Data do agendamento                         |
+| specialistNotes      | String         | Não         | Considerações do especialista               |
+| specialistConduct    | String         | Não         | Conduta médica                              |
+| nucleusId            | String         | Sim         | FK para `CareNucleus.id`                    |
+| nucleusSnapshotName  | String         | Sim         | Histórico imutável do nome do núcleo        |
+| nucleusSnapshotPrice | Decimal(10,2)  | Sim         | Histórico imutável do preço no dia          |
+| organizationId       | String         | Sim         | FK para `Organization.id` (clínica destino) |
+| professionalGroupId  | String         | Sim         | FK para `Organization.id` (grupo origem)    |
+| createdByUserId      | String         | Sim         | FK para `User.id` (PROFISSIONAL que enviou) |
+| createdAt            | DateTime       | Sim         | Default `now()`                             |
+| updatedAt            | DateTime       | Sim         | Atualizado automaticamente                  |
 
 ### Relações
 
@@ -284,7 +286,6 @@ Arquivos anexados na etapa de atendimento do especialista.
 
 ## Pontos para evoluir depois
 
-- Snapshot de preço no `Referral` para preservar histórico financeiro
 - Unificação de `ReferralDocument` e `ReferralAttachment` em tabela única com coluna `kind`
 - Um médico pertencer a múltiplas clínicas (requer refatoração de organizationId em User)
 - Roles customizáveis por organização (não apenas MEDICO/PROFISSIONAL global)
