@@ -2,7 +2,9 @@ import { useTranslations } from "next-intl";
 
 import {
   Button,
+  ConfirmDialog,
   Modal,
+  OverlayLoader,
   PageHeader,
   TableCard,
   TableShell,
@@ -25,6 +27,8 @@ export function MedicoPageView({ model }: MedicoPageViewProps) {
 
   return (
     <div className="relative space-y-8">
+      {model.isLoading && <OverlayLoader message="Carregando..." />}
+      {model.isSaving && <OverlayLoader message="Salvando..." />}
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
 
       <div className="grid grid-cols-1 gap-6">
@@ -100,25 +104,41 @@ export function MedicoPageView({ model }: MedicoPageViewProps) {
             <Button
               variant="outline"
               onClick={() => model.setSelectedReferral(null)}
+              disabled={model.isSaving}
             >
-              {common("cancel")}
+              {model.selectedReferral?.status === "Atendido"
+                ? "Fechar"
+                : common("cancel")}
             </Button>
-            {model.selectedReferral?.status === "Encaminhado" ? (
+            {model.selectedReferral?.status === "Encaminhado" && (
               <Button
                 variant="primary"
                 onClick={model.handleSchedule}
+                isLoading={model.isSaving}
                 className="flex items-center"
               >
                 Salvar Agendamento
               </Button>
-            ) : (
-              <Button
-                variant="primary"
-                onClick={model.handleSave}
-                className="flex items-center bg-green-700 hover:bg-green-800"
-              >
-                {t("saveCare")}
-              </Button>
+            )}
+            {model.selectedReferral?.status === "Agendado" && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => model.handleSave(false)}
+                  isLoading={model.isSaving}
+                  className="flex items-center border-primary text-primary hover:bg-primary/5"
+                >
+                  {t("saveCare")}
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={model.handleCompleteClick}
+                  isLoading={model.isSaving}
+                  className="flex items-center bg-green-700 hover:bg-green-800"
+                >
+                  {t("completeCare")}
+                </Button>
+              </>
             )}
           </>
         }
@@ -143,10 +163,23 @@ export function MedicoPageView({ model }: MedicoPageViewProps) {
               onConductChange={model.setConduct}
               files={model.files}
               onAddFile={model.handleAddFile}
+              disabled={model.selectedReferral?.status === "Atendido"}
             />
           )}
         </div>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={model.isConfirmOpen}
+        onClose={() => model.setIsConfirmOpen(false)}
+        title={t("confirmCompleteTitle")}
+        message={t("confirmCompleteMessage")}
+        hint={t("confirmCompleteHint")}
+        cancelLabel={common("cancel")}
+        confirmLabel={common("confirm")}
+        variant="warning"
+        onConfirm={model.handleConfirmComplete}
+      />
     </div>
   );
 }

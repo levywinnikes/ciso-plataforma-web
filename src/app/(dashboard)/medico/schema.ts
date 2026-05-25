@@ -9,6 +9,8 @@ export interface MedicoPageModel {
   appointmentDoctor: string;
   appointmentDate: string;
   availableDoctors: { id: string; name: string }[];
+  isLoading: boolean;
+  isSaving: boolean;
   setSelectedReferral: (referral: Referral | null) => void;
   setNotes: (value: string) => void;
   setConduct: (value: string) => void;
@@ -16,6 +18,10 @@ export interface MedicoPageModel {
   setAppointmentDate: (value: string) => void;
   handleOpenAtendimento: (referral: Referral) => void;
   handleAddFile: () => void;
-  handleSave: () => void;
+  handleSave: (complete?: boolean) => Promise<void>;
   handleSchedule: () => void;
+  isConfirmOpen: boolean;
+  setIsConfirmOpen: (open: boolean) => void;
+  handleCompleteClick: () => void;
+  handleConfirmComplete: () => Promise<void>;
 }

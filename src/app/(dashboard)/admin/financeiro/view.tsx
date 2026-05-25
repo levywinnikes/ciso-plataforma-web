@@ -17,6 +17,48 @@ export function FinanceiroPageView({ model }: FinanceiroPageViewProps) {
     <div className="space-y-6">
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
 
+      <div className="flex flex-col gap-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm sm:flex-row sm:items-end">
+        <div className="flex-1 space-y-1">
+          <label className="text-xs font-bold uppercase text-gray-700">
+            Consultório
+          </label>
+          <select
+            className="ui-field w-full"
+            value={model.selectedOfficeId}
+            onChange={(e) => model.setSelectedOfficeId(e.target.value)}
+          >
+            <option value="">Todos</option>
+            {model.availableOffices.map((office) => (
+              <option key={office.id} value={office.id}>
+                {office.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex-1 space-y-1">
+          <label className="text-xs font-bold uppercase text-gray-700">
+            Data Inicial
+          </label>
+          <input
+            type="date"
+            className="ui-field w-full"
+            value={model.startDate}
+            onChange={(e) => model.setStartDate(e.target.value)}
+          />
+        </div>
+        <div className="flex-1 space-y-1">
+          <label className="text-xs font-bold uppercase text-gray-700">
+            Data Final
+          </label>
+          <input
+            type="date"
+            className="ui-field w-full"
+            value={model.endDate}
+            onChange={(e) => model.setEndDate(e.target.value)}
+          />
+        </div>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-4">
         <StatCard
           label={t("expectedRevenue")}

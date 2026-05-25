@@ -14,4 +14,13 @@ export interface FinanceiroPageModel {
   agendadosCount: number;
   atendidosCount: number;
   revenueRows: NucleusRevenueRow[];
+
+  // Filters
+  selectedOfficeId: string;
+  startDate: string;
+  endDate: string;
+  availableOffices: { id: string; name: string }[];
+  setSelectedOfficeId: (id: string) => void;
+  setStartDate: (date: string) => void;
+  setEndDate: (date: string) => void;
 }

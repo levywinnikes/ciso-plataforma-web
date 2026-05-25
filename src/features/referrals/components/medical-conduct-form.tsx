@@ -12,6 +12,7 @@ interface MedicalConductFormProps {
   onConductChange: (value: string) => void;
   files: string[];
   onAddFile: () => void;
+  disabled?: boolean;
 }
 
 export function MedicalConductForm({
@@ -21,6 +22,7 @@ export function MedicalConductForm({
   onConductChange,
   files,
   onAddFile,
+  disabled = false,
 }: MedicalConductFormProps) {
   const t = useTranslations("medicalConduct");
   return (
@@ -39,6 +41,7 @@ export function MedicalConductForm({
           className="min-h-[120px] border-gray-300 shadow-sm focus:border-primary"
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
+          disabled={disabled}
         />
       </div>
 
@@ -51,6 +54,7 @@ export function MedicalConductForm({
           className="min-h-[120px] border-gray-300 shadow-sm focus:border-primary"
           value={conduct}
           onChange={(e) => onConductChange(e.target.value)}
+          disabled={disabled}
         />
       </div>
 
@@ -60,8 +64,13 @@ export function MedicalConductForm({
         </label>
         <button
           type="button"
-          onClick={onAddFile}
-          className="flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-5 transition-colors hover:bg-gray-50"
+          onClick={disabled ? undefined : onAddFile}
+          disabled={disabled}
+          className={`flex w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-5 transition-colors ${
+            disabled
+              ? "cursor-not-allowed opacity-50"
+              : "cursor-pointer hover:bg-gray-50"
+          }`}
         >
           <Upload className="mb-2 h-5 w-5 text-gray-400" />
           <p className="text-xs font-medium text-gray-600">

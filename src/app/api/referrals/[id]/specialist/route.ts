@@ -37,22 +37,31 @@ export async function PATCH(
     );
   }
 
-  const updated = await prisma.referral.update({
-    where: { id: params.id },
-    data: {
-      specialistNotes: body.notes || null,
-      specialistConduct: body.conduct || null,
-      specialistFiles: {
-        create:
-          body.files?.map((item: { name?: string }) => ({
-            fileName: item.name || "arquivo",
-          })) ?? [],
+  const updated = await prisma.$transaction(async (tx) => {
+    if (body.files) {
+      await tx.referralAttachment.deleteMany({
+        where: { referralId: params.id },
+      });
+    }
+
+    return await tx.referral.update({
+      where: { id: params.id },
+      data: {
+        specialistNotes: body.notes || null,
+        specialistConduct: body.conduct || null,
+        ...(body.files && {
+          specialistFiles: {
+            create: body.files.map((item: { name?: string }) => ({
+              fileName: item.name || "arquivo",
+            })),
+          },
+        }),
+        status: body.complete ? "Atendido" : undefined,
       },
-      status: "Atendido",
-    },
-    include: {
-      specialistFiles: true,
-    },
+      include: {
+        specialistFiles: true,
+      },
+    });
   });
 
   return NextResponse.json({

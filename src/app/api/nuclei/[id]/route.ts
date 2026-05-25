@@ -7,10 +7,7 @@ interface UpdateNucleusBody {
   name?: string;
   description?: string;
   chargedPrice?: number;
-  services?: Array<{
-    name?: string;
-    basePrice?: number;
-  }>;
+  serviceIds?: string[];
 }
 
 export async function PATCH(
@@ -25,7 +22,7 @@ export async function PATCH(
   const name = body.name?.trim();
   const description = body.description?.trim();
   const chargedPrice = Number(body.chargedPrice);
-  const services = body.services;
+  const serviceIds = body.serviceIds;
 
   if (
     !name ||
@@ -36,33 +33,25 @@ export async function PATCH(
     return apiError("errors.invalidNucleusData", 400);
   }
 
-  let sanitizedServices: Array<{ name: string; basePrice: number }> | undefined;
-  if (services) {
-    if (!Array.isArray(services)) {
+  let sanitizedServiceIds: string[] | undefined;
+  if (serviceIds) {
+    if (!Array.isArray(serviceIds)) {
       return apiError("errors.invalidServiceData", 400);
     }
-    if (services.length === 0) {
+    if (serviceIds.length === 0) {
       return apiError("errors.atLeastOneService", 400);
     }
-    sanitizedServices = services
-      .map((service) => ({
-        name: service.name?.trim() || "",
-        basePrice: Number(service.basePrice),
-      }))
-      .filter(
-        (service) =>
-          service.name.length > 0 &&
-          Number.isFinite(service.basePrice) &&
-          service.basePrice > 0,
-      );
+    sanitizedServiceIds = serviceIds.filter(
+      (id) => typeof id === "string" && id.trim().length > 0,
+    );
 
-    if (sanitizedServices.length !== services.length) {
+    if (sanitizedServiceIds.length !== serviceIds.length) {
       return apiError("errors.invalidServiceData", 400);
     }
   }
 
   const updated = await prisma.$transaction(async (tx) => {
-    if (sanitizedServices) {
+    if (sanitizedServiceIds) {
       await tx.careNucleusService.deleteMany({
         where: { nucleusId: context.params.id },
       });
@@ -74,13 +63,17 @@ export async function PATCH(
         name,
         description,
         chargedPrice,
-        ...(sanitizedServices && {
+        ...(sanitizedServiceIds && {
           services: {
-            create: sanitizedServices,
+            create: sanitizedServiceIds.map((id) => ({ serviceId: id })),
           },
         }),
       },
-      include: { services: true },
+      include: {
+        services: {
+          include: { service: true },
+        },
+      },
     });
   });
 
@@ -89,10 +82,10 @@ export async function PATCH(
     name: updated.name,
     description: updated.description,
     chargedPrice: Number(updated.chargedPrice),
-    services: updated.services.map((service) => ({
-      id: service.id,
-      name: service.name,
-      basePrice: Number(service.basePrice),
+    services: updated.services.map((junction) => ({
+      id: junction.service.id,
+      name: junction.service.name,
+      basePrice: Number(junction.service.basePrice),
     })),
   });
 }

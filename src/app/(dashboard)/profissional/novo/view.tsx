@@ -12,7 +12,7 @@ import {
   Textarea,
 } from "@/components/ui";
 import { PriceSummary } from "@/features/referrals/components/price-summary";
-import { CARE_NUCLEI, CLINICAL_SUSPECTS } from "@/features/referrals/data";
+import { CLINICAL_SUSPECTS } from "@/features/referrals/data";
 import {
   formatCurrency,
   getNucleusPriceSummary,
@@ -165,7 +165,7 @@ export function NovoEncaminhamentoPageView({
             >
               <Select {...register("nucleusId")}>
                 <option value="">{common("select")}</option>
-                {CARE_NUCLEI.map((nucleus) => (
+                {model.nuclei.map((nucleus) => (
                   <option key={nucleus.id} value={nucleus.id}>
                     {nucleus.name}
                   </option>

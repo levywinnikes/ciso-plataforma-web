@@ -317,7 +317,11 @@
     "notAssigned": "Não atribuído",
     "openRecord": "Abrir Ficha",
     "specializedCare": "Atendimento Especializado",
-    "saveCare": "Salvar atendimento"
+    "saveCare": "Salvar atendimento",
+    "completeCare": "Concluir atendimento",
+    "confirmCompleteTitle": "Concluir Atendimento",
+    "confirmCompleteMessage": "Tem certeza de que deseja concluir este atendimento?",
+    "confirmCompleteHint": "Esta ação salvará a conduta médica e mudará o status para 'Atendido'. Após a conclusão, todos os campos ficarão bloqueados para edição."
   },
   "login": {
     "brandPrimary": "Integra",

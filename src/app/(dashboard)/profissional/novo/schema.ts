@@ -46,6 +46,7 @@ export interface NovoEncaminhamentoPageModel {
   documents: UploadedDocument[];
   selectedNucleus?: CareNucleus;
   clinics: ClinicOption[];
+  nuclei: CareNucleus[];
   handleFakeUpload: () => void;
   isSubmitting: boolean;
 }

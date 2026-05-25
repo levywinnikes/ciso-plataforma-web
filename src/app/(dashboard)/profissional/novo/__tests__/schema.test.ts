@@ -10,6 +10,7 @@ describe("novoEncaminhamentoSchema", () => {
     clinicalNotes: "",
     clinicalSuspect: "Glaucoma",
     nucleusId: "glaucoma",
+    clinicId: "clinic-id-123",
   };
 
   it("should accept valid data", () => {

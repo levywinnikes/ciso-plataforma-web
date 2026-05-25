@@ -49,7 +49,7 @@ export function ServicesView({ model }: ServicesViewProps) {
           columns={
             <tr>
               <th className="px-6 py-3">{t("colName")}</th>
-              <th className="px-6 py-3">{t("colNucleus")}</th>
+
               <th className="px-6 py-3">{t("colPrice")}</th>
               <th className="px-6 py-3 text-right">{t("colActions")}</th>
             </tr>
@@ -61,9 +61,7 @@ export function ServicesView({ model }: ServicesViewProps) {
                 <td className="ui-table-cell">
                   <Skeleton className="h-4 w-40" />
                 </td>
-                <td className="ui-table-cell">
-                  <Skeleton className="h-4 w-32" />
-                </td>
+
                 <td className="ui-table-cell">
                   <Skeleton className="h-4 w-16" />
                 </td>
@@ -90,7 +88,7 @@ export function ServicesView({ model }: ServicesViewProps) {
                 <td className="ui-table-cell font-medium text-gray-900">
                   {row.name}
                 </td>
-                <td className="ui-table-cell">{row.nucleusName}</td>
+
                 <td className="ui-table-cell">
                   {formatCurrency(row.basePrice)}
                 </td>

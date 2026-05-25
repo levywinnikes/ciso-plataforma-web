@@ -346,48 +346,6 @@ export function AdminPageView({ model }: AdminPageViewProps) {
         </form>
       </Modal>
 
-      <Modal
-        isOpen={model.isServiceModalOpen}
-        onClose={() => model.setIsServiceModalOpen(false)}
-        title={t("newServiceModalTitle")}
-        maxWidth="max-w-md"
-      >
-        <form onSubmit={model.onCreateService} className="space-y-4 pt-4">
-          <Field
-            label={""}
-            error={tError(model.serviceForm.formState.errors.name?.message)}
-          >
-            <FloatingInput
-              required
-              label={t("serviceNamePlaceholder")}
-              {...model.serviceForm.register("name")}
-            />
-          </Field>
-          <Field
-            label={""}
-            error={tError(model.serviceForm.formState.errors.price?.message)}
-          >
-            <FloatingInput
-              required
-              type="number"
-              step="0.01"
-              label={t("servicePricePlaceholder")}
-              {...model.serviceForm.register("price", { valueAsNumber: true })}
-            />
-          </Field>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => model.setIsServiceModalOpen(false)}
-            >
-              {common("cancel")}
-            </Button>
-            <Button type="submit">{t("addService")}</Button>
-          </div>
-        </form>
-      </Modal>
-
       <ConfirmDialog
         isOpen={pendingDeleteNucleusId !== null}
         onClose={() => setPendingDeleteNucleusId(null)}

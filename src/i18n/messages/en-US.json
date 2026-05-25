@@ -310,7 +310,11 @@
     "notAssigned": "Not assigned",
     "openRecord": "Open Record",
     "specializedCare": "Specialized Care",
-    "saveCare": "Save care"
+    "saveCare": "Save care",
+    "completeCare": "Complete care",
+    "confirmCompleteTitle": "Complete Care",
+    "confirmCompleteMessage": "Are you sure you want to complete this care?",
+    "confirmCompleteHint": "This action will save the medical conduct and change the status to 'Attended'. After completion, all fields will be locked for editing."
   },
   "login": {
     "brandPrimary": "Integra",

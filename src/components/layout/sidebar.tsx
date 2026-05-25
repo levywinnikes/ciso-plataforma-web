@@ -130,11 +130,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       href: "/admin/financeiro",
       icon: BarChart3,
     },
-    reports: {
-      name: t("nav.reports"),
-      href: "/admin/relatorios",
-      icon: BarChart3,
-    },
   };
 
   function isActive(href: string) {
@@ -194,7 +189,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     {
       key: "analytics" as const,
       label: t("sections.analytics"),
-      items: [navItems.financial, navItems.reports],
+      items: [navItems.financial],
     },
   ];
 

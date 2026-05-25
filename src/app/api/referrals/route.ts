@@ -172,7 +172,7 @@ export async function POST(request: Request) {
 
   const nucleus = await prisma.careNucleus.findUnique({
     where: { id: body.nucleusId },
-    include: { services: true },
+    include: { services: { include: { service: true } } },
   });
 
   if (!nucleus) {
@@ -194,11 +194,11 @@ export async function POST(request: Request) {
       nucleusId: body.nucleusId,
       nucleusSnapshotName: nucleus.name,
       nucleusSnapshotPrice: nucleus.chargedPrice,
-      nucleusSnapshotServices: nucleus.services.map((s) => ({
-        name: s.name,
-        basePrice: s.basePrice.toNumber
-          ? s.basePrice.toNumber()
-          : Number(s.basePrice),
+      nucleusSnapshotServices: nucleus.services.map((junction) => ({
+        name: junction.service.name,
+        basePrice: junction.service.basePrice.toNumber
+          ? junction.service.basePrice.toNumber()
+          : Number(junction.service.basePrice),
       })),
       clinicId: body.clinicId,
       officeId: session.user.organizationId,

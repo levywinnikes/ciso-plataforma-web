@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { CARE_NUCLEI } from "@/features/referrals/data";
+import type { CareNucleus } from "@/features/referrals/types";
 import { useAppToast } from "@/hooks/use-app-toast";
 
 import type {
@@ -38,6 +38,7 @@ export function useNovoEncaminhamentoPageModel(): NovoEncaminhamentoPageModel {
 
   const [documents, setDocuments] = useState<UploadedDocument[]>([]);
   const [clinics, setClinics] = useState<ClinicOption[]>([]);
+  const [nuclei, setNuclei] = useState<CareNucleus[]>([]);
 
   useEffect(() => {
     fetch("/api/referrals/clinics")
@@ -48,10 +49,19 @@ export function useNovoEncaminhamentoPageModel(): NovoEncaminhamentoPageModel {
         }
       })
       .catch((err) => console.error("Failed to fetch clinics", err));
+
+    fetch("/api/nuclei")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setNuclei(data);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch nuclei", err));
   }, []);
 
   const nucleusId = form.watch("nucleusId");
-  const selectedNucleus = CARE_NUCLEI.find((item) => item.id === nucleusId);
+  const selectedNucleus = nuclei.find((item) => item.id === nucleusId);
 
   const handleFakeUpload = () => {
     setDocuments((current) => [
@@ -106,6 +116,7 @@ export function useNovoEncaminhamentoPageModel(): NovoEncaminhamentoPageModel {
     documents,
     selectedNucleus,
     clinics,
+    nuclei,
     handleFakeUpload,
     isSubmitting,
   };

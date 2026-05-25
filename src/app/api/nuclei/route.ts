@@ -1,14 +1,22 @@
 import { NextResponse } from "next/server";
 
-import { apiError, requireAdministrativo } from "@/lib/api-auth";
+import {
+  apiError,
+  requireAdministrativo,
+  requireSession,
+} from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  const auth = await requireAdministrativo();
+  const auth = await requireSession();
   if ("error" in auth) return auth.error;
 
   const nuclei = await prisma.careNucleus.findMany({
-    include: { services: true },
+    include: {
+      services: {
+        include: { service: true },
+      },
+    },
     orderBy: { name: "asc" },
   });
 
@@ -17,10 +25,10 @@ export async function GET() {
     name: nucleus.name,
     description: nucleus.description,
     chargedPrice: Number(nucleus.chargedPrice),
-    services: nucleus.services.map((service) => ({
-      id: service.id,
-      name: service.name,
-      basePrice: Number(service.basePrice),
+    services: nucleus.services.map((junction) => ({
+      id: junction.service.id, // using the global service ID
+      name: junction.service.name,
+      basePrice: Number(junction.service.basePrice),
     })),
   }));
 
@@ -31,10 +39,7 @@ interface CreateNucleusBody {
   name?: string;
   description?: string;
   chargedPrice?: number;
-  services?: Array<{
-    name?: string;
-    basePrice?: number;
-  }>;
+  serviceIds?: string[];
 }
 
 export async function POST(request: Request) {
@@ -46,7 +51,7 @@ export async function POST(request: Request) {
   const name = body.name?.trim();
   const description = body.description?.trim();
   const chargedPrice = Number(body.chargedPrice);
-  const services = Array.isArray(body.services) ? body.services : [];
+  const serviceIds = Array.isArray(body.serviceIds) ? body.serviceIds : [];
 
   if (
     !name ||
@@ -57,36 +62,36 @@ export async function POST(request: Request) {
     return apiError("errors.invalidNucleusData", 400);
   }
 
-  if (services.length === 0) {
+  if (serviceIds.length === 0) {
     return apiError("errors.atLeastOneService", 400);
   }
 
-  const sanitizedServices = services
-    .map((service) => ({
-      name: service.name?.trim() || "",
-      basePrice: Number(service.basePrice),
-    }))
-    .filter(
-      (service) =>
-        service.name.length > 0 &&
-        Number.isFinite(service.basePrice) &&
-        service.basePrice > 0,
-    );
+  // Ensure all serviceIds are valid string ids
+  const sanitizedServiceIds = serviceIds.filter(
+    (id) => typeof id === "string" && id.trim().length > 0,
+  );
 
-  if (sanitizedServices.length !== services.length) {
+  if (sanitizedServiceIds.length !== serviceIds.length) {
     return apiError("errors.invalidServiceData", 400);
   }
 
+  // Create nucleus and the junction records connecting to global services
   const created = await prisma.careNucleus.create({
     data: {
       name,
       description,
       chargedPrice,
       services: {
-        create: sanitizedServices,
+        create: sanitizedServiceIds.map((id) => ({
+          serviceId: id,
+        })),
       },
     },
-    include: { services: true },
+    include: {
+      services: {
+        include: { service: true },
+      },
+    },
   });
 
   return NextResponse.json(
@@ -95,10 +100,10 @@ export async function POST(request: Request) {
       name: created.name,
       description: created.description,
       chargedPrice: Number(created.chargedPrice),
-      services: created.services.map((service) => ({
-        id: service.id,
-        name: service.name,
-        basePrice: Number(service.basePrice),
+      services: created.services.map((junction) => ({
+        id: junction.service.id,
+        name: junction.service.name,
+        basePrice: Number(junction.service.basePrice),
       })),
     },
     { status: 201 },

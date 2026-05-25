@@ -111,12 +111,22 @@ model CareNucleus {
   createdAt   DateTime              @default(now())
 }
 
+model CareService {
+  id          String               @id @default(cuid())
+  name        String               @unique
+  basePrice   Decimal              @db.Decimal(10, 2)
+  nuclei      CareNucleusService[]
+  createdAt   DateTime             @default(now())
+}
+
 model CareNucleusService {
   id        String     @id @default(cuid())
   nucleusId String
-  name      String
-  basePrice Decimal    @db.Decimal(10, 2)
+  serviceId String
   nucleus   CareNucleus @relation(fields: [nucleusId], references: [id], onDelete: Cascade)
+  service   CareService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([nucleusId, serviceId])
 }
 
 model Referral {

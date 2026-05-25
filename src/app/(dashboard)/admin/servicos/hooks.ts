@@ -13,8 +13,6 @@ export interface ServiceRow {
   id: string;
   name: string;
   basePrice: number;
-  nucleusId: string;
-  nucleusName: string;
 }
 
 export function useServicesManagement() {
@@ -38,17 +36,13 @@ export function useServicesManagement() {
   const filteredRows = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return rows;
-    return rows.filter(
-      (row) =>
-        row.name.toLowerCase().includes(term) ||
-        row.nucleusName.toLowerCase().includes(term),
-    );
+    return rows.filter((row) => row.name.toLowerCase().includes(term));
   }, [rows, search]);
 
   async function loadData() {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/nuclei/services", {
+      const response = await fetch("/api/services", {
         cache: "no-store",
       });
       if (response.ok) {
@@ -80,7 +74,7 @@ export function useServicesManagement() {
     if (!editingId) return;
 
     try {
-      const response = await fetch(`/api/nuclei/services/${editingId}`, {
+      const response = await fetch(`/api/services/${editingId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -110,7 +104,7 @@ export function useServicesManagement() {
 
   async function handleDeleteService(id: string) {
     try {
-      const response = await fetch(`/api/nuclei/services/${id}`, {
+      const response = await fetch(`/api/services/${id}`, {
         method: "DELETE",
       });
       if (!response.ok) {

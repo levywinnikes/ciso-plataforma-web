@@ -4,107 +4,51 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { CARE_NUCLEI } from "@/features/referrals/data";
 import type { CareNucleus, NucleusService } from "@/features/referrals/types";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useFormError } from "@/i18n/use-form-error";
 
-import type {
-  AdminPageModel,
-  ManagedServiceRow,
-  NucleusFormData,
-  ServiceFormData,
-} from "./schema";
-import { nucleusSchema, serviceSchema } from "./schema";
-
-const INITIAL_SERVICES: NucleusService[] = Array.from(
-  new Map(
-    CARE_NUCLEI.flatMap((nucleus) => nucleus.services).map((service) => [
-      service.id,
-      service,
-    ]),
-  ).values(),
-);
-
-function buildServiceCatalog(nucleiList: CareNucleus[]): NucleusService[] {
-  const servicesMap = new Map<string, NucleusService>();
-
-  nucleiList
-    .flatMap((nucleus) => nucleus.services)
-    .forEach((service) => {
-      if (!servicesMap.has(service.name)) {
-        servicesMap.set(service.name, {
-          id: service.id,
-          name: service.name,
-          basePrice: service.basePrice,
-        });
-      }
-    });
-
-  return Array.from(servicesMap.values());
-}
+import type { AdminPageModel, NucleusFormData } from "./schema";
+import { nucleusSchema } from "./schema";
 
 export function useAdminPageModel(): AdminPageModel {
-  const [nuclei, setNuclei] = useState<CareNucleus[]>(CARE_NUCLEI);
+  const [nuclei, setNuclei] = useState<CareNucleus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [services, setServices] = useState<NucleusService[]>(INITIAL_SERVICES);
+  const [services, setServices] = useState<NucleusService[]>([]);
+
   const [isNucleusModalOpen, setIsNucleusModalOpen] = useState(false);
   const [isEditNucleusModalOpen, setIsEditNucleusModalOpen] = useState(false);
-  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
-  const [isEditServiceModalOpen, setIsEditServiceModalOpen] = useState(false);
+
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [serviceSearchTerm, setServiceSearchTerm] = useState("");
-  const [serviceManagerSearchTerm, setServiceManagerSearchTerm] = useState("");
   const [editingNucleusId, setEditingNucleusId] = useState<string | null>(null);
-  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
 
   const toast = useAppToast();
   const tError = useFormError();
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadNuclei() {
-      setIsLoading(true);
-      try {
-        const response = await fetch("/api/nuclei", { cache: "no-store" });
-        if (!response.ok) {
-          setIsLoading(false);
-          return;
-        }
-
-        const nucleiData = (await response.json()) as CareNucleus[];
-        if (!isMounted) return;
-
-        setNuclei(nucleiData);
-        setServices(buildServiceCatalog(nucleiData));
-      } catch {
-        // Keep local fallback when API is unavailable.
-        if (isMounted) {
-          setNuclei(CARE_NUCLEI);
-          setServices(buildServiceCatalog(CARE_NUCLEI));
-        }
-      } finally {
-        if (isMounted) setIsLoading(false);
+  async function loadData() {
+    setIsLoading(true);
+    try {
+      const [nucleiRes, servicesRes] = await Promise.all([
+        fetch("/api/nuclei", { cache: "no-store" }),
+        fetch("/api/services", { cache: "no-store" }),
+      ]);
+      if (nucleiRes.ok) {
+        setNuclei(await nucleiRes.json());
       }
+      if (servicesRes.ok) {
+        setServices(await servicesRes.json());
+      }
+    } catch {
+      toast.error(tError("errors.genericRequestFailed") ?? "");
+    } finally {
+      setIsLoading(false);
     }
+  }
 
-    void loadNuclei();
-
-    return () => {
-      isMounted = false;
-    };
+  useEffect(() => {
+    void loadData();
   }, []);
-
-  const serviceForm = useForm<ServiceFormData>({
-    resolver: zodResolver(serviceSchema),
-    defaultValues: { name: "", price: undefined },
-  });
-
-  const serviceEditForm = useForm<ServiceFormData>({
-    resolver: zodResolver(serviceSchema),
-    defaultValues: { name: "", price: undefined },
-  });
 
   const nucleusForm = useForm<NucleusFormData>({
     resolver: zodResolver(nucleusSchema),
@@ -122,39 +66,21 @@ export function useAdminPageModel(): AdminPageModel {
   );
 
   const selectedServicesFullPrice = useMemo(
-    () => selectedServices.reduce((sum, service) => sum + service.basePrice, 0),
+    () =>
+      selectedServices.reduce(
+        (sum, service) => sum + Number(service.basePrice),
+        0,
+      ),
     [selectedServices],
   );
 
   const filteredServices = useMemo(() => {
     const term = serviceSearchTerm.trim().toLowerCase();
     if (!term) return services;
-
     return services.filter((service) =>
       service.name.toLowerCase().includes(term),
     );
   }, [serviceSearchTerm, services]);
-
-  const managedServiceRows = useMemo<ManagedServiceRow[]>(() => {
-    const rows = nuclei.flatMap((nucleus) =>
-      nucleus.services.map((service) => ({
-        id: service.id,
-        name: service.name,
-        basePrice: service.basePrice,
-        nucleusId: nucleus.id,
-        nucleusName: nucleus.name,
-      })),
-    );
-
-    const term = serviceManagerSearchTerm.trim().toLowerCase();
-    if (!term) return rows;
-
-    return rows.filter(
-      (row) =>
-        row.name.toLowerCase().includes(term) ||
-        row.nucleusName.toLowerCase().includes(term),
-    );
-  }, [nuclei, serviceManagerSearchTerm]);
 
   const toggleService = (serviceId: string) => {
     setSelectedServiceIds((current) =>
@@ -162,19 +88,6 @@ export function useAdminPageModel(): AdminPageModel {
         ? current.filter((item) => item !== serviceId)
         : [...current, serviceId],
     );
-  };
-
-  const handleCreateService = (data: ServiceFormData) => {
-    const nextService: NucleusService = {
-      id: `svc-${Date.now()}`,
-      name: data.name,
-      basePrice: data.price,
-    };
-
-    setServices((current) => [...current, nextService]);
-    setSelectedServiceIds((current) => [...current, nextService.id]);
-    serviceForm.reset();
-    setIsServiceModalOpen(false);
   };
 
   const openEditNucleusModal = (nucleusId: string) => {
@@ -187,9 +100,7 @@ export function useAdminPageModel(): AdminPageModel {
       description: target.description,
       price: target.chargedPrice,
     });
-    const catalogIds = target.services
-      .map((s) => services.find((cs) => cs.name === s.name)?.id)
-      .filter((id): id is string => id !== undefined);
+    const catalogIds = target.services.map((s) => s.id);
 
     setSelectedServiceIds(catalogIds);
     setIsEditNucleusModalOpen(true);
@@ -198,51 +109,32 @@ export function useAdminPageModel(): AdminPageModel {
   const handleUpdateNucleus = async (data: NucleusFormData) => {
     if (!editingNucleusId) return;
 
-    const updatedServices = services.filter((service) =>
-      selectedServiceIds.includes(service.id),
-    );
-
-    if (updatedServices.length === 0) {
+    if (selectedServiceIds.length === 0) {
       toast.error(tError("errors.atLeastOneService") ?? "");
       return;
     }
 
     const response = await fetch(`/api/nuclei/${editingNucleusId}`, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: data.name,
         description: data.description,
         chargedPrice: data.price,
-        services: updatedServices.map((service) => ({
-          name: service.name,
-          basePrice: service.basePrice,
-        })),
+        serviceIds: selectedServiceIds,
       }),
     });
 
     if (!response.ok) {
-      let errorKey = "errors.genericRequestFailed";
-      try {
-        const body = await response.json();
-        if (body.error) errorKey = body.error;
-      } catch {}
-      toast.error(tError(errorKey) ?? "");
+      toast.error(tError("errors.genericRequestFailed") ?? "");
       return;
     }
-
-    const updated = (await response.json()) as CareNucleus;
-
-    setNuclei((current) =>
-      current.map((item) => (item.id === updated.id ? updated : item)),
-    );
 
     toast.success("Núcleo atualizado com sucesso!");
     setIsEditNucleusModalOpen(false);
     setEditingNucleusId(null);
     setSelectedServiceIds([]);
+    await loadData();
   };
 
   const deleteNucleus = async (nucleusId: string) => {
@@ -251,194 +143,63 @@ export function useAdminPageModel(): AdminPageModel {
     });
 
     if (!response.ok) {
-      let errorKey = "errors.genericRequestFailed";
-      try {
-        const body = await response.json();
-        if (body.error) errorKey = body.error;
-      } catch {}
-      toast.error(tError(errorKey) ?? "");
+      toast.error(tError("errors.genericRequestFailed") ?? "");
       return;
     }
 
-    setNuclei((current) => {
-      const nextNuclei = current.filter((item) => item.id !== nucleusId);
-      setServices(buildServiceCatalog(nextNuclei));
-      return nextNuclei;
-    });
     toast.success("Núcleo excluído com sucesso!");
-  };
-
-  const openEditServiceModal = (serviceId: string) => {
-    const target = managedServiceRows.find((row) => row.id === serviceId);
-    if (!target) return;
-
-    setEditingServiceId(serviceId);
-    serviceEditForm.reset({
-      name: target.name,
-      price: target.basePrice,
-    });
-    setIsEditServiceModalOpen(true);
-  };
-
-  const handleUpdateService = async (data: ServiceFormData) => {
-    if (!editingServiceId) return;
-
-    const response = await fetch(`/api/nuclei/services/${editingServiceId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: data.name,
-        basePrice: data.price,
-      }),
-    });
-
-    if (!response.ok) return;
-
-    const updated = (await response.json()) as {
-      id: string;
-      name: string;
-      basePrice: number;
-      nucleusId: string;
-    };
-
-    setNuclei((current) =>
-      current.map((nucleus) => {
-        if (nucleus.id !== updated.nucleusId) return nucleus;
-
-        return {
-          ...nucleus,
-          services: nucleus.services.map((service) =>
-            service.id === updated.id
-              ? {
-                  ...service,
-                  name: updated.name,
-                  basePrice: updated.basePrice,
-                }
-              : service,
-          ),
-        };
-      }),
-    );
-
-    setServices((current) =>
-      current.map((service) =>
-        service.id === updated.id
-          ? {
-              ...service,
-              name: updated.name,
-              basePrice: updated.basePrice,
-            }
-          : service,
-      ),
-    );
-
-    setIsEditServiceModalOpen(false);
-    setEditingServiceId(null);
-  };
-
-  const deleteService = async (serviceId: string) => {
-    const response = await fetch(`/api/nuclei/services/${serviceId}`, {
-      method: "DELETE",
-    });
-
-    if (!response.ok) return;
-
-    setNuclei((current) =>
-      current.map((nucleus) => ({
-        ...nucleus,
-        services: nucleus.services.filter(
-          (service) => service.id !== serviceId,
-        ),
-      })),
-    );
-    setServices((current) =>
-      current.filter((service) => service.id !== serviceId),
-    );
-    setSelectedServiceIds((current) =>
-      current.filter((selectedId) => selectedId !== serviceId),
-    );
+    await loadData();
   };
 
   const handleCreateNucleus = async (data: NucleusFormData) => {
-    if (selectedServices.length === 0) {
+    if (selectedServiceIds.length === 0) {
       toast.error(tError("errors.atLeastOneService") ?? "");
       return;
     }
 
     const response = await fetch("/api/nuclei", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: data.name,
         description: data.description,
         chargedPrice: data.price,
-        services: selectedServices.map((service) => ({
-          name: service.name,
-          basePrice: service.basePrice,
-        })),
+        serviceIds: selectedServiceIds,
       }),
     });
 
     if (!response.ok) {
-      let errorKey = "errors.genericRequestFailed";
-      try {
-        const body = await response.json();
-        if (body.error) errorKey = body.error;
-      } catch {}
-      toast.error(tError(errorKey) ?? "");
+      toast.error(tError("errors.genericRequestFailed") ?? "");
       return;
     }
-
-    const createdNucleus = (await response.json()) as CareNucleus;
-    setNuclei((current) => {
-      const nextNuclei = [createdNucleus, ...current];
-      setServices(buildServiceCatalog(nextNuclei));
-      return nextNuclei;
-    });
 
     toast.success("Núcleo criado com sucesso!");
     nucleusForm.reset();
     setSelectedServiceIds([]);
     setIsNucleusModalOpen(false);
+    await loadData();
   };
 
   return {
     nuclei,
     isLoading,
     services,
+    filteredServices,
     isNucleusModalOpen,
     isEditNucleusModalOpen,
-    isServiceModalOpen,
-    isEditServiceModalOpen,
     selectedServices,
     selectedServicesFullPrice,
     selectedServiceIds,
-    filteredServices,
     serviceSearchTerm,
-    managedServiceRows,
-    serviceManagerSearchTerm,
-    serviceForm,
-    serviceEditForm,
     nucleusForm,
     nucleusEditForm,
     setIsNucleusModalOpen,
     setIsEditNucleusModalOpen,
-    setIsServiceModalOpen,
-    setIsEditServiceModalOpen,
     setServiceSearchTerm,
-    setServiceManagerSearchTerm,
     toggleService,
     openEditNucleusModal,
     deleteNucleus,
-    openEditServiceModal,
-    deleteService,
-    onCreateService: serviceForm.handleSubmit(handleCreateService),
     onUpdateNucleus: nucleusEditForm.handleSubmit(handleUpdateNucleus),
-    onUpdateService: serviceEditForm.handleSubmit(handleUpdateService),
     onCreateNucleus: nucleusForm.handleSubmit(handleCreateNucleus),
   };
 }

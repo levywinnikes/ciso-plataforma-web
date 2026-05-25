@@ -4,6 +4,7 @@ import { ClipboardList } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import type { Referral } from "../types";
+import { formatDate } from "../utils";
 
 export function PatientRecord({ referral }: { referral: Referral }) {
   const t = useTranslations("patientRecord");
@@ -15,7 +16,7 @@ export function PatientRecord({ referral }: { referral: Referral }) {
           {t("header")}
         </h4>
         <span className="text-xs font-semibold text-gray-500">
-          {t("dateLabel")}: {referral.createdAt}
+          {t("dateLabel")}: {formatDate(referral.createdAt)}
         </span>
       </div>
 
@@ -36,7 +37,9 @@ export function PatientRecord({ referral }: { referral: Referral }) {
                 {t("birthDate")}
               </span>
               <span className="font-semibold text-gray-900">
-                {referral.patientBirthDate || t("notInformed")}
+                {referral.patientBirthDate
+                  ? formatDate(referral.patientBirthDate)
+                  : t("notInformed")}
               </span>
             </div>
             <div>
@@ -93,6 +96,24 @@ export function PatientRecord({ referral }: { referral: Referral }) {
             <span className="font-bold text-primary">
               {referral.nucleusName}
             </span>
+            {referral.nucleusSnapshotServices &&
+              referral.nucleusSnapshotServices.length > 0 && (
+                <div className="mt-3 rounded-md border border-gray-100 bg-gray-50 p-2.5">
+                  <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                    Serviços Incluídos
+                  </span>
+                  <ul className="space-y-1 text-xs text-gray-700">
+                    {referral.nucleusSnapshotServices.map((service, idx) => (
+                      <li
+                        key={idx}
+                        className="flex items-center justify-between border-b border-gray-100/50 py-0.5 last:border-0"
+                      >
+                        <span>• {service.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
           </div>
         </div>
       </div>
