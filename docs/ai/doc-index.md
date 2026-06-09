@@ -82,6 +82,10 @@ Este arquivo e o ponto de entrada obrigatorio para qualquer agente antes de coda
 - jest.config.ts
 - jest.setup.ts
 
+### Setup e deployment
+
+- docs/ai/setup-and-deployment.md (setup local, env obrigatorias, deploy no Vercel)
+
 ## Checklist antes de implementar
 
 - O problema ja esta descrito em algum arquivo?

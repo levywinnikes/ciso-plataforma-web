@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 
 import type { Referral } from "@/features/referrals/types";
@@ -11,6 +12,7 @@ import type { MedicoPageModel } from "./schema";
 export function useMedicoPageModel(): MedicoPageModel {
   const toast = useAppToast();
   const tError = useFormError();
+  const t = useTranslations("doctor");
 
   const [selectedReferral, setSelectedReferral] = useState<Referral | null>(
     null,
@@ -21,13 +23,6 @@ export function useMedicoPageModel(): MedicoPageModel {
   const [files, setFiles] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-
-  // Appointment states
-  const [appointmentDoctor, setAppointmentDoctor] = useState("");
-  const [appointmentDate, setAppointmentDate] = useState("");
-  const [availableDoctors, setAvailableDoctors] = useState<
-    { id: string; name: string }[]
-  >([]);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   useEffect(() => {
@@ -36,29 +31,18 @@ export function useMedicoPageModel(): MedicoPageModel {
     async function loadData() {
       setIsLoading(true);
       try {
-        const [refResponse, docsResponse] = await Promise.all([
-          fetch("/api/referrals", { cache: "no-store" }),
-          fetch("/api/users/organization", { cache: "no-store" }),
-        ]);
+        const refResponse = await fetch("/api/referrals", {
+          cache: "no-store",
+        });
 
         const refData = (await refResponse.json()) as Referral[];
-        const docsData = await docsResponse.json();
 
         if (isMounted) {
           setReferrals(refData);
-          if (Array.isArray(docsData)) {
-            setAvailableDoctors(
-              docsData.filter(
-                (d: any) => d.role === "MEDICO" || d.role === "ADMINISTRATIVO",
-              ),
-            );
-          }
         }
       } catch (e) {
         console.error(e);
-        toast.error(
-          tError("errors.genericRequestFailed") ?? "Erro ao carregar dados.",
-        );
+        toast.error(tError("errors.genericRequestFailed") ?? "");
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -77,9 +61,7 @@ export function useMedicoPageModel(): MedicoPageModel {
     () =>
       referrals.filter(
         (referral) =>
-          referral.status === "Agendado" ||
-          referral.status === "Encaminhado" ||
-          referral.status === "Atendido",
+          referral.status === "Agendado" || referral.status === "Atendido",
       ),
     [referrals],
   );
@@ -89,16 +71,6 @@ export function useMedicoPageModel(): MedicoPageModel {
     setNotes(referral.specialistNotes ?? "");
     setConduct(referral.specialistConduct ?? "");
     setFiles((referral.specialistAttachments ?? []).map((item) => item.name));
-
-    setAppointmentDoctor(referral.doctor ?? "");
-    if (referral.appointmentDate) {
-      // Input datetime-local expects YYYY-MM-DDThh:mm
-      setAppointmentDate(
-        new Date(referral.appointmentDate).toISOString().slice(0, 16),
-      );
-    } else {
-      setAppointmentDate("");
-    }
   };
 
   const handleAddFile = () => {
@@ -148,24 +120,14 @@ export function useMedicoPageModel(): MedicoPageModel {
               : item,
           ),
         );
-        toast.success(
-          complete
-            ? "Atendimento concluído com sucesso!"
-            : "Atendimento salvo com sucesso!",
-        );
+        toast.success(complete ? t("completeSuccess") : t("saveSuccess"));
         setSelectedReferral(null);
       } else {
-        toast.error(
-          tError("errors.genericRequestFailed") ??
-            "Erro ao salvar o atendimento.",
-        );
+        toast.error(tError("errors.genericRequestFailed") ?? "");
       }
     } catch (e) {
       console.error(e);
-      toast.error(
-        tError("errors.genericRequestFailed") ??
-          "Erro ao salvar o atendimento.",
-      );
+      toast.error(tError("errors.genericRequestFailed") ?? "");
     } finally {
       setIsSaving(false);
     }
@@ -180,73 +142,20 @@ export function useMedicoPageModel(): MedicoPageModel {
     await handleSave(true);
   };
 
-  const handleSchedule = async () => {
-    if (!selectedReferral || !appointmentDoctor || !appointmentDate) {
-      toast.error("Preencha o médico e a data/hora para agendar.");
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const response = await fetch(
-        `/api/referrals/${selectedReferral.id}/schedule`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            doctor: appointmentDoctor,
-            appointmentDate: new Date(appointmentDate).toISOString(),
-          }),
-        },
-      );
-
-      if (response.ok) {
-        setReferrals((current) =>
-          current.map((item) =>
-            item.id === selectedReferral.id
-              ? {
-                  ...item,
-                  doctor: appointmentDoctor,
-                  appointmentDate: new Date(appointmentDate).toISOString(),
-                  status: "Agendado",
-                }
-              : item,
-          ),
-        );
-        toast.success("Agendamento realizado com sucesso!");
-        setSelectedReferral(null);
-      } else {
-        const err = await response.json();
-        toast.error(err.message || "Erro ao agendar.");
-      }
-    } catch (e) {
-      console.error(e);
-      toast.error("Erro ao agendar.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   return {
     selectedReferral,
     notes,
     conduct,
     files,
     items,
-    appointmentDoctor,
-    appointmentDate,
-    availableDoctors,
     isLoading,
     isSaving,
     setSelectedReferral,
     setNotes,
     setConduct,
-    setAppointmentDoctor,
-    setAppointmentDate,
     handleOpenAtendimento,
     handleAddFile,
     handleSave,
-    handleSchedule,
     isConfirmOpen,
     setIsConfirmOpen,
     handleCompleteClick,

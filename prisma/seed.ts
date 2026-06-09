@@ -76,10 +76,24 @@ async function main() {
       create: nucleusData,
     });
     for (const svc of services) {
+      const service = await prisma.careService.upsert({
+        where: { name: svc.name },
+        update: { basePrice: svc.basePrice },
+        create: { name: svc.name, basePrice: svc.basePrice },
+      });
+
       await prisma.careNucleusService.upsert({
-        where: { id: svc.id },
-        update: { name: svc.name, basePrice: svc.basePrice },
-        create: { ...svc, nucleusId: nucleusData.id },
+        where: {
+          nucleusId_serviceId: {
+            nucleusId: nucleusData.id,
+            serviceId: service.id,
+          },
+        },
+        update: {},
+        create: {
+          nucleusId: nucleusData.id,
+          serviceId: service.id,
+        },
       });
     }
     console.log(`✅ Nucleus upserted: ${nucleusData.name}`);

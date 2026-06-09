@@ -30,11 +30,20 @@ export function ServicesView({ model }: ServicesViewProps) {
   const common = useTranslations("common");
   const tError = useFormError();
 
+  const { register: registerCreate, formState: createState } = model.createForm;
   const { register, formState } = model.editForm;
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        action={
+          <Button onClick={() => model.setIsCreateModalOpen(true)}>
+            {t("newService")}
+          </Button>
+        }
+      />
 
       <CardSection title={t("searchTitle")}>
         <Input
@@ -79,7 +88,7 @@ export function ServicesView({ model }: ServicesViewProps) {
                 colSpan={4}
                 className="ui-table-cell py-8 text-center text-gray-500"
               >
-                Nenhum serviço cadastrado
+                {t("emptyState")}
               </td>
             </tr>
           ) : (
@@ -119,6 +128,45 @@ export function ServicesView({ model }: ServicesViewProps) {
           )}
         </TableShell>
       </TableCard>
+
+      <Modal
+        isOpen={model.isCreateModalOpen}
+        onClose={() => model.setIsCreateModalOpen(false)}
+        title={t("newService")}
+        maxWidth="max-w-md"
+      >
+        <form onSubmit={model.onCreateService} className="space-y-4 pt-4">
+          <Field label={""} error={tError(createState.errors.name?.message)}>
+            <FloatingInput
+              required
+              label={t("namePlaceholder")}
+              {...registerCreate("name")}
+            />
+          </Field>
+          <Field label={""} error={tError(createState.errors.price?.message)}>
+            <FloatingInput
+              required
+              type="number"
+              step="0.01"
+              label={t("pricePlaceholder")}
+              {...registerCreate("price", { valueAsNumber: true })}
+            />
+          </Field>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => model.setIsCreateModalOpen(false)}
+              disabled={createState.isSubmitting}
+            >
+              {common("cancel")}
+            </Button>
+            <Button type="submit" isLoading={createState.isSubmitting}>
+              {common("save")}
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       <Modal
         isOpen={model.isEditModalOpen}

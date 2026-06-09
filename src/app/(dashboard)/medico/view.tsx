@@ -9,7 +9,6 @@ import {
   TableCard,
   TableShell,
 } from "@/components/ui";
-import { AppointmentForm } from "@/features/referrals/components/appointment-form";
 import { MedicalConductForm } from "@/features/referrals/components/medical-conduct-form";
 import { PatientRecord } from "@/features/referrals/components/patient-record";
 import { ReferralStatusBadge } from "@/features/referrals/components/referral-status-badge";
@@ -27,8 +26,8 @@ export function MedicoPageView({ model }: MedicoPageViewProps) {
 
   return (
     <div className="relative space-y-8">
-      {model.isLoading && <OverlayLoader message="Carregando..." />}
-      {model.isSaving && <OverlayLoader message="Salvando..." />}
+      {model.isLoading && <OverlayLoader message={common("loading")} />}
+      {model.isSaving && <OverlayLoader message={common("saving")} />}
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
 
       <div className="grid grid-cols-1 gap-6">
@@ -106,20 +105,8 @@ export function MedicoPageView({ model }: MedicoPageViewProps) {
               onClick={() => model.setSelectedReferral(null)}
               disabled={model.isSaving}
             >
-              {model.selectedReferral?.status === "Atendido"
-                ? "Fechar"
-                : common("cancel")}
+              {common("cancel")}
             </Button>
-            {model.selectedReferral?.status === "Encaminhado" && (
-              <Button
-                variant="primary"
-                onClick={model.handleSchedule}
-                isLoading={model.isSaving}
-                className="flex items-center"
-              >
-                Salvar Agendamento
-              </Button>
-            )}
             {model.selectedReferral?.status === "Agendado" && (
               <>
                 <Button
@@ -147,25 +134,15 @@ export function MedicoPageView({ model }: MedicoPageViewProps) {
           {model.selectedReferral && (
             <PatientRecord referral={model.selectedReferral} />
           )}
-          {model.selectedReferral?.status === "Encaminhado" ? (
-            <AppointmentForm
-              doctor={model.appointmentDoctor}
-              onDoctorChange={model.setAppointmentDoctor}
-              appointmentDate={model.appointmentDate}
-              onAppointmentDateChange={model.setAppointmentDate}
-              availableDoctors={model.availableDoctors}
-            />
-          ) : (
-            <MedicalConductForm
-              notes={model.notes}
-              onNotesChange={model.setNotes}
-              conduct={model.conduct}
-              onConductChange={model.setConduct}
-              files={model.files}
-              onAddFile={model.handleAddFile}
-              disabled={model.selectedReferral?.status === "Atendido"}
-            />
-          )}
+          <MedicalConductForm
+            notes={model.notes}
+            onNotesChange={model.setNotes}
+            conduct={model.conduct}
+            onConductChange={model.setConduct}
+            files={model.files}
+            onAddFile={model.handleAddFile}
+            disabled={model.selectedReferral?.status === "Atendido"}
+          />
         </div>
       </Modal>
 

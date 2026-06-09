@@ -4,18 +4,26 @@ import { NextResponse } from "next/server";
 import { apiError, requireSession } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(request: Request) {
   const result = await requireSession();
   if ("error" in result) return result.error;
 
   const { user } = result;
 
-  if (!user.organizationId) {
+  const { searchParams } = new URL(request.url);
+  const requestedOrganizationId = searchParams.get("organizationId");
+
+  const organizationId =
+    user.role === "ADMINISTRATIVO"
+      ? requestedOrganizationId
+      : user.organizationId;
+
+  if (!organizationId) {
     return apiError("errors.forbidden", 403);
   }
 
   const users = await prisma.user.findMany({
-    where: { organizationId: user.organizationId },
+    where: { organizationId },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,

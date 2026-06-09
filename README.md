@@ -38,6 +38,7 @@ Antes de codar, leia:
 
 1. `docs/ai/doc-index.md` — indice de todos os documentos e checklists
 2. `docs/ai/patterns.md` — padroes recorrentes (feature module, i18n, componentes, testes)
+3. `docs/ai/setup-and-deployment.md` — setup local, env e deploy no Vercel
 
 ## O que foi reorganizado
 

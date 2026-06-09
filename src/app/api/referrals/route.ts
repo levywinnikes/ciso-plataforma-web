@@ -99,7 +99,12 @@ export async function GET() {
       );
     }
 
-    where = { clinicId: organizationId };
+    where = {
+      clinicId: organizationId,
+      status: {
+        in: ["Agendado", "Atendido"],
+      },
+    };
   }
 
   if (role === "PROFISSIONAL") {

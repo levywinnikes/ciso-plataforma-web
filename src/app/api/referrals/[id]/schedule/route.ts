@@ -1,57 +1,71 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
+import { z } from "zod";
 
-import { authOptions } from "@/lib/auth";
+import { apiError, requireSession } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+
+const scheduleSchema = z.object({
+  clinicId: z.string().min(1),
+  doctorUserId: z.string().min(1),
+  appointmentDate: z.string().min(1),
+});
 
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    return NextResponse.json({ message: "Não autenticado" }, { status: 401 });
-  }
-
-  // Apenas quem loga como clínica (MEDICO/ADMINISTRATIVO associado a clínica) pode agendar
-  if (!session.user.organizationId) {
-    return NextResponse.json(
-      { message: "Apenas clínicas podem agendar atendimentos" },
-      { status: 403 },
-    );
+  const auth = await requireSession();
+  if ("error" in auth) return auth.error;
+  if (auth.user.role !== "ADMINISTRATIVO") {
+    return apiError("errors.forbidden", 403);
   }
 
   const body = await request.json();
+  const parsed = scheduleSchema.safeParse(body);
+  if (!parsed.success) {
+    return apiError("errors.invalidScheduleData", 400);
+  }
 
-  const referral = await prisma.referral.findFirst({
-    where: {
-      id: params.id,
-      clinicId: session.user.organizationId,
-    },
+  const referral = await prisma.referral.findUnique({
+    where: { id: params.id },
   });
 
   if (!referral) {
-    return NextResponse.json(
-      { message: "Referral não encontrado para esta clínica" },
-      { status: 404 },
-    );
+    return apiError("errors.referralNotFound", 404);
   }
 
   if (referral.status !== "Encaminhado") {
-    return NextResponse.json(
-      { message: "Somente encaminhamentos pendentes podem ser agendados" },
-      { status: 400 },
-    );
+    return apiError("errors.invalidScheduleData", 400);
+  }
+
+  const clinic = await prisma.organization.findUnique({
+    where: { id: parsed.data.clinicId },
+    select: { id: true, type: true },
+  });
+
+  if (!clinic || clinic.type !== "CLINICA") {
+    return apiError("errors.organizationNotFound", 404);
+  }
+
+  const doctor = await prisma.user.findFirst({
+    where: {
+      id: parsed.data.doctorUserId,
+      organizationId: parsed.data.clinicId,
+      role: "MEDICO",
+    },
+    select: { id: true, name: true },
+  });
+
+  if (!doctor) {
+    return apiError("errors.invalidUserData", 400);
   }
 
   const updated = await prisma.referral.update({
     where: { id: params.id },
     data: {
-      doctor: body.doctor || null,
-      appointmentDate: body.appointmentDate
-        ? new Date(body.appointmentDate)
-        : null,
+      clinicId: parsed.data.clinicId,
+      doctor: doctor.name,
+      appointmentDate: new Date(parsed.data.appointmentDate),
       status: "Agendado",
     },
   });
