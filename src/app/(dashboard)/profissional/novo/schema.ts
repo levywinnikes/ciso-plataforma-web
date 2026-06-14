@@ -21,9 +21,9 @@ export const novoEncaminhamentoSchema = z.object({
   patientDocument: z.string().optional(),
   systemicDiseases: z.string().optional(),
   clinicalNotes: z.string().optional(),
-  clinicalSuspect: z.string().min(1, "errors.clinicalSuspectRequired"),
   nucleusId: z.string().min(1, "errors.nucleusRequired"),
   clinicId: z.string().min(1, "errors.clinicRequired"),
+  agreementId: z.string().optional(),
 });
 
 export type NovoEncaminhamentoFormData = z.infer<
@@ -38,6 +38,12 @@ export interface UploadedDocument {
 export interface ClinicOption {
   id: string;
   name: string;
+  agreements?: Array<{
+    agreement: {
+      id: string;
+      name: string;
+    };
+  }>;
 }
 
 export interface NovoEncaminhamentoPageModel {

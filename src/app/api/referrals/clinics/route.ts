@@ -20,6 +20,21 @@ export async function GET() {
     select: {
       id: true,
       name: true,
+      agreements: {
+        where: {
+          agreement: {
+            active: true,
+          },
+        },
+        select: {
+          agreement: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
     },
     orderBy: {
       name: "asc",

@@ -39,6 +39,8 @@ export interface Referral {
   clinicName?: string;
   officeId?: string;
   officeName?: string;
+  agreementId?: string;
+  agreementName?: string;
   createdByUserId?: string;
   createdByUserName?: string;
   appointmentDate?: string;

@@ -33,6 +33,7 @@ interface OrganizationRow {
   type: OrganizationType;
   cnpj: string | null;
   phone: string | null;
+  agreements?: Array<{ agreementId: string }>;
   _count?: { users: number; referrals: number };
 }
 
@@ -59,6 +60,9 @@ export function OrganizationManagementPage({
   const toast = useAppToast();
 
   const [rows, setRows] = useState<OrganizationRow[]>([]);
+  const [allAgreements, setAllAgreements] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [pendingDeleteOrganizationId, setPendingDeleteOrganizationId] =
@@ -98,6 +102,16 @@ export function OrganizationManagementPage({
 
   useEffect(() => {
     void load();
+    if (type === "CLINICA") {
+      fetch("/api/agreements?active=true")
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setAllAgreements(data);
+          }
+        })
+        .catch((err) => console.error("Failed to fetch agreements", err));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -202,6 +216,49 @@ export function OrganizationManagementPage({
                 />
               </Field>
             </div>
+
+            {type === "CLINICA" && allAgreements.length > 0 && (
+              <div className="mt-4">
+                <h4 className="mb-2 text-sm font-medium text-gray-700">
+                  Convênios Aceitos
+                </h4>
+                <div className="grid grid-cols-2 gap-2 rounded-md border bg-white p-3 md:grid-cols-3">
+                  {allAgreements.map((agreement) => (
+                    <label
+                      key={agreement.id}
+                      className="flex cursor-pointer items-center gap-2 text-sm text-gray-700"
+                    >
+                      <input
+                        type="checkbox"
+                        value={agreement.id}
+                        checked={
+                          createForm
+                            .watch("agreementIds")
+                            ?.includes(agreement.id) || false
+                        }
+                        onChange={(e) => {
+                          const current =
+                            createForm.getValues("agreementIds") || [];
+                          if (e.target.checked) {
+                            createForm.setValue("agreementIds", [
+                              ...current,
+                              agreement.id,
+                            ]);
+                          } else {
+                            createForm.setValue(
+                              "agreementIds",
+                              current.filter((id) => id !== agreement.id),
+                            );
+                          }
+                        }}
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      {agreement.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div>
@@ -348,6 +405,8 @@ export function OrganizationManagementPage({
           t={t}
           tError={tError}
           common={common}
+          allAgreements={allAgreements}
+          type={type}
         />
       )}
 
@@ -414,6 +473,8 @@ function EditOrganizationModal({
   t,
   tError,
   common,
+  allAgreements,
+  type,
 }: {
   organization: OrganizationRow;
   onClose: () => void;
@@ -421,6 +482,8 @@ function EditOrganizationModal({
   t: any;
   tError: any;
   common: any;
+  allAgreements: Array<{ id: string; name: string }>;
+  type: OrganizationType;
 }) {
   const { form, onSubmit, isSubmitting } = useEditOrganizationForm(
     organization.id,
@@ -428,6 +491,7 @@ function EditOrganizationModal({
       name: organization.name,
       cnpj: organization.cnpj ?? "",
       phone: organization.phone ?? "",
+      agreementIds: organization.agreements?.map((a) => a.agreementId) ?? [],
     },
     onSuccess,
   );
@@ -461,6 +525,47 @@ function EditOrganizationModal({
             {...form.register("phone")}
           />
         </Field>
+
+        {type === "CLINICA" && allAgreements.length > 0 && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Convênios Aceitos
+            </label>
+            <div className="grid grid-cols-2 gap-2 rounded-md border bg-white p-3">
+              {allAgreements.map((agreement) => (
+                <label
+                  key={agreement.id}
+                  className="flex cursor-pointer items-center gap-2 text-sm text-gray-700"
+                >
+                  <input
+                    type="checkbox"
+                    value={agreement.id}
+                    checked={
+                      form.watch("agreementIds")?.includes(agreement.id) ||
+                      false
+                    }
+                    onChange={(e) => {
+                      const current = form.getValues("agreementIds") || [];
+                      if (e.target.checked) {
+                        form.setValue("agreementIds", [
+                          ...current,
+                          agreement.id,
+                        ]);
+                      } else {
+                        form.setValue(
+                          "agreementIds",
+                          current.filter((id) => id !== agreement.id),
+                        );
+                      }
+                    }}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  {agreement.name}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-end gap-2 pt-4">
           <Button

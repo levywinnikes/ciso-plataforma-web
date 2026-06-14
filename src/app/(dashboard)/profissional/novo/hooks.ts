@@ -30,9 +30,9 @@ export function useNovoEncaminhamentoPageModel(): NovoEncaminhamentoPageModel {
       patientDocument: "",
       systemicDiseases: "",
       clinicalNotes: "",
-      clinicalSuspect: "",
       nucleusId: "",
       clinicId: "",
+      agreementId: "",
     },
   });
 
@@ -63,6 +63,11 @@ export function useNovoEncaminhamentoPageModel(): NovoEncaminhamentoPageModel {
   const nucleusId = form.watch("nucleusId");
   const selectedNucleus = nuclei.find((item) => item.id === nucleusId);
 
+  const clinicId = form.watch("clinicId");
+  useEffect(() => {
+    form.setValue("agreementId", "");
+  }, [clinicId, form]);
+
   const handleFakeUpload = () => {
     setDocuments((current) => [
       ...current,
@@ -84,11 +89,10 @@ export function useNovoEncaminhamentoPageModel(): NovoEncaminhamentoPageModel {
           patientPhone: data.patientPhone,
           patientDocument: data.patientDocument || undefined,
           systemicDiseases: data.systemicDiseases || undefined,
-          clinicalNotes: [data.clinicalSuspect, data.clinicalNotes]
-            .filter(Boolean)
-            .join(" - "),
+          clinicalNotes: data.clinicalNotes || undefined,
           nucleusId: selectedNucleus.id,
           clinicId: data.clinicId,
+          agreementId: data.agreementId || undefined,
           documents: documents.map((item) => ({
             id: item.id,
             name: item.name,

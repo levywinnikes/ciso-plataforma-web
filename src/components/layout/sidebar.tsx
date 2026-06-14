@@ -125,6 +125,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       href: "/admin/servicos",
       icon: Package,
     },
+    convenios: {
+      name: t("nav.agreements"),
+      href: "/admin/convenios",
+      icon: Link2,
+    },
     financial: {
       name: t("nav.financial"),
       href: "/admin/financeiro",
@@ -179,7 +184,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     {
       key: "registrations" as const,
       label: t("sections.registrations"),
-      items: [navItems.professionals, navItems.clinics, navItems.users],
+      items: [
+        navItems.professionals,
+        navItems.clinics,
+        navItems.convenios,
+        navItems.users,
+      ],
     },
     {
       key: "operations" as const,

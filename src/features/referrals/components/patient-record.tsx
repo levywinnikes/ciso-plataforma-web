@@ -61,6 +61,16 @@ export function PatientRecord({ referral }: { referral: Referral }) {
               </span>
             </div>
           )}
+          {referral.agreementName && (
+            <div className="mt-3">
+              <span className="mb-1 block text-xs text-gray-500">
+                {t("agreementLabel") || "Convênio"}
+              </span>
+              <span className="font-sans font-semibold text-gray-900">
+                {referral.agreementName}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="border-t border-gray-100 pt-4">

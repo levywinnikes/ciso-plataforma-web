@@ -16,6 +16,7 @@ export const createOrganizationSchema = z.object({
   adminName: z.string().min(1, "errors.required"),
   adminEmail: z.string().email("errors.invalidEmail"),
   adminPassword: z.string().min(8, "errors.passwordTooShort"),
+  agreementIds: z.array(z.string()).optional(),
 });
 
 export type CreateOrganizationData = z.infer<typeof createOrganizationSchema>;
@@ -24,6 +25,7 @@ export const editOrganizationSchema = z.object({
   name: z.string().min(1, "errors.required"),
   cnpj: z.string().optional(),
   phone: z.string().optional(),
+  agreementIds: z.array(z.string()).optional(),
 });
 
 export type EditOrganizationData = z.infer<typeof editOrganizationSchema>;
@@ -56,6 +58,7 @@ export function useCreateOrganizationForm(
       adminName: "",
       adminEmail: "",
       adminPassword: "",
+      agreementIds: [],
     },
   });
 

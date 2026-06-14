@@ -40,6 +40,7 @@
       "users": "Usuários",
       "accesses": "Acessos",
       "services": "Gestão de Serviços",
+      "agreements": "Gestão de Convênios",
       "clinic": "Painel Clínica (Triagem)",
       "doctor": "Painel Médico",
       "financial": "Financeiro",
@@ -267,6 +268,25 @@
       "editAction": "Editar",
       "deleteAction": "Excluir",
       "confirmDelete": "Deseja excluir este serviço?"
+    },
+    "agreements": {
+      "title": "Convênios",
+      "subtitle": "Gerencie os convênios parceiros aceitos pelas clínicas",
+      "createTitle": "Cadastrar Novo Convênio",
+      "listTitle": "Convênios Cadastrados",
+      "namePlaceholder": "Nome do Convênio",
+      "activeLabel": "Ativo",
+      "colName": "Nome",
+      "colStatus": "Status",
+      "colActions": "Ações",
+      "createAction": "Cadastrar Convênio",
+      "editAction": "Editar",
+      "editTitle": "Editar Convênio",
+      "deleteAction": "Excluir",
+      "confirmDelete": "Tem certeza que deseja excluir este convênio?",
+      "agreementCreatedSuccess": "Convênio cadastrado com sucesso!",
+      "agreementUpdatedSuccess": "Convênio atualizado com sucesso!",
+      "agreementDeletedSuccess": "Convênio excluído com sucesso!"
     }
   },
   "clinic": {
@@ -313,6 +333,8 @@
     "includeDocuments": "Incluir documentos",
     "careNuclei": "Núcleos de Atendimento",
     "selectClinic": "Selecione a clínica destino",
+    "selectAgreement": "Selecione o Convênio",
+    "noAgreement": "Sem convênio",
     "selectNucleus": "Selecione o núcleo",
     "saveReferral": "Salvar encaminhamento"
   },
@@ -375,7 +397,8 @@
     "systemicDiseases": "⚠️ Doenças Sistêmicas Relatadas",
     "complaint": "Queixa Principal / Observações",
     "section3Title": "3. Protocolo Solicitado",
-    "baseNucleus": "Núcleo Base"
+    "baseNucleus": "Núcleo Base",
+    "agreementLabel": "Convênio"
   },
   "medicalConduct": {
     "title": "Laudo e Conduta Médica",
@@ -416,6 +439,8 @@
     "passwordsDoNotMatch": "As senhas não coincidem.",
     "invalidScheduleData": "Dados de agendamento inválidos.",
     "referralNotFound": "Encaminhamento não encontrado.",
+    "agreementNameRequired": "O nome do convênio é obrigatório.",
+    "agreementNameUnique": "Já existe um convênio cadastrado com este nome.",
     "genericRequestFailed": "Não foi possível concluir a operação. Tente novamente."
   }
 }

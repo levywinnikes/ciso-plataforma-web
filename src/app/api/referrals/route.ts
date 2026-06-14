@@ -40,6 +40,8 @@ function mapReferral(referral: {
   nucleus: { name: string };
   documents: Array<{ id: string; fileName: string; createdAt: Date }>;
   specialistFiles: Array<{ id: string; fileName: string; createdAt: Date }>;
+  agreementId: string | null;
+  agreement: { name: string } | null;
 }) {
   return {
     id: referral.id,
@@ -62,6 +64,8 @@ function mapReferral(referral: {
     clinicName: referral.clinic.name,
     officeId: referral.officeId,
     officeName: referral.office.name,
+    agreementId: referral.agreementId ?? undefined,
+    agreementName: referral.agreement?.name ?? undefined,
     createdByUserId: referral.createdByUserId,
     createdByUserName: referral.createdByUser.name,
     appointmentDate: referral.appointmentDate?.toISOString() ?? undefined,
@@ -129,6 +133,7 @@ export async function GET() {
       createdByUser: { select: { name: true, email: true } },
       documents: true,
       specialistFiles: true,
+      agreement: { select: { name: true } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -208,6 +213,7 @@ export async function POST(request: Request) {
       clinicId: body.clinicId,
       officeId: session.user.organizationId,
       createdByUserId: session.user.id,
+      agreementId: body.agreementId || null,
       documents: {
         create:
           body.documents?.map((item: { name?: string }) => ({
@@ -222,6 +228,7 @@ export async function POST(request: Request) {
       createdByUser: { select: { name: true, email: true } },
       documents: true,
       specialistFiles: true,
+      agreement: { select: { name: true } },
     },
   });
 

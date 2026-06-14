@@ -12,7 +12,6 @@ import {
   Textarea,
 } from "@/components/ui";
 import { PriceSummary } from "@/features/referrals/components/price-summary";
-import { CLINICAL_SUSPECTS } from "@/features/referrals/data";
 import {
   formatCurrency,
   getNucleusPriceSummary,
@@ -105,19 +104,6 @@ export function NovoEncaminhamentoPageView({
               <Field label={t("systemicDiseases")} hint={t("optionalFreeText")}>
                 <Textarea {...register("systemicDiseases")} />
               </Field>
-              <Field
-                label={t("clinicalSuspect")}
-                error={tError(errors.clinicalSuspect?.message)}
-              >
-                <Select {...register("clinicalSuspect")}>
-                  <option value="">{t("selectClinicalSuspect")}</option>
-                  {CLINICAL_SUSPECTS.map((suspect) => (
-                    <option key={suspect} value={suspect}>
-                      {suspect}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
               <Field label={t("clinicalNotes")}>
                 <Textarea
                   {...register("clinicalNotes")}
@@ -141,7 +127,7 @@ export function NovoEncaminhamentoPageView({
             title={t("careNuclei")}
             titleClassName="mb-4 text-lg font-bold text-primary"
           >
-            <div className="mb-4 border-b pb-4">
+            <div className="animate-fadeIn mb-4 border-b pb-4">
               <Field
                 label={t("selectClinic")}
                 required
@@ -157,6 +143,30 @@ export function NovoEncaminhamentoPageView({
                 </Select>
               </Field>
             </div>
+
+            {model.form.watch("clinicId") && (
+              <div className="animate-fadeIn mb-4 border-b pb-4">
+                <Field
+                  label={t("selectAgreement") || "Selecione o Convênio"}
+                  error={tError(errors.agreementId?.message)}
+                >
+                  <Select {...register("agreementId")}>
+                    <option value="">
+                      {t("noAgreement") || "Sem convênio"}
+                    </option>
+                    {(
+                      model.clinics.find(
+                        (c) => c.id === model.form.watch("clinicId"),
+                      )?.agreements || []
+                    ).map(({ agreement }) => (
+                      <option key={agreement.id} value={agreement.id}>
+                        {agreement.name}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+            )}
 
             <Field
               label={t("selectNucleus")}

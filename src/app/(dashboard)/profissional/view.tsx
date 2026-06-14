@@ -2,14 +2,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
+  Pencil,
   PlusCircle,
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
+import { Field } from "@/components/forms/field";
 import {
   Button,
+  CardSection,
+  FileUploadArea,
+  FloatingInput,
   Input,
   Modal,
   PageHeader,
@@ -17,13 +22,17 @@ import {
   Skeleton,
   TableCard,
   TableShell,
+  Textarea,
 } from "@/components/ui";
+import { PriceSummary } from "@/features/referrals/components/price-summary";
 import { ReferralStatusBadge } from "@/features/referrals/components/referral-status-badge";
 import {
   formatCurrency,
   formatDate,
   formatDateTime,
+  getNucleusPriceSummary,
 } from "@/features/referrals/utils";
+import { useFormError } from "@/i18n/use-form-error";
 
 import type { ProfissionalPageModel } from "./schema";
 
@@ -34,6 +43,15 @@ interface ProfissionalPageViewProps {
 export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
   const t = useTranslations("professional");
   const common = useTranslations("common");
+  const tNew = useTranslations("newReferral");
+  const tError = useFormError();
+
+  const { register, formState } = model.editForm;
+  const errors = formState.errors;
+
+  const priceSummary = model.editSelectedNucleus
+    ? getNucleusPriceSummary(model.editSelectedNucleus)
+    : null;
 
   return (
     <div className="space-y-6">
@@ -156,23 +174,47 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
                   >
                     <Eye className="h-4 w-4 text-emerald-700" />
                   </Button>
-                  {referral.status === "Encaminhado" && (
-                    <Button
-                      variant="ghost"
-                      className="p-2"
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            "Tem certeza que deseja excluir este encaminhamento?",
-                          )
-                        ) {
-                          model.deleteReferral(referral.id);
-                        }
-                      }}
-                      title="Excluir"
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
+                  {referral.status === "Encaminhado" ? (
+                    <>
+                      <Button
+                        variant="ghost"
+                        className="p-2"
+                        onClick={() => model.openEditModal(referral)}
+                        title="Editar"
+                      >
+                        <Pencil className="h-4 w-4 text-amber-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="p-2"
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              "Tem certeza que deseja excluir este encaminhamento?",
+                            )
+                          ) {
+                            model.deleteReferral(referral.id);
+                          }
+                        }}
+                        title="Excluir"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="group relative inline-block">
+                      <Button
+                        variant="ghost"
+                        className="cursor-not-allowed p-2 opacity-50"
+                        disabled
+                      >
+                        <Pencil className="h-4 w-4 text-gray-400" />
+                      </Button>
+                      <div className="pointer-events-none absolute bottom-full right-0 z-50 mb-2 hidden whitespace-nowrap rounded bg-gray-900 px-2.5 py-1.5 text-xs text-white shadow-md group-hover:block">
+                        Só é possível editar encaminhamentos com status
+                        &quot;Encaminhado&quot;
+                      </div>
+                    </div>
                   )}
                 </td>
               </tr>
@@ -301,6 +343,14 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
                   </span>
                   <span className="mt-1 block text-sm font-medium text-gray-900">
                     {model.selectedReferral.clinicName || "-"}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs font-semibold uppercase text-gray-500">
+                    Convênio
+                  </span>
+                  <span className="mt-1 block text-sm font-medium text-gray-900">
+                    {model.selectedReferral.agreementName || "Sem convênio"}
                   </span>
                 </div>
                 <div>
@@ -441,6 +491,197 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
             </div>
           </div>
         )}
+      </Modal>
+
+      <Modal
+        isOpen={model.isEditModalOpen}
+        onClose={model.closeEditModal}
+        title="Editar Encaminhamento"
+        maxWidth="max-w-5xl"
+      >
+        <p className="mb-6 text-left text-sm text-gray-500">
+          Preencha os campos abaixo para atualizar as informações do
+          encaminhamento.
+        </p>
+        <form
+          onSubmit={model.onSubmitEdit}
+          className="mt-4 grid gap-6 text-left lg:grid-cols-12"
+        >
+          <div className="space-y-6 lg:col-span-8">
+            <CardSection title={tNew("patientData")}>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <Field label={""} error={tError(errors.patientName?.message)}>
+                    <FloatingInput
+                      required
+                      label={tNew("patientName")}
+                      {...register("patientName")}
+                    />
+                  </Field>
+                </div>
+                <Field
+                  label={""}
+                  error={tError(errors.patientBirthDate?.message)}
+                >
+                  <FloatingInput
+                    type="date"
+                    required
+                    label={tNew("birthDate")}
+                    {...register("patientBirthDate")}
+                  />
+                </Field>
+                <Field label={""} error={tError(errors.patientPhone?.message)}>
+                  <FloatingInput
+                    mask="phone"
+                    required
+                    label={tNew("phone")}
+                    {...register("patientPhone")}
+                  />
+                </Field>
+                <div className="md:col-span-2">
+                  <Field
+                    label={""}
+                    hint={tNew("optional")}
+                    error={tError(errors.patientDocument?.message)}
+                  >
+                    <FloatingInput
+                      label={tNew("document")}
+                      {...register("patientDocument")}
+                    />
+                  </Field>
+                </div>
+              </div>
+            </CardSection>
+
+            <CardSection title={tNew("clinicalInfo")}>
+              <div className="grid gap-4">
+                <Field
+                  label={tNew("systemicDiseases")}
+                  hint={tNew("optionalFreeText")}
+                >
+                  <Textarea {...register("systemicDiseases")} />
+                </Field>
+                <Field label={tNew("clinicalNotes")}>
+                  <Textarea
+                    {...register("clinicalNotes")}
+                    placeholder={tNew("clinicalNotesPlaceholder")}
+                  />
+                </Field>
+              </div>
+            </CardSection>
+
+            <CardSection title={tNew("documents")}>
+              <FileUploadArea
+                files={model.editDocuments.map((file) => file.name)}
+                onAddFile={model.handleFakeUploadEdit}
+                label={tNew("includeDocuments")}
+              />
+            </CardSection>
+          </div>
+
+          <div className="space-y-6 lg:col-span-4">
+            <CardSection
+              title={tNew("careNuclei")}
+              titleClassName="mb-4 text-lg font-bold text-primary"
+            >
+              <div className="mb-4 border-b pb-4">
+                <Field
+                  label={tNew("selectClinic")}
+                  required
+                  error={tError(errors.clinicId?.message)}
+                >
+                  <Select {...register("clinicId")}>
+                    <option value="">{common("select")}</option>
+                    {model.editClinics.map((clinic) => (
+                      <option key={clinic.id} value={clinic.id}>
+                        {clinic.name}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+
+              {model.editForm.watch("clinicId") && (
+                <div className="animate-fadeIn mb-4 border-b pb-4">
+                  <Field
+                    label={tNew("selectAgreement") || "Selecione o Convênio"}
+                    error={tError(errors.agreementId?.message)}
+                  >
+                    <Select {...register("agreementId")}>
+                      <option value="">
+                        {tNew("noAgreement") || "Sem convênio"}
+                      </option>
+                      {(
+                        model.editClinics.find(
+                          (c) => c.id === model.editForm.watch("clinicId"),
+                        )?.agreements || []
+                      ).map(({ agreement }) => (
+                        <option key={agreement.id} value={agreement.id}>
+                          {agreement.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                </div>
+              )}
+
+              <Field
+                label={tNew("selectNucleus")}
+                required
+                error={tError(errors.nucleusId?.message)}
+              >
+                <Select {...register("nucleusId")}>
+                  <option value="">{common("select")}</option>
+                  {model.editNuclei.map((nucleus) => (
+                    <option key={nucleus.id} value={nucleus.id}>
+                      {nucleus.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+
+              {model.editSelectedNucleus && priceSummary && (
+                <div className="mt-4 space-y-3 rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm">
+                  <p className="font-semibold text-primary">
+                    {model.editSelectedNucleus.description}
+                  </p>
+                  <ul className="space-y-2 text-gray-700">
+                    {model.editSelectedNucleus.services.map((service) => (
+                      <li
+                        key={service.id}
+                        className="flex items-center justify-between gap-4"
+                      >
+                        <span>{service.name}</span>
+                        <span>{formatCurrency(service.basePrice)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="border-t border-primary/20 pt-3">
+                    <PriceSummary {...priceSummary} variant="inline" />
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-6 flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={model.closeEditModal}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={model.isSavingEdit}
+                >
+                  {model.isSavingEdit ? "Salvando..." : "Salvar"}
+                </Button>
+              </div>
+            </CardSection>
+          </div>
+        </form>
       </Modal>
     </div>
   );

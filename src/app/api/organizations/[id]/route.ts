@@ -17,6 +17,7 @@ interface UpdateOrganizationBody {
   cnpj?: string;
   address?: string;
   phone?: string;
+  agreementIds?: string[];
 }
 
 export async function PATCH(
@@ -30,14 +31,35 @@ export async function PATCH(
 
   const body = (await request.json()) as UpdateOrganizationBody;
 
-  const updated = await prisma.organization.update({
-    where: { id: context.params.id },
-    data: {
-      name: body.name?.trim(),
-      cnpj: body.cnpj?.trim() || null,
-      address: body.address?.trim() || null,
-      phone: body.phone?.trim() || null,
-    },
+  const updated = await prisma.$transaction(async (tx) => {
+    const org = await tx.organization.update({
+      where: { id: context.params.id },
+      data: {
+        name: body.name?.trim(),
+        cnpj: body.cnpj !== undefined ? body.cnpj?.trim() || null : undefined,
+        address:
+          body.address !== undefined ? body.address?.trim() || null : undefined,
+        phone:
+          body.phone !== undefined ? body.phone?.trim() || null : undefined,
+      },
+    });
+
+    if (body.agreementIds !== undefined) {
+      await tx.organizationAgreement.deleteMany({
+        where: { clinicId: context.params.id },
+      });
+
+      if (body.agreementIds.length > 0) {
+        await tx.organizationAgreement.createMany({
+          data: body.agreementIds.map((agreementId) => ({
+            clinicId: context.params.id,
+            agreementId,
+          })),
+        });
+      }
+    }
+
+    return org;
   });
 
   return NextResponse.json(updated);

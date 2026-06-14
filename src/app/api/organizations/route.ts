@@ -35,6 +35,11 @@ export async function GET(request: Request) {
           referrals: true,
         },
       },
+      agreements: {
+        select: {
+          agreementId: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -51,6 +56,7 @@ interface CreateOrganizationBody {
   adminName?: string;
   adminEmail?: string;
   adminPassword?: string;
+  agreementIds?: string[];
 }
 
 export async function POST(request: Request) {
@@ -99,6 +105,14 @@ export async function POST(request: Request) {
           passwordHash,
         },
       },
+      agreements:
+        body.agreementIds && type === "CLINICA"
+          ? {
+              create: body.agreementIds.map((agreementId) => ({
+                agreementId,
+              })),
+            }
+          : undefined,
     },
     include: {
       users: {

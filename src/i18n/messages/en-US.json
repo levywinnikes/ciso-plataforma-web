@@ -40,6 +40,7 @@
       "users": "Users",
       "accesses": "Access Matrix",
       "services": "Services Management",
+      "agreements": "Agreements Management",
       "clinic": "Clinic Panel (Triage)",
       "doctor": "Doctor Panel",
       "financial": "Financial",
@@ -261,6 +262,25 @@
       "editAction": "Edit",
       "deleteAction": "Delete",
       "confirmDelete": "Do you want to delete this service?"
+    },
+    "agreements": {
+      "title": "Agreements",
+      "subtitle": "Manage partner agreements accepted by clinics",
+      "createTitle": "Register New Agreement",
+      "listTitle": "Registered Agreements",
+      "namePlaceholder": "Agreement Name",
+      "activeLabel": "Active",
+      "colName": "Name",
+      "colStatus": "Status",
+      "colActions": "Actions",
+      "createAction": "Register Agreement",
+      "editAction": "Edit",
+      "editTitle": "Edit Agreement",
+      "deleteAction": "Delete",
+      "confirmDelete": "Are you sure you want to delete this agreement?",
+      "agreementCreatedSuccess": "Agreement registered successfully!",
+      "agreementUpdatedSuccess": "Agreement updated successfully!",
+      "agreementDeletedSuccess": "Agreement deleted successfully!"
     }
   },
   "clinic": {
@@ -306,6 +326,9 @@
     "documents": "Referral Documents",
     "includeDocuments": "Attach documents",
     "careNuclei": "Care Nuclei",
+    "selectClinic": "Select clinic",
+    "selectAgreement": "Select Agreement",
+    "noAgreement": "No agreement",
     "selectNucleus": "Select nucleus",
     "saveReferral": "Save referral"
   },
@@ -368,7 +391,8 @@
     "systemicDiseases": "⚠️ Reported Systemic Diseases",
     "complaint": "Main Complaint / Notes",
     "section3Title": "3. Requested Protocol",
-    "baseNucleus": "Base Nucleus"
+    "baseNucleus": "Base Nucleus",
+    "agreementLabel": "Agreement"
   },
   "medicalConduct": {
     "title": "Medical Report and Conduct",
@@ -408,6 +432,8 @@
     "passwordsDoNotMatch": "Passwords do not match.",
     "invalidScheduleData": "Invalid scheduling data.",
     "referralNotFound": "Referral not found.",
+    "agreementNameRequired": "Agreement name is required.",
+    "agreementNameUnique": "An agreement with this name already exists.",
     "genericRequestFailed": "Could not complete the operation. Please try again."
   }
 }

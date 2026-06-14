@@ -83,6 +83,11 @@ export default function AdminPage() {
       href: "/admin/clinicas",
     },
     {
+      title: "Convênios",
+      description: "Gerencie os convênios parceiros aceitos pelas clínicas.",
+      href: "/admin/convenios",
+    },
+    {
       title: t("usersTitle"),
       description: t("usersDescription"),
       href: "/admin/usuarios",

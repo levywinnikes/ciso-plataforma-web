@@ -8,7 +8,6 @@ describe("novoEncaminhamentoSchema", () => {
     patientDocument: "123.456.789-00",
     systemicDiseases: "",
     clinicalNotes: "",
-    clinicalSuspect: "Glaucoma",
     nucleusId: "glaucoma",
     clinicId: "clinic-id-123",
   };
@@ -48,19 +47,6 @@ describe("novoEncaminhamentoSchema", () => {
       patientPhone: "1198abcd321",
     });
     expect(result.success).toBe(false);
-  });
-
-  it("should reject empty clinicalSuspect", () => {
-    const result = novoEncaminhamentoSchema.safeParse({
-      ...validData,
-      clinicalSuspect: "",
-    });
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.flatten().fieldErrors.clinicalSuspect).toContain(
-        "errors.clinicalSuspectRequired",
-      );
-    }
   });
 
   it("should reject empty nucleusId", () => {

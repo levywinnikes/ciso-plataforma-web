@@ -1,6 +1,13 @@
 import type { Dispatch, SetStateAction } from "react";
+import type { UseFormReturn } from "react-hook-form";
 
-import type { Referral } from "@/features/referrals/types";
+import type { CareNucleus, Referral } from "@/features/referrals/types";
+
+import type {
+  ClinicOption,
+  NovoEncaminhamentoFormData,
+  UploadedDocument,
+} from "./novo/schema";
 
 export interface ReferralFilters {
   status: string;
@@ -30,6 +37,20 @@ export interface ProfissionalPageModel {
   isModalOpen: boolean;
   openModal: (referral: Referral) => void;
   closeModal: () => void;
+
+  // Edit Modal
+  selectedReferralForEdit: Referral | null;
+  isEditModalOpen: boolean;
+  openEditModal: (referral: Referral) => void;
+  closeEditModal: () => void;
+  editForm: UseFormReturn<NovoEncaminhamentoFormData>;
+  onSubmitEdit: (event: React.BaseSyntheticEvent) => void;
+  editClinics: ClinicOption[];
+  editNuclei: CareNucleus[];
+  editSelectedNucleus?: CareNucleus;
+  isSavingEdit: boolean;
+  editDocuments: UploadedDocument[];
+  handleFakeUploadEdit: () => void;
 
   // Actions
   deleteReferral: (id: string) => Promise<void>;
