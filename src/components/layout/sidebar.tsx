@@ -130,6 +130,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       href: "/admin/convenios",
       icon: Link2,
     },
+    cirurgias: {
+      name: t("nav.surgeries"),
+      href: "/admin/cirurgias",
+      icon: Stethoscope,
+    },
     financial: {
       name: t("nav.financial"),
       href: "/admin/financeiro",
@@ -194,7 +199,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     {
       key: "operations" as const,
       label: t("sections.operations"),
-      items: [navItems.nuclei, navItems.services],
+      items: [navItems.nuclei, navItems.services, navItems.cirurgias],
     },
     {
       key: "analytics" as const,

@@ -49,6 +49,11 @@ export async function PATCH(
       data: {
         specialistNotes: body.notes || null,
         specialistConduct: body.conduct || null,
+        surgeryId: body.surgeryId || null,
+        surgeryPrice:
+          body.surgeryPrice !== undefined && body.surgeryPrice !== null
+            ? body.surgeryPrice
+            : null,
         ...(body.files && {
           specialistFiles: {
             create: body.files.map((item: { name?: string }) => ({
@@ -60,6 +65,7 @@ export async function PATCH(
       },
       include: {
         specialistFiles: true,
+        surgery: { select: { name: true } },
       },
     });
   });
@@ -74,5 +80,10 @@ export async function PATCH(
       uploadedAt: item.createdAt.toISOString(),
     })),
     status: updated.status,
+    surgeryId: updated.surgeryId,
+    surgeryName: updated.surgery?.name,
+    surgeryPrice: updated.surgeryPrice
+      ? Number(updated.surgeryPrice)
+      : undefined,
   });
 }

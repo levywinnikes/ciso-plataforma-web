@@ -42,6 +42,9 @@ function mapReferral(referral: {
   specialistFiles: Array<{ id: string; fileName: string; createdAt: Date }>;
   agreementId: string | null;
   agreement: { name: string } | null;
+  surgeryId?: string | null;
+  surgery?: { name: string } | null;
+  surgeryPrice?: any;
 }) {
   return {
     id: referral.id,
@@ -66,6 +69,11 @@ function mapReferral(referral: {
     officeName: referral.office.name,
     agreementId: referral.agreementId ?? undefined,
     agreementName: referral.agreement?.name ?? undefined,
+    surgeryId: referral.surgeryId ?? undefined,
+    surgeryName: referral.surgery?.name ?? undefined,
+    surgeryPrice: referral.surgeryPrice
+      ? Number(referral.surgeryPrice)
+      : undefined,
     createdByUserId: referral.createdByUserId,
     createdByUserName: referral.createdByUser.name,
     appointmentDate: referral.appointmentDate?.toISOString() ?? undefined,
@@ -134,6 +142,7 @@ export async function GET() {
       documents: true,
       specialistFiles: true,
       agreement: { select: { name: true } },
+      surgery: { select: { name: true } },
     },
     orderBy: { createdAt: "desc" },
   });

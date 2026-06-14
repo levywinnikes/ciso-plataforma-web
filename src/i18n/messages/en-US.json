@@ -41,6 +41,7 @@
       "accesses": "Access Matrix",
       "services": "Services Management",
       "agreements": "Agreements Management",
+      "surgeries": "Surgeries Management",
       "clinic": "Clinic Panel (Triage)",
       "doctor": "Doctor Panel",
       "financial": "Financial",
@@ -281,6 +282,27 @@
       "agreementCreatedSuccess": "Agreement registered successfully!",
       "agreementUpdatedSuccess": "Agreement updated successfully!",
       "agreementDeletedSuccess": "Agreement deleted successfully!"
+    },
+    "surgeries": {
+      "title": "Surgeries",
+      "subtitle": "Manage surgeries and operations by registering their default values.",
+      "createTitle": "Register New Surgery",
+      "listTitle": "Registered Surgeries",
+      "namePlaceholder": "Surgery Name",
+      "pricePlaceholder": "Default Value",
+      "activeLabel": "Active",
+      "colName": "Name",
+      "colPrice": "Default Value",
+      "colStatus": "Status",
+      "colActions": "Actions",
+      "createAction": "Register Surgery",
+      "editAction": "Edit",
+      "editTitle": "Edit Surgery",
+      "deleteAction": "Delete",
+      "confirmDelete": "Are you sure you want to delete this surgery?",
+      "surgeryCreatedSuccess": "Surgery registered successfully!",
+      "surgeryUpdatedSuccess": "Surgery updated successfully!",
+      "surgeryDeletedSuccess": "Surgery deleted successfully!"
     }
   },
   "clinic": {
@@ -392,7 +414,8 @@
     "complaint": "Main Complaint / Notes",
     "section3Title": "3. Requested Protocol",
     "baseNucleus": "Base Nucleus",
-    "agreementLabel": "Agreement"
+    "agreementLabel": "Agreement",
+    "surgeryLabel": "Surgery / Procedure"
   },
   "medicalConduct": {
     "title": "Medical Report and Conduct",
@@ -401,7 +424,11 @@
     "conductLabel": "Conduct / Treatment (Feedback)",
     "conductPlaceholder": "E.g.: Prescription of eye drop X, surgery scheduled, glasses, etc...",
     "attachmentsLabel": "Attach Additional Exams / Prescriptions",
-    "addAttachments": "Add PDFs or Images"
+    "addAttachments": "Add PDFs or Images",
+    "surgeryLabel": "Procedure / Associated Surgery",
+    "selectSurgery": "Select surgery (optional)",
+    "noSurgery": "No surgery",
+    "surgeryPriceLabel": "Surgery Price (R$)"
   },
   "errors": {
     "required": "Required field",

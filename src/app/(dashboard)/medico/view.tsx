@@ -141,6 +141,10 @@ export function MedicoPageView({ model }: MedicoPageViewProps) {
             onConductChange={model.setConduct}
             files={model.files}
             onAddFile={model.handleAddFile}
+            surgeryId={model.surgeryId}
+            onSurgeryIdChange={model.setSurgeryId}
+            surgeryPrice={model.surgeryPrice}
+            onSurgeryPriceChange={model.setSurgeryPrice}
             disabled={model.selectedReferral?.status === "Atendido"}
           />
         </div>

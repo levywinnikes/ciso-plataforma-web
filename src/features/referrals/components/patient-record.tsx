@@ -124,6 +124,26 @@ export function PatientRecord({ referral }: { referral: Referral }) {
                   </ul>
                 </div>
               )}
+            {referral.surgeryName && (
+              <div className="mt-3 rounded-md border border-green-100 bg-green-50/50 p-2.5">
+                <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-green-800">
+                  {t("surgeryLabel")}
+                </span>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-gray-900">
+                    {referral.surgeryName}
+                  </span>
+                  {referral.surgeryPrice !== undefined && (
+                    <span className="font-bold text-green-700">
+                      {referral.surgeryPrice.toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

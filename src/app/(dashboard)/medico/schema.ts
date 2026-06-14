@@ -8,6 +8,10 @@ export interface MedicoPageModel {
   items: Referral[];
   isLoading: boolean;
   isSaving: boolean;
+  surgeryId: string;
+  setSurgeryId: (value: string) => void;
+  surgeryPrice: number | "";
+  setSurgeryPrice: (value: number | "") => void;
   setSelectedReferral: (referral: Referral | null) => void;
   setNotes: (value: string) => void;
   setConduct: (value: string) => void;

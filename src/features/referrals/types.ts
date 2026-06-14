@@ -49,4 +49,7 @@ export interface Referral {
   specialistConduct?: string;
   specialistAttachments?: ReferralDocument[];
   documents?: ReferralDocument[];
+  surgeryId?: string;
+  surgeryName?: string;
+  surgeryPrice?: number;
 }

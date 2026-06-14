@@ -41,6 +41,7 @@
       "accesses": "Acessos",
       "services": "Gestão de Serviços",
       "agreements": "Gestão de Convênios",
+      "surgeries": "Gestão de Cirurgias",
       "clinic": "Painel Clínica (Triagem)",
       "doctor": "Painel Médico",
       "financial": "Financeiro",
@@ -287,6 +288,27 @@
       "agreementCreatedSuccess": "Convênio cadastrado com sucesso!",
       "agreementUpdatedSuccess": "Convênio atualizado com sucesso!",
       "agreementDeletedSuccess": "Convênio excluído com sucesso!"
+    },
+    "surgeries": {
+      "title": "Cirurgias",
+      "subtitle": "Gerencie as cirurgias e operações cadastrando seus valores padrões.",
+      "createTitle": "Cadastrar Nova Cirurgia",
+      "listTitle": "Cirurgias Cadastradas",
+      "namePlaceholder": "Nome da Cirurgia",
+      "pricePlaceholder": "Valor Padrão",
+      "activeLabel": "Ativo",
+      "colName": "Nome",
+      "colPrice": "Valor Padrão",
+      "colStatus": "Status",
+      "colActions": "Ações",
+      "createAction": "Cadastrar Cirurgia",
+      "editAction": "Editar",
+      "editTitle": "Editar Cirurgia",
+      "deleteAction": "Excluir",
+      "confirmDelete": "Tem certeza que deseja excluir esta cirurgia?",
+      "surgeryCreatedSuccess": "Cirurgia cadastrada com sucesso!",
+      "surgeryUpdatedSuccess": "Cirurgia atualizada com sucesso!",
+      "surgeryDeletedSuccess": "Cirurgia excluída com sucesso!"
     }
   },
   "clinic": {
@@ -398,7 +420,8 @@
     "complaint": "Queixa Principal / Observações",
     "section3Title": "3. Protocolo Solicitado",
     "baseNucleus": "Núcleo Base",
-    "agreementLabel": "Convênio"
+    "agreementLabel": "Convênio",
+    "surgeryLabel": "Cirurgia / Procedimento"
   },
   "medicalConduct": {
     "title": "Laudo e Conduta Médica",
@@ -407,7 +430,11 @@
     "conductLabel": "Conduta / Tratamento (Devolutiva)",
     "conductPlaceholder": "Ex: Prescrição de colírio X, cirurgia agendada, uso de óculos, etc...",
     "attachmentsLabel": "Anexar Exames Compl. / Receituário",
-    "addAttachments": "Adicionar PDFs ou Imagens"
+    "addAttachments": "Adicionar PDFs ou Imagens",
+    "surgeryLabel": "Procedimento / Cirurgia Associada",
+    "selectSurgery": "Selecione a cirurgia (opcional)",
+    "noSurgery": "Sem cirurgia",
+    "surgeryPriceLabel": "Valor da Cirurgia (R$)"
   },
   "errors": {
     "required": "Campo obrigatório",

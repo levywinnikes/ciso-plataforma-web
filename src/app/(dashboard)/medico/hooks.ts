@@ -21,6 +21,8 @@ export function useMedicoPageModel(): MedicoPageModel {
   const [notes, setNotes] = useState("");
   const [conduct, setConduct] = useState("");
   const [files, setFiles] = useState<string[]>([]);
+  const [surgeryId, setSurgeryId] = useState("");
+  const [surgeryPrice, setSurgeryPrice] = useState<number | "">("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -71,6 +73,12 @@ export function useMedicoPageModel(): MedicoPageModel {
     setNotes(referral.specialistNotes ?? "");
     setConduct(referral.specialistConduct ?? "");
     setFiles((referral.specialistAttachments ?? []).map((item) => item.name));
+    setSurgeryId(referral.surgeryId ?? "");
+    setSurgeryPrice(
+      referral.surgeryPrice !== undefined && referral.surgeryPrice !== null
+        ? referral.surgeryPrice
+        : "",
+    );
   };
 
   const handleAddFile = () => {
@@ -92,6 +100,8 @@ export function useMedicoPageModel(): MedicoPageModel {
           body: JSON.stringify({
             notes,
             conduct,
+            surgeryId: surgeryId || null,
+            surgeryPrice: surgeryPrice !== "" ? surgeryPrice : null,
             files: files.map((file, index) => ({
               id: `SPC-${index + 1}`,
               name: file,
@@ -110,6 +120,8 @@ export function useMedicoPageModel(): MedicoPageModel {
                   ...item,
                   specialistNotes: notes,
                   specialistConduct: conduct,
+                  surgeryId: surgeryId || undefined,
+                  surgeryPrice: surgeryPrice !== "" ? surgeryPrice : undefined,
                   specialistAttachments: files.map((file, index) => ({
                     id: `SPC-${index + 1}`,
                     name: file,
@@ -150,6 +162,10 @@ export function useMedicoPageModel(): MedicoPageModel {
     items,
     isLoading,
     isSaving,
+    surgeryId,
+    setSurgeryId,
+    surgeryPrice,
+    setSurgeryPrice,
     setSelectedReferral,
     setNotes,
     setConduct,

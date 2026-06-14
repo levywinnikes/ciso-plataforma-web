@@ -159,6 +159,9 @@ model Referral {
   specialistFiles     ReferralAttachment[]
   agreementId         String?
   agreement           Agreement?         @relation(fields: [agreementId], references: [id])
+  surgeryId           String?
+  surgery             Surgery?           @relation(fields: [surgeryId], references: [id])
+  surgeryPrice        Decimal?           @db.Decimal(10, 2)
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 }
@@ -200,4 +203,14 @@ model OrganizationAgreement {
   createdAt   DateTime     @default(now())
 
   @@unique([clinicId, agreementId])
+}
+
+model Surgery {
+  id           String     @id @default(cuid())
+  name         String     @unique
+  defaultPrice Decimal    @db.Decimal(10, 2)
+  active       Boolean    @default(true)
+  referrals    Referral[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }

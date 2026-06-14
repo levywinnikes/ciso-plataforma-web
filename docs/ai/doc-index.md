@@ -63,6 +63,7 @@ Este arquivo e o ponto de entrada obrigatorio para qualquer agente antes de coda
 - docs/ai/database-structure.md (estrutura das tabelas e relacoes do banco)
 - docs/ai/security-checklist.md (CHECKLIST OBRIGATORIO antes de criar/alterar rota API)
 - docs/ai/convenios.md (especificação de integração para gestão de convênios/agreements)
+- docs/ai/cirurgias.md (especificação de integração para gestão de cirurgias/operações)
 
 ### Modelo de Acesso e Permissoes (OBRIGATORIO LER ANTES DE QUALQUER MUDANCA)
 
