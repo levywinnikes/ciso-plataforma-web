@@ -71,6 +71,7 @@ Este arquivo e o ponto de entrada obrigatorio para qualquer agente antes de coda
 - docs/ai/user-views.md (telas e views por role, rotas, funcionalidades)
 - docs/ai/api-routes.md (endpoints REST, payloads, respostas, permissoes por endpoint)
 - docs/ai/security-checklist.md (padrao obrigatorio para handlers de API)
+- docs/ai/referral-management.md (gestão de encaminhamentos: regras de criação, edição e exclusão por papel)
 
 > **IMPORTANTE**: Qualquer mudanca que envolva autenticacao, autorizacao, criacao de roles, acesso a dados OU API deve consultar estes documentos primeiro.
 

@@ -1,6 +1,6 @@
 # Documentação - Gestão Administrativa de Encaminhamentos
 
-Esta documentação descreve as regras de negócio, permissões e fluxos para a edição e exclusão de encaminhamentos por usuários com perfil administrativo (`ADMINISTRATIVO`) no sistema `ciso-plataforma-web`.
+Esta documentação descreve as regras de negócio, permissões e fluxos para a criação, edição e exclusão de encaminhamentos por usuários com perfil administrativo (`ADMINISTRATIVO`) no sistema `ciso-plataforma-web`.
 
 ---
 
@@ -35,9 +35,25 @@ Assim como na exclusão, os privilégios de edição variam por papel:
 
 ---
 
-## 3. Fluxo de Atualização de Dados (API `/api/referrals/[id]`)
+## 3. Regras de Criação (POST)
 
-Quando um administrador atualiza o núcleo de atendimento (`nucleusId`), a API busca o núcleo correspondente e atualiza os campos de snapshot do encaminhamento para refletir os novos valores contratados:
+A criação de encaminhamentos via `POST /api/referrals` possui fluxo distinto dependendo da role da sessão:
+
+1. **Usuários com Perfil Profissional:**
+   - O `officeId` (Consultório) e `createdByUserId` (Profissional criador) são inferidos implicitamente a partir dos dados do usuário logado na sessão (`session.user.organizationId` e `session.user.id`).
+   - Não é permitido informar estes campos no payload da requisição.
+
+2. **Usuários com Perfil Administrativo:**
+   - O administrador **deve obrigatoriamente fornecer** no corpo do JSON da requisição os campos:
+     - `officeId` (O ID da organização do tipo `PROFISSIONAL_GROUP` de origem).
+     - `createdByUserId` (O ID do usuário do consultório com papel `PROFISSIONAL` sob o qual o encaminhamento será gerado).
+   - A API validará se o profissional informado (`createdByUserId`) pertence ao consultório selecionado (`officeId`) e se a role dele é de fato `PROFISSIONAL` antes de salvar.
+
+---
+
+## 4. Fluxo de Atualização de Dados (API `/api/referrals/[id]`)
+
+Quando um administrador ou profissional atualiza o núcleo de atendimento (`nucleusId`), a API busca o núcleo correspondente e atualiza os campos de snapshot do encaminhamento para refletir os novos valores contratados:
 
 - `nucleusSnapshotName`: Nome do núcleo.
 - `nucleusSnapshotPrice`: Preço cobrado no núcleo.
