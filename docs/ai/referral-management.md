@@ -60,3 +60,26 @@ Quando um administrador ou profissional atualiza o núcleo de atendimento (`nucl
 - `nucleusSnapshotServices`: Lista de serviços pertencentes ao núcleo no momento da alteração.
 
 Isso preserva a consistência do faturamento e garante que o histórico de preços não mude retroativamente caso o núcleo global seja alterado posteriormente.
+
+---
+
+## 5. Arquitetura de Componentes de Formulários (Abordagem A)
+
+Para garantir reutilização de código e facilidade de manutenção sem inflar os formulários com condicionais complexas, os fluxos de **Novo Encaminhamento** e **Editar Encaminhamento** compartilham componentes de seção específicos, em vez de unificar o formulário inteiro.
+
+### Diretrizes de Separação de Responsabilidades:
+
+1. **Campos Compartilhados (Componentizados individualmente em `/features/referrals/components/`):**
+   - **`PatientFormFields`**: Agrupa nome, data de nascimento, telefone e documento do paciente. Recebe o objeto do `form` para registrar os inputs com `FloatingInput` e validar com `Field`.
+   - **`ClinicalInfoFields`**: Agrupa doenças sistêmicas e observações/queixas clínicas.
+   - **`NucleusSelectionFields`**: Agrupa a seleção de clínica, convênio (filtrado) e núcleo de atendimento, além do resumo de preços dinâmico do núcleo selecionado.
+
+2. **Campos Exclusivos de Edição (Somente no Modal de Edição):**
+   - **Status do Encaminhamento**, **Médico Responsável**, **Data de Agendamento**, **Notas do Especialista**, **Conduta** e **Cirurgia/Preço da Cirurgia**.
+   - Esses campos são renderizados apenas pelo Modal de Edição do Administrador, pois dependem de privilégios de edição e do estado do atendimento.
+
+3. **Campos Exclusivos de Criação por Administrador (Somente em `/admin/novo`):**
+   - **Seleção de Consultório (`officeId`)** e **Seleção de Profissional do Consultório (`createdByUserId`)**.
+   - Estes campos não aparecem no formulário do profissional comum (onde são deduzidos da sessão) nem no modal de edição.
+
+Esta abordagem modular evita redundância, garante o cumprimento das regras de negócios específicas de cada perfil e simplifica os schemas Zod de cada view.
