@@ -157,21 +157,59 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Não autenticado" }, { status: 401 });
   }
 
-  if (session.user.role !== "PROFISSIONAL") {
+  if (
+    session.user.role !== "PROFISSIONAL" &&
+    session.user.role !== "ADMINISTRATIVO"
+  ) {
     return NextResponse.json(
-      { message: "Apenas profissionais podem criar referrals" },
-      { status: 403 },
-    );
-  }
-
-  if (!session.user.organizationId) {
-    return NextResponse.json(
-      { message: "Usuário profissional sem organização vinculada" },
+      {
+        message:
+          "Apenas profissionais ou administradores podem criar referrals",
+      },
       { status: 403 },
     );
   }
 
   const body = await request.json();
+
+  const officeId =
+    session.user.role === "ADMINISTRATIVO"
+      ? body.officeId
+      : session.user.organizationId;
+  const createdByUserId =
+    session.user.role === "ADMINISTRATIVO"
+      ? body.createdByUserId
+      : session.user.id;
+
+  if (!officeId || !createdByUserId) {
+    return NextResponse.json(
+      {
+        message: "Dados de identificação do consultório/profissional ausentes",
+      },
+      { status: 400 },
+    );
+  }
+
+  if (session.user.role === "ADMINISTRATIVO") {
+    // Validate that the user exists, is a PROFISSIONAL, and belongs to the specified office
+    const targetUser = await prisma.user.findUnique({
+      where: { id: createdByUserId },
+    });
+
+    if (
+      !targetUser ||
+      targetUser.role !== "PROFISSIONAL" ||
+      targetUser.organizationId !== officeId
+    ) {
+      return NextResponse.json(
+        {
+          message:
+            "O profissional selecionado é inválido ou não pertence ao consultório selecionado",
+        },
+        { status: 400 },
+      );
+    }
+  }
 
   if (
     !body.patientName ||
@@ -220,8 +258,8 @@ export async function POST(request: Request) {
           : Number(junction.service.basePrice),
       })),
       clinicId: body.clinicId,
-      officeId: session.user.organizationId,
-      createdByUserId: session.user.id,
+      officeId,
+      createdByUserId,
       agreementId: body.agreementId || null,
       documents: {
         create:
@@ -238,8 +276,9 @@ export async function POST(request: Request) {
       documents: true,
       specialistFiles: true,
       agreement: { select: { name: true } },
+      surgery: { select: { name: true } },
     },
   });
 
-  return NextResponse.json(mapReferral(referral), { status: 201 });
+  return NextResponse.json(mapReferral(referral as any), { status: 201 });
 }

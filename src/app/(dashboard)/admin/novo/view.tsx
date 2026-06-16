@@ -1,0 +1,265 @@
+"use client";
+
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+
+import { Field } from "@/components/forms/field";
+import {
+  Button,
+  CardSection,
+  FileUploadArea,
+  FloatingInput,
+  Select,
+  Textarea,
+} from "@/components/ui";
+import { PriceSummary } from "@/features/referrals/components/price-summary";
+import {
+  formatCurrency,
+  getNucleusPriceSummary,
+} from "@/features/referrals/utils";
+import { useFormError } from "@/i18n/use-form-error";
+
+import type { AdminNovoEncaminhamentoPageModel } from "./schema";
+
+interface AdminNovoEncaminhamentoPageViewProps {
+  model: AdminNovoEncaminhamentoPageModel;
+}
+
+export function AdminNovoEncaminhamentoPageView({
+  model,
+}: AdminNovoEncaminhamentoPageViewProps) {
+  const t = useTranslations("newReferral");
+  const common = useTranslations("common");
+  const tError = useFormError();
+
+  const { register, formState } = model.form;
+  const errors = formState.errors;
+
+  const priceSummary = model.selectedNucleus
+    ? getNucleusPriceSummary(model.selectedNucleus)
+    : null;
+
+  return (
+    <div className="space-y-6 text-left">
+      <div className="flex items-center gap-3">
+        <Link href="/admin">
+          <Button variant="ghost" className="h-10 w-10 rounded-full p-0">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold text-primary">
+            {t("title")} (Admin)
+          </h1>
+          <p className="text-gray-500">{t("subtitle")}</p>
+        </div>
+      </div>
+
+      <form onSubmit={model.onSubmit} className="grid gap-6 lg:grid-cols-12">
+        <div className="space-y-6 lg:col-span-8">
+          <CardSection title={t("patientData")}>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <Field label={""} error={tError(errors.patientName?.message)}>
+                  <FloatingInput
+                    required
+                    label={t("patientName")}
+                    {...register("patientName")}
+                  />
+                </Field>
+              </div>
+              <Field
+                label={""}
+                error={tError(errors.patientBirthDate?.message)}
+              >
+                <FloatingInput
+                  type="date"
+                  required
+                  label={t("birthDate")}
+                  {...register("patientBirthDate")}
+                />
+              </Field>
+              <Field label={""} error={tError(errors.patientPhone?.message)}>
+                <FloatingInput
+                  mask="phone"
+                  required
+                  label={t("phone")}
+                  {...register("patientPhone")}
+                />
+              </Field>
+              <div className="md:col-span-2">
+                <Field
+                  label={""}
+                  hint={t("optional")}
+                  error={tError(errors.patientDocument?.message)}
+                >
+                  <FloatingInput
+                    label={t("document")}
+                    {...register("patientDocument")}
+                  />
+                </Field>
+              </div>
+            </div>
+          </CardSection>
+
+          <CardSection title={t("clinicalInfo")}>
+            <div className="grid gap-4">
+              <Field label={t("systemicDiseases")} hint={t("optionalFreeText")}>
+                <Textarea {...register("systemicDiseases")} />
+              </Field>
+              <Field label={t("clinicalNotes")}>
+                <Textarea
+                  {...register("clinicalNotes")}
+                  placeholder={t("clinicalNotesPlaceholder")}
+                />
+              </Field>
+            </div>
+          </CardSection>
+
+          <CardSection title={t("documents")}>
+            <FileUploadArea
+              files={model.documents.map((file) => file.name)}
+              onAddFile={model.handleFakeUpload}
+              label={t("includeDocuments")}
+            />
+          </CardSection>
+        </div>
+
+        <div className="space-y-6 lg:col-span-4">
+          <CardSection
+            title="Origem do Encaminhamento"
+            titleClassName="mb-4 text-lg font-bold text-primary"
+          >
+            <div className="mb-4">
+              <Field
+                label="Consultório de Origem"
+                required
+                error={tError(errors.officeId?.message)}
+              >
+                <Select {...register("officeId")}>
+                  <option value="">{common("select")}</option>
+                  {model.offices.map((office) => (
+                    <option key={office.id} value={office.id}>
+                      {office.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            </div>
+
+            {model.form.watch("officeId") && (
+              <div className="animate-fadeIn">
+                <Field
+                  label="Profissional Solicitante"
+                  required
+                  error={tError(errors.createdByUserId?.message)}
+                >
+                  <Select {...register("createdByUserId")}>
+                    <option value="">{common("select")}</option>
+                    {model.professionals.map((prof) => (
+                      <option key={prof.id} value={prof.id}>
+                        {prof.name}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+            )}
+          </CardSection>
+
+          <CardSection
+            title={t("careNuclei")}
+            titleClassName="mb-4 text-lg font-bold text-primary"
+          >
+            <div className="animate-fadeIn mb-4 border-b pb-4">
+              <Field
+                label={t("selectClinic")}
+                required
+                error={tError(errors.clinicId?.message)}
+              >
+                <Select {...register("clinicId")}>
+                  <option value="">{common("select")}</option>
+                  {model.clinics.map((clinic) => (
+                    <option key={clinic.id} value={clinic.id}>
+                      {clinic.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            </div>
+
+            {model.form.watch("clinicId") && (
+              <div className="animate-fadeIn mb-4 border-b pb-4">
+                <Field
+                  label={t("selectAgreement") || "Selecione o Convênio"}
+                  error={tError(errors.agreementId?.message)}
+                >
+                  <Select {...register("agreementId")}>
+                    <option value="">
+                      {t("noAgreement") || "Sem convênio"}
+                    </option>
+                    {(
+                      model.clinics.find(
+                        (c) => c.id === model.form.watch("clinicId"),
+                      )?.agreements || []
+                    ).map(({ agreement }) => (
+                      <option key={agreement.id} value={agreement.id}>
+                        {agreement.name}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+            )}
+
+            <Field
+              label={t("selectNucleus")}
+              required
+              error={tError(errors.nucleusId?.message)}
+            >
+              <Select {...register("nucleusId")}>
+                <option value="">{common("select")}</option>
+                {model.nuclei.map((nucleus) => (
+                  <option key={nucleus.id} value={nucleus.id}>
+                    {nucleus.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+
+            {model.selectedNucleus && priceSummary && (
+              <div className="mt-4 space-y-3 rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm">
+                <p className="font-semibold text-primary">
+                  {model.selectedNucleus.description}
+                </p>
+                <ul className="space-y-2 text-gray-700">
+                  {model.selectedNucleus.services.map((service) => (
+                    <li
+                      key={service.id}
+                      className="flex items-center justify-between gap-4"
+                    >
+                      <span>{service.name}</span>
+                      <span>{formatCurrency(service.basePrice)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="border-t border-primary/20 pt-3">
+                  <PriceSummary {...priceSummary} variant="inline" />
+                </div>
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              className="mt-6 w-full"
+              isLoading={model.isSubmitting}
+            >
+              {t("saveReferral")}
+            </Button>
+          </CardSection>
+        </div>
+      </form>
+    </div>
+  );
+}

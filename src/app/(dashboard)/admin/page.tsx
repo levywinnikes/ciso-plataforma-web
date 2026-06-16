@@ -471,7 +471,15 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        action={
+          <Link href="/admin/novo">
+            <Button>Novo Encaminhamento</Button>
+          </Link>
+        }
+      />
 
       <div className="grid gap-4 md:grid-cols-3">
         <CardSection title={t("pendingStatus")}>
