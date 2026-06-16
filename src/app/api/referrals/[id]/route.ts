@@ -185,6 +185,20 @@ export async function PUT(
       })),
       clinicId: body.clinicId,
       agreementId: body.agreementId || null,
+      ...(isAdmin && {
+        status: body.status || referral.status,
+        appointmentDate: body.appointmentDate
+          ? new Date(body.appointmentDate)
+          : null,
+        doctor: body.doctor || null,
+        surgeryId: body.surgeryId || null,
+        surgeryPrice:
+          body.surgeryPrice !== undefined && body.surgeryPrice !== null
+            ? Number(body.surgeryPrice)
+            : null,
+        specialistNotes: body.specialistNotes || null,
+        specialistConduct: body.specialistConduct || null,
+      }),
     },
     include: {
       nucleus: { select: { name: true } },
@@ -235,8 +249,15 @@ export async function DELETE(
   if (!isCreator && !isSameOrg && !isAdmin) {
     return NextResponse.json({ message: "Acesso negado" }, { status: 403 });
   }
+  // Regra de Negócio: Não pode excluir se estiver Atendido
+  if (referral.status === "Atendido") {
+    return NextResponse.json(
+      { message: "Encaminhamentos concluídos não podem ser excluídos." },
+      { status: 400 },
+    );
+  }
 
-  // Regra de Negócio: Só pode excluir se o status for "Encaminhado"
+  // Regra de Negócio: Só pode excluir se o status for "Encaminhado" (para não-admins)
   if (referral.status !== "Encaminhado" && !isAdmin) {
     return NextResponse.json(
       {

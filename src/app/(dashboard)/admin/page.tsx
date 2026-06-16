@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
@@ -11,6 +12,7 @@ import { Field } from "@/components/forms/field";
 import {
   Button,
   CardSection,
+  ConfirmDialog,
   FloatingInput,
   Modal,
   PageHeader,
@@ -18,6 +20,7 @@ import {
   Skeleton,
   TableCard,
   TableShell,
+  Textarea,
 } from "@/components/ui";
 import { ReferralStatusBadge } from "@/features/referrals/components/referral-status-badge";
 import type { Referral } from "@/features/referrals/types";
@@ -32,6 +35,28 @@ const scheduleSchema = z.object({
 });
 
 type ScheduleFormData = z.infer<typeof scheduleSchema>;
+
+const editReferralSchema = z.object({
+  patientName: z.string().min(1, "errors.required"),
+  patientBirthDate: z.string().min(1, "errors.required"),
+  patientPhone: z.string().min(1, "errors.required"),
+  patientDocument: z.string().optional().nullable(),
+  systemicDiseases: z.string().optional().nullable(),
+  clinicalNotes: z.string().optional().nullable(),
+  clinicalSuspicion: z.string().optional().nullable(),
+  nucleusId: z.string().min(1, "errors.required"),
+  clinicId: z.string().min(1, "errors.required"),
+  agreementId: z.string().optional().nullable(),
+  status: z.enum(["Encaminhado", "Agendado", "Atendido"]),
+  appointmentDate: z.string().optional().nullable(),
+  doctor: z.string().optional().nullable(),
+  specialistNotes: z.string().optional().nullable(),
+  specialistConduct: z.string().optional().nullable(),
+  surgeryId: z.string().optional().nullable(),
+  surgeryPrice: z.union([z.number(), z.string(), z.null()]).optional(),
+});
+
+type EditReferralFormData = z.infer<typeof editReferralSchema>;
 
 interface ClinicOption {
   id: string;
@@ -70,6 +95,40 @@ export default function AdminPage() {
   });
 
   const selectedClinicId = scheduleForm.watch("clinicId");
+
+  const [nuclei, setNuclei] = useState<any[]>([]);
+  const [surgeries, setSurgeries] = useState<any[]>([]);
+  const [agreements, setAgreements] = useState<any[]>([]);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingReferral, setEditingReferral] = useState<Referral | null>(null);
+  const [pendingDeleteReferral, setPendingDeleteReferral] =
+    useState<Referral | null>(null);
+  const [editDoctors, setEditDoctors] = useState<DoctorOption[]>([]);
+
+  const editForm = useForm<EditReferralFormData>({
+    resolver: zodResolver(editReferralSchema),
+    defaultValues: {
+      patientName: "",
+      patientBirthDate: "",
+      patientPhone: "",
+      patientDocument: "",
+      systemicDiseases: "",
+      clinicalNotes: "",
+      clinicalSuspicion: "",
+      nucleusId: "",
+      clinicId: "",
+      agreementId: "",
+      status: "Encaminhado",
+      appointmentDate: "",
+      doctor: "",
+      specialistNotes: "",
+      specialistConduct: "",
+      surgeryId: "",
+      surgeryPrice: "",
+    },
+  });
+
+  const editClinicId = editForm.watch("clinicId");
 
   const cards = [
     {
@@ -139,9 +198,18 @@ export default function AdminPage() {
     async function loadData() {
       setIsLoading(true);
       try {
-        const [referralsRes, clinicsRes] = await Promise.all([
+        const [
+          referralsRes,
+          clinicsRes,
+          nucleiRes,
+          surgeriesRes,
+          agreementsRes,
+        ] = await Promise.all([
           fetch("/api/referrals", { cache: "no-store" }),
           fetch("/api/organizations?type=CLINICA", { cache: "no-store" }),
+          fetch("/api/nuclei", { cache: "no-store" }),
+          fetch("/api/surgeries?active=true", { cache: "no-store" }),
+          fetch("/api/agreements?active=true", { cache: "no-store" }),
         ]);
 
         if (!referralsRes.ok || !clinicsRes.ok) {
@@ -151,9 +219,17 @@ export default function AdminPage() {
 
         const referralsData = (await referralsRes.json()) as Referral[];
         const clinicsData = (await clinicsRes.json()) as ClinicOption[];
+        const nucleiData = nucleiRes.ok ? await nucleiRes.json() : [];
+        const surgeriesData = surgeriesRes.ok ? await surgeriesRes.json() : [];
+        const agreementsData = agreementsRes.ok
+          ? await agreementsRes.json()
+          : [];
 
         setReferrals(referralsData);
         setClinics(clinicsData);
+        setNuclei(nucleiData);
+        setSurgeries(surgeriesData);
+        setAgreements(agreementsData);
       } catch {
         toast.error(tError("errors.genericRequestFailed") ?? "");
       } finally {
@@ -163,6 +239,42 @@ export default function AdminPage() {
 
     void loadData();
   }, []);
+
+  useEffect(() => {
+    if (!isEditModalOpen || !editClinicId) {
+      setEditDoctors([]);
+      return;
+    }
+    async function loadEditClinicDoctors() {
+      try {
+        const response = await fetch(
+          `/api/users/organization?organizationId=${editClinicId}`,
+          { cache: "no-store" },
+        );
+        if (response.ok) {
+          const users = (await response.json()) as DoctorOption[];
+          const filteredDoctors = users.filter(
+            (user) => user.role === "MEDICO",
+          );
+          setEditDoctors(filteredDoctors);
+        }
+      } catch (err) {
+        console.error("Failed to load doctors", err);
+      }
+    }
+    void loadEditClinicDoctors();
+  }, [editClinicId, isEditModalOpen]);
+
+  useEffect(() => {
+    if (editingReferral && editingReferral.doctor && editDoctors.length > 0) {
+      const doctorExists = editDoctors.some(
+        (d) => d.name === editingReferral.doctor,
+      );
+      if (doctorExists) {
+        editForm.setValue("doctor", editingReferral.doctor);
+      }
+    }
+  }, [editDoctors, editingReferral, editForm]);
 
   useEffect(() => {
     if (!isModalOpen) return;
@@ -267,6 +379,96 @@ export default function AdminPage() {
     }
   }
 
+  function openEditReferralModal(referral: Referral) {
+    setEditingReferral(referral);
+    editForm.reset({
+      patientName: referral.patientName || "",
+      patientBirthDate: referral.patientBirthDate
+        ? new Date(referral.patientBirthDate).toISOString().slice(0, 10)
+        : "",
+      patientPhone: referral.patientPhone || "",
+      patientDocument: referral.patientDocument || "",
+      systemicDiseases: referral.systemicDiseases || "",
+      clinicalNotes: referral.clinicalNotes || "",
+      clinicalSuspicion: referral.clinicalSuspicion || "",
+      nucleusId: referral.nucleusId || "",
+      clinicId: referral.clinicId || "",
+      agreementId: referral.agreementId || "",
+      status: referral.status || "Encaminhado",
+      appointmentDate: referral.appointmentDate
+        ? new Date(referral.appointmentDate).toISOString().slice(0, 16)
+        : "",
+      doctor: referral.doctor || "",
+      specialistNotes: referral.specialistNotes || "",
+      specialistConduct: referral.specialistConduct || "",
+      surgeryId: referral.surgeryId || "",
+      surgeryPrice:
+        referral.surgeryPrice !== undefined && referral.surgeryPrice !== null
+          ? String(referral.surgeryPrice)
+          : "",
+    });
+    setIsEditModalOpen(true);
+  }
+
+  async function onSubmitEdit(data: EditReferralFormData) {
+    if (!editingReferral) return;
+
+    setIsSaving(true);
+    try {
+      const response = await fetch(`/api/referrals/${editingReferral.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          surgeryPrice: data.surgeryPrice ? Number(data.surgeryPrice) : null,
+        }),
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        toast.error(tError(body.error ?? "errors.genericRequestFailed") ?? "");
+        return;
+      }
+
+      const updated = await response.json();
+
+      setReferrals((current) =>
+        current.map((item) =>
+          item.id === editingReferral.id ? updated : item,
+        ),
+      );
+
+      toast.success("Encaminhamento atualizado com sucesso!");
+      setIsEditModalOpen(false);
+      setEditingReferral(null);
+    } catch {
+      toast.error(tError("errors.genericRequestFailed") ?? "");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function onDeleteReferral(id: string) {
+    try {
+      const response = await fetch(`/api/referrals/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        toast.error(
+          body.message || tError("errors.genericRequestFailed") || "",
+        );
+        return;
+      }
+
+      setReferrals((current) => current.filter((item) => item.id !== id));
+      toast.success("Encaminhamento excluído com sucesso!");
+    } catch {
+      toast.error(tError("errors.genericRequestFailed") ?? "");
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
@@ -358,14 +560,34 @@ export default function AdminPage() {
                   {formatDate(referral.createdAt)}
                 </td>
                 <td className="ui-table-cell text-right">
-                  {referral.status === "Encaminhado" ? (
+                  <div className="flex items-center justify-end gap-2">
+                    {referral.status === "Encaminhado" ? (
+                      <Button
+                        variant="outline"
+                        onClick={() => openScheduleModal(referral)}
+                      >
+                        {t("scheduleAction")}
+                      </Button>
+                    ) : null}
                     <Button
-                      variant="outline"
-                      onClick={() => openScheduleModal(referral)}
+                      variant="ghost"
+                      className="p-2"
+                      onClick={() => openEditReferralModal(referral)}
+                      title="Editar"
                     >
-                      {t("scheduleAction")}
+                      <Pencil className="h-4 w-4 text-amber-600" />
                     </Button>
-                  ) : null}
+                    {referral.status !== "Atendido" ? (
+                      <Button
+                        variant="ghost"
+                        className="p-2"
+                        onClick={() => setPendingDeleteReferral(referral)}
+                        title="Excluir"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    ) : null}
+                  </div>
                 </td>
               </tr>
             ))
@@ -453,6 +675,227 @@ export default function AdminPage() {
           </div>
         </form>
       </Modal>
+
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title="Editar Encaminhamento"
+        maxWidth="max-w-4xl"
+      >
+        <form
+          onSubmit={editForm.handleSubmit(onSubmitEdit)}
+          className="space-y-6 pt-4 text-left"
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field
+              label="Nome do Paciente"
+              error={tError(editForm.formState.errors.patientName?.message)}
+            >
+              <FloatingInput
+                required
+                label="Nome do Paciente"
+                {...editForm.register("patientName")}
+              />
+            </Field>
+
+            <Field
+              label="Nascimento"
+              error={tError(
+                editForm.formState.errors.patientBirthDate?.message,
+              )}
+            >
+              <FloatingInput
+                type="date"
+                required
+                label="Nascimento"
+                {...editForm.register("patientBirthDate")}
+              />
+            </Field>
+
+            <Field
+              label="Telefone"
+              error={tError(editForm.formState.errors.patientPhone?.message)}
+            >
+              <FloatingInput
+                required
+                label="Telefone"
+                {...editForm.register("patientPhone")}
+              />
+            </Field>
+
+            <Field
+              label="Documento (Opcional)"
+              error={tError(editForm.formState.errors.patientDocument?.message)}
+            >
+              <FloatingInput
+                label="Documento (Opcional)"
+                {...editForm.register("patientDocument")}
+              />
+            </Field>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field
+              label="Clínica"
+              error={tError(editForm.formState.errors.clinicId?.message)}
+            >
+              <Select {...editForm.register("clinicId")}>
+                <option value="">Selecione uma clínica</option>
+                {clinics.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+
+            <Field
+              label="Núcleo de Atendimento"
+              error={tError(editForm.formState.errors.nucleusId?.message)}
+            >
+              <Select {...editForm.register("nucleusId")}>
+                <option value="">Selecione um núcleo</option>
+                {nuclei.map((n) => (
+                  <option key={n.id} value={n.id}>
+                    {n.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+
+            <Field
+              label="Convênio"
+              error={tError(editForm.formState.errors.agreementId?.message)}
+            >
+              <Select {...editForm.register("agreementId")}>
+                <option value="">Sem convênio</option>
+                {agreements.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+
+            <Field
+              label="Status"
+              error={tError(editForm.formState.errors.status?.message)}
+            >
+              <Select {...editForm.register("status")}>
+                <option value="Encaminhado">Encaminhado</option>
+                <option value="Agendado">Agendado</option>
+                <option value="Atendido">Atendido</option>
+              </Select>
+            </Field>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field
+              label="Médico Responsável"
+              error={tError(editForm.formState.errors.doctor?.message)}
+            >
+              <Select {...editForm.register("doctor")}>
+                <option value="">Selecione um médico</option>
+                {editDoctors.map((d) => (
+                  <option key={d.id} value={d.name}>
+                    {d.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+
+            <Field
+              label="Data do Agendamento"
+              error={tError(editForm.formState.errors.appointmentDate?.message)}
+            >
+              <FloatingInput
+                type="datetime-local"
+                label="Data do Agendamento"
+                {...editForm.register("appointmentDate")}
+              />
+            </Field>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field
+              label="Cirurgia Vinculada (Opcional)"
+              error={tError(editForm.formState.errors.surgeryId?.message)}
+            >
+              <Select {...editForm.register("surgeryId")}>
+                <option value="">Nenhuma cirurgia</option>
+                {surgeries.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} ({s.defaultPrice})
+                  </option>
+                ))}
+              </Select>
+            </Field>
+
+            <Field
+              label="Preço da Cirurgia"
+              error={tError(editForm.formState.errors.surgeryPrice?.message)}
+            >
+              <FloatingInput
+                type="number"
+                step="0.01"
+                label="Preço da Cirurgia"
+                {...editForm.register("surgeryPrice")}
+              />
+            </Field>
+          </div>
+
+          <div className="space-y-4">
+            <Field label="Doenças Sistêmicas">
+              <Textarea {...editForm.register("systemicDiseases")} />
+            </Field>
+
+            <Field label="Notas Clínicas">
+              <Textarea {...editForm.register("clinicalNotes")} />
+            </Field>
+
+            <Field label="Suspeita Clínica">
+              <Textarea {...editForm.register("clinicalSuspicion")} />
+            </Field>
+
+            <Field label="Notas do Especialista">
+              <Textarea {...editForm.register("specialistNotes")} />
+            </Field>
+
+            <Field label="Conduta do Especialista">
+              <Textarea {...editForm.register("specialistConduct")} />
+            </Field>
+          </div>
+
+          <div className="flex justify-end gap-2 border-t pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsEditModalOpen(false)}
+              disabled={isSaving}
+            >
+              {common("cancel")}
+            </Button>
+            <Button type="submit" isLoading={isSaving}>
+              Salvar Alterações
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <ConfirmDialog
+        isOpen={pendingDeleteReferral !== null}
+        onClose={() => setPendingDeleteReferral(null)}
+        onConfirm={async () => {
+          if (!pendingDeleteReferral) return;
+          await onDeleteReferral(pendingDeleteReferral.id);
+          setPendingDeleteReferral(null);
+        }}
+        title="Confirmar Exclusão"
+        message={`Tem certeza que deseja excluir o encaminhamento de ${pendingDeleteReferral?.patientName}?`}
+        hint="Esta ação é irreversível."
+        cancelLabel="Cancelar"
+        confirmLabel="Excluir"
+      />
     </div>
   );
 }
