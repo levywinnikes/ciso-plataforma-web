@@ -572,8 +572,10 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
 
             <CardSection title={tNew("documents")}>
               <FileUploadArea
-                files={model.editDocuments.map((file) => file.name)}
-                onAddFile={model.handleFakeUploadEdit}
+                files={model.editDocuments}
+                onSelectFiles={model.handleUploadFilesEdit}
+                onRemoveFile={model.handleRemoveDocumentEdit}
+                isUploading={model.isUploadingEdit}
                 label={tNew("includeDocuments")}
               />
             </CardSection>

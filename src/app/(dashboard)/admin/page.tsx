@@ -501,6 +501,8 @@ export default function AdminPage() {
             <tr>
               <th className="px-6 py-3">{common("patient")}</th>
               <th className="px-6 py-3">{common("status")}</th>
+              <th className="px-6 py-3">{t("officeColumn")}</th>
+              <th className="px-6 py-3">{t("createdByColumn")}</th>
               <th className="px-6 py-3">{t("clinicColumn")}</th>
               <th className="px-6 py-3">{common("doctor")}</th>
               <th className="px-6 py-3">{t("appointmentColumn")}</th>
@@ -528,6 +530,12 @@ export default function AdminPage() {
                   <Skeleton className="h-4 w-36" />
                 </td>
                 <td className="ui-table-cell">
+                  <Skeleton className="h-4 w-32" />
+                </td>
+                <td className="ui-table-cell">
+                  <Skeleton className="h-4 w-36" />
+                </td>
+                <td className="ui-table-cell">
                   <Skeleton className="h-4 w-24" />
                 </td>
                 <td className="ui-table-cell">
@@ -538,7 +546,7 @@ export default function AdminPage() {
           ) : sortedReferrals.length === 0 ? (
             <tr>
               <td
-                colSpan={7}
+                colSpan={9}
                 className="ui-table-cell py-8 text-center text-gray-500"
               >
                 {t("emptyReferrals")}
@@ -552,6 +560,12 @@ export default function AdminPage() {
                 </td>
                 <td className="ui-table-cell">
                   <ReferralStatusBadge status={referral.status} />
+                </td>
+                <td className="ui-table-cell">
+                  {referral.officeName ?? common("notAvailable")}
+                </td>
+                <td className="ui-table-cell">
+                  {referral.createdByUserName ?? common("notAvailable")}
                 </td>
                 <td className="ui-table-cell">
                   {referral.clinicName ?? common("notAvailable")}

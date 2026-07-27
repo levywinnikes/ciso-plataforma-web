@@ -15,6 +15,9 @@
     "no": "No",
     "loading": "Loading...",
     "saving": "Saving...",
+    "uploading": "Uploading...",
+    "includeDocuments": "Include documents",
+    "remove": "Remove",
     "hello": "Hello, {name}",
     "logout": "Sign out"
   },
@@ -92,6 +95,8 @@
     "scheduledStatus": "Scheduled",
     "completedStatus": "Completed",
     "clinicColumn": "Clinic",
+    "officeColumn": "Office",
+    "createdByColumn": "Created by",
     "appointmentColumn": "Appointment",
     "createdColumn": "Sent date",
     "actionsColumn": "Actions",
@@ -461,6 +466,11 @@
     "referralNotFound": "Referral not found.",
     "agreementNameRequired": "Agreement name is required.",
     "agreementNameUnique": "An agreement with this name already exists.",
-    "genericRequestFailed": "Could not complete the operation. Please try again."
+    "genericRequestFailed": "Could not complete the operation. Please try again.",
+    "fileRequired": "Select a file to upload.",
+    "fileTooLarge": "The file exceeds the maximum allowed size (10 MB).",
+    "fileTypeNotAllowed": "File type not allowed. Use PDF, image, or Word document.",
+    "invalidUploadData": "Could not process the file upload.",
+    "uploadFailed": "Could not upload the file. Please try again."
   }
 }

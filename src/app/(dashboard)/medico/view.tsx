@@ -140,7 +140,9 @@ export function MedicoPageView({ model }: MedicoPageViewProps) {
             conduct={model.conduct}
             onConductChange={model.setConduct}
             files={model.files}
-            onAddFile={model.handleAddFile}
+            onSelectFiles={model.handleUploadFiles}
+            onRemoveFile={model.handleRemoveFile}
+            isUploading={model.isUploading}
             surgeryId={model.surgeryId}
             onSurgeryIdChange={model.setSurgeryId}
             surgeryPrice={model.surgeryPrice}

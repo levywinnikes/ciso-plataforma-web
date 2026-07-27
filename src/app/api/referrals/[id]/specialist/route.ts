@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { resolveDocumentUrl } from "@/lib/storage";
 
 export async function PATCH(
   request: Request,
@@ -56,9 +57,12 @@ export async function PATCH(
             : null,
         ...(body.files && {
           specialistFiles: {
-            create: body.files.map((item: { name?: string }) => ({
-              fileName: item.name || "arquivo",
-            })),
+            create: body.files.map(
+              (item: { name?: string; url?: string; key?: string }) => ({
+                fileName: item.name || "arquivo",
+                url: item.url || item.key || null,
+              }),
+            ),
           },
         }),
         status: body.complete ? "Atendido" : undefined,
@@ -70,15 +74,21 @@ export async function PATCH(
     });
   });
 
+  const specialistAttachments = await Promise.all(
+    updated.specialistFiles.map(async (item) => ({
+      id: item.id,
+      name: item.fileName,
+      key: item.url ?? undefined,
+      url: await resolveDocumentUrl(item.url),
+      uploadedAt: item.createdAt.toISOString(),
+    })),
+  );
+
   return NextResponse.json({
     id: updated.id,
     specialistNotes: updated.specialistNotes,
     specialistConduct: updated.specialistConduct,
-    specialistAttachments: updated.specialistFiles.map((item) => ({
-      id: item.id,
-      name: item.fileName,
-      uploadedAt: item.createdAt.toISOString(),
-    })),
+    specialistAttachments,
     status: updated.status,
     surgeryId: updated.surgeryId,
     surgeryName: updated.surgery?.name,

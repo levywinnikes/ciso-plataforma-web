@@ -297,6 +297,24 @@ const db = new PrismaClient({ datasourceUrl: env.DATABASE_URL });
 
 Adicionar nova env var: atualizar `src/env.ts` (schema Zod) e `.env.example`.
 
+### DigitalOcean Spaces (arquivos)
+
+Uploads de documentos usam Spaces (API compativel com S3):
+
+- `DO_SPACES_ENDPOINT` — ex: `https://nyc3.digitaloceanspaces.com`
+- `DO_SPACES_REGION` — ex: `nyc3`
+- `DO_SPACES_BUCKET` — nome do bucket
+- `DO_SPACES_KEY` / `DO_SPACES_SECRET` — credenciais
+- `DO_SPACES_FOLDER` — prefixo dos objetos (padrao: `integravisao`)
+
+Padrao de implementacao:
+
+1. Cliente envia o arquivo para `POST /api/uploads` (`multipart/form-data`).
+2. Servidor grava em `integravisao/YYYY/MM/{uuid}-{nome}` com ACL privada.
+3. Banco persiste a **chave** do objeto no campo `url` de `ReferralDocument` / `ReferralAttachment`.
+4. Na leitura, a API devolve URL assinada temporaria para download.
+5. Reutilize `src/lib/storage.ts` e `src/lib/upload-client.ts` + componente `<FileUploadArea>`.
+
 ---
 
 ## 7. Prisma / banco de dados

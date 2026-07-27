@@ -1,10 +1,10 @@
 "use client";
 
-import { FileText, Upload } from "lucide-react";
+import { FileText } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
-import { Input, Select, Textarea } from "@/components/ui";
+import { FileUploadArea, Input, Select, Textarea } from "@/components/ui";
 
 interface Surgery {
   id: string;
@@ -12,13 +12,21 @@ interface Surgery {
   defaultPrice: number;
 }
 
+interface MedicalConductFile {
+  id: string;
+  name: string;
+  url?: string;
+}
+
 interface MedicalConductFormProps {
   notes: string;
   onNotesChange: (value: string) => void;
   conduct: string;
   onConductChange: (value: string) => void;
-  files: string[];
-  onAddFile: () => void;
+  files: MedicalConductFile[];
+  onSelectFiles: (files: File[]) => void;
+  onRemoveFile?: (id: string) => void;
+  isUploading?: boolean;
   surgeryId: string;
   onSurgeryIdChange: (value: string) => void;
   surgeryPrice: number | "";
@@ -32,7 +40,9 @@ export function MedicalConductForm({
   conduct,
   onConductChange,
   files,
-  onAddFile,
+  onSelectFiles,
+  onRemoveFile,
+  isUploading = false,
   surgeryId,
   onSurgeryIdChange,
   surgeryPrice,
@@ -151,33 +161,14 @@ export function MedicalConductForm({
         <label className="mb-2 block text-xs font-bold uppercase text-gray-700">
           {t("attachmentsLabel")}
         </label>
-        <button
-          type="button"
-          onClick={disabled ? undefined : onAddFile}
+        <FileUploadArea
+          files={files}
+          onSelectFiles={onSelectFiles}
+          onRemoveFile={onRemoveFile}
+          isUploading={isUploading}
           disabled={disabled}
-          className={`flex w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-5 transition-colors ${
-            disabled
-              ? "cursor-not-allowed opacity-50"
-              : "cursor-pointer hover:bg-gray-50"
-          }`}
-        >
-          <Upload className="mb-2 h-5 w-5 text-gray-400" />
-          <p className="text-xs font-medium text-gray-600">
-            {t("addAttachments")}
-          </p>
-        </button>
-        {files.length > 0 && (
-          <ul className="mt-3 space-y-2 text-xs text-gray-600">
-            {files.map((file) => (
-              <li
-                key={file}
-                className="rounded border border-gray-200 bg-white px-3 py-2"
-              >
-                {file}
-              </li>
-            ))}
-          </ul>
-        )}
+          label={t("addAttachments")}
+        />
       </div>
     </div>
   );

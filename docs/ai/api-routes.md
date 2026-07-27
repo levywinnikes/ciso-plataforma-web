@@ -594,7 +594,40 @@ Authorization: Bearer <token>
 
 ## Documentos (Upload)
 
-### Upload de documento
+### Upload generico (Spaces)
+
+```
+POST /api/uploads
+Authorization: sessao NextAuth
+Content-Type: multipart/form-data
+```
+
+**Form data:**
+
+```
+file: <arquivo.pdf|imagem|doc>
+```
+
+**Resposta (201):**
+
+```json
+{
+  "id": "integravisao/2026/07/uuid-exame.pdf",
+  "fileName": "exame.pdf",
+  "key": "integravisao/2026/07/uuid-exame.pdf",
+  "url": "https://...assinada...",
+  "uploadedAt": "2026-07-27T10:00:00.000Z"
+}
+```
+
+**Regras:**
+
+- Tamanho maximo: 10 MB
+- Tipos: PDF, JPEG, PNG, WEBP, GIF, DOC, DOCX
+- Arquivos privados no Spaces, pasta `integravisao/`
+- Roles: PROFISSIONAL, MEDICO, ADMINISTRATIVO
+
+### Upload de documento (legado / por encaminhamento)
 
 ```
 POST /referrals/:referralId/documents

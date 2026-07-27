@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 
+import { mapReferralResponse } from "@/features/referrals/map-referral";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -11,86 +12,6 @@ function parseBirthDate(value: string): Date {
   }
 
   return new Date(value);
-}
-
-function mapReferral(referral: {
-  id: string;
-  patientName: string;
-  patientBirthDate: Date;
-  patientPhone: string;
-  patientDocument: string | null;
-  systemicDiseases: string | null;
-  clinicalNotes: string | null;
-  clinicalSuspicion: string | null;
-  status: "Encaminhado" | "Agendado" | "Atendido";
-  doctor: string | null;
-  appointmentDate: Date | null;
-  specialistNotes: string | null;
-  specialistConduct: string | null;
-  createdAt: Date;
-  nucleusId: string;
-  nucleusSnapshotName: string;
-  nucleusSnapshotPrice: any;
-  clinicId: string;
-  clinic: { name: string };
-  officeId: string;
-  office: { name: string };
-  createdByUserId: string;
-  createdByUser: { name: string; email: string };
-  nucleus: { name: string };
-  documents: Array<{ id: string; fileName: string; createdAt: Date }>;
-  specialistFiles: Array<{ id: string; fileName: string; createdAt: Date }>;
-  agreementId: string | null;
-  agreement: { name: string } | null;
-  surgeryId?: string | null;
-  surgery?: { name: string } | null;
-  surgeryPrice?: any;
-}) {
-  return {
-    id: referral.id,
-    patientName: referral.patientName,
-    patientBirthDate: referral.patientBirthDate.toISOString().slice(0, 10),
-    patientPhone: referral.patientPhone,
-    patientDocument: referral.patientDocument ?? undefined,
-    systemicDiseases: referral.systemicDiseases ?? undefined,
-    clinicalNotes: referral.clinicalNotes ?? undefined,
-    clinicalSuspicion: referral.clinicalSuspicion ?? undefined,
-    createdAt: referral.createdAt.toISOString().slice(0, 10),
-    status: referral.status,
-    nucleusId: referral.nucleusId,
-    nucleusName: referral.nucleusSnapshotName,
-    nucleusPrice: Number(referral.nucleusSnapshotPrice),
-    nucleusSnapshotServices: (referral as any).nucleusSnapshotServices as
-      | Array<{ name: string; basePrice: number }>
-      | undefined,
-    clinicId: referral.clinicId,
-    clinicName: referral.clinic.name,
-    officeId: referral.officeId,
-    officeName: referral.office.name,
-    agreementId: referral.agreementId ?? undefined,
-    agreementName: referral.agreement?.name ?? undefined,
-    surgeryId: referral.surgeryId ?? undefined,
-    surgeryName: referral.surgery?.name ?? undefined,
-    surgeryPrice: referral.surgeryPrice
-      ? Number(referral.surgeryPrice)
-      : undefined,
-    createdByUserId: referral.createdByUserId,
-    createdByUserName: referral.createdByUser.name,
-    appointmentDate: referral.appointmentDate?.toISOString() ?? undefined,
-    doctor: referral.doctor ?? undefined,
-    specialistNotes: referral.specialistNotes ?? undefined,
-    specialistConduct: referral.specialistConduct ?? undefined,
-    documents: referral.documents.map((item) => ({
-      id: item.id,
-      name: item.fileName,
-      uploadedAt: item.createdAt.toISOString(),
-    })),
-    specialistAttachments: referral.specialistFiles.map((item) => ({
-      id: item.id,
-      name: item.fileName,
-      uploadedAt: item.createdAt.toISOString(),
-    })),
-  };
 }
 
 export async function GET() {
@@ -147,7 +68,9 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(referrals.map(mapReferral));
+  return NextResponse.json(
+    await Promise.all(referrals.map((item) => mapReferralResponse(item))),
+  );
 }
 
 export async function POST(request: Request) {
@@ -162,10 +85,7 @@ export async function POST(request: Request) {
     session.user.role !== "ADMINISTRATIVO"
   ) {
     return NextResponse.json(
-      {
-        message:
-          "Apenas profissionais ou administradores podem criar referrals",
-      },
+      { message: "Apenas profissionais ou administrativos podem criar" },
       { status: 403 },
     );
   }
@@ -191,7 +111,6 @@ export async function POST(request: Request) {
   }
 
   if (session.user.role === "ADMINISTRATIVO") {
-    // Validate that the user exists, is a PROFISSIONAL, and belongs to the specified office
     const targetUser = await prisma.user.findUnique({
       where: { id: createdByUserId },
     });
@@ -223,9 +142,6 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-
-  // FIXME: validação de ProfessionalAccess removida temporariamente.
-  // Será reativada quando o painel de Acessos for recriado.
 
   const nucleus = await prisma.careNucleus.findUnique({
     where: { id: body.nucleusId },
@@ -263,9 +179,12 @@ export async function POST(request: Request) {
       agreementId: body.agreementId || null,
       documents: {
         create:
-          body.documents?.map((item: { name?: string }) => ({
-            fileName: item.name || "documento",
-          })) ?? [],
+          body.documents?.map(
+            (item: { name?: string; url?: string; key?: string }) => ({
+              fileName: item.name || "documento",
+              url: item.url || item.key || null,
+            }),
+          ) ?? [],
       },
     },
     include: {
@@ -280,5 +199,7 @@ export async function POST(request: Request) {
     },
   });
 
-  return NextResponse.json(mapReferral(referral as any), { status: 201 });
+  return NextResponse.json(await mapReferralResponse(referral), {
+    status: 201,
+  });
 }

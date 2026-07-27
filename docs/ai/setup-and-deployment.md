@@ -46,6 +46,12 @@ Obrigatorias para execucao:
 - `DATABASE_URL`
 - `NEXTAUTH_SECRET`
 - `NEXTAUTH_URL`
+- `DO_SPACES_ENDPOINT`
+- `DO_SPACES_REGION`
+- `DO_SPACES_BUCKET`
+- `DO_SPACES_KEY`
+- `DO_SPACES_SECRET`
+- `DO_SPACES_FOLDER` (padrao: `integravisao`)
 
 `NODE_ENV` e validada, mas em producao o Vercel ja define como `production`.
 
@@ -101,6 +107,7 @@ Ideal para testes rápidos ou de pré-visualização (Preview) direto da máquin
    - Antes de prosseguir com o deploy final, configure as variáveis de ambiente no dashboard web do Vercel para o respectivo projeto.
 
 4. **Publicar para Produção**:
+
    ```bash
    npx vercel --prod --yes
    ```

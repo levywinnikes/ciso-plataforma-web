@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form";
 
 import type { CareNucleus } from "@/features/referrals/types";
 import { useAppToast } from "@/hooks/use-app-toast";
+import { useFormError } from "@/i18n/use-form-error";
+import { uploadFilesToStorage } from "@/lib/upload-client";
 
 import type {
   AdminNovoEncaminhamentoFormData,
@@ -21,7 +23,9 @@ import { adminNovoEncaminhamentoSchema } from "./schema";
 export function useAdminNovoEncaminhamentoPageModel(): AdminNovoEncaminhamentoPageModel {
   const router = useRouter();
   const toast = useAppToast();
+  const tError = useFormError();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm<AdminNovoEncaminhamentoFormData>({
     resolver: zodResolver(adminNovoEncaminhamentoSchema),
@@ -110,11 +114,22 @@ export function useAdminNovoEncaminhamentoPageModel(): AdminNovoEncaminhamentoPa
     form.setValue("agreementId", "");
   }, [clinicId, form]);
 
-  const handleFakeUpload = () => {
-    setDocuments((current) => [
-      ...current,
-      { id: `DOC-${Date.now()}`, name: `documento-${current.length + 1}.pdf` },
-    ]);
+  const handleUploadFiles = async (files: File[]) => {
+    setIsUploading(true);
+    try {
+      const uploaded = await uploadFilesToStorage(files);
+      setDocuments((current) => [...current, ...uploaded]);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "errors.uploadFailed";
+      toast.error(tError(message) ?? "");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveDocument = (id: string) => {
+    setDocuments((current) => current.filter((item) => item.id !== id));
   };
 
   const handleFormSubmit = async (data: AdminNovoEncaminhamentoFormData) => {
@@ -140,13 +155,14 @@ export function useAdminNovoEncaminhamentoPageModel(): AdminNovoEncaminhamentoPa
           documents: documents.map((item) => ({
             id: item.id,
             name: item.name,
-            uploadedAt: new Date().toISOString(),
+            url: item.key || item.url,
+            uploadedAt: item.uploadedAt ?? new Date().toISOString(),
           })),
         }),
       });
 
       if (!response.ok) {
-        toast.error("Erro ao salvar o encaminhamento. Tente novamente.");
+        toast.error(tError("errors.genericRequestFailed") ?? "");
         return;
       }
 
@@ -167,7 +183,9 @@ export function useAdminNovoEncaminhamentoPageModel(): AdminNovoEncaminhamentoPa
     nuclei,
     offices,
     professionals,
-    handleFakeUpload,
+    handleUploadFiles,
+    handleRemoveDocument,
+    isUploading,
     isSubmitting,
   };
 }

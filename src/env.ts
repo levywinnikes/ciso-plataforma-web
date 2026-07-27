@@ -10,6 +10,17 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),
+  DO_SPACES_ENDPOINT: z
+    .string()
+    .url("DO_SPACES_ENDPOINT deve ser uma URL válida"),
+  DO_SPACES_REGION: z.string().min(1, "DO_SPACES_REGION é obrigatório"),
+  DO_SPACES_BUCKET: z.string().min(1, "DO_SPACES_BUCKET é obrigatório"),
+  DO_SPACES_KEY: z.string().min(1, "DO_SPACES_KEY é obrigatório"),
+  DO_SPACES_SECRET: z.string().min(1, "DO_SPACES_SECRET é obrigatório"),
+  DO_SPACES_FOLDER: z
+    .string()
+    .min(1, "DO_SPACES_FOLDER é obrigatório")
+    .default("integravisao"),
 });
 
 function parseEnv() {

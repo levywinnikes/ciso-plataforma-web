@@ -35,6 +35,9 @@ export type AdminNovoEncaminhamentoFormData = z.infer<
 export interface UploadedDocument {
   id: string;
   name: string;
+  url?: string;
+  key?: string;
+  uploadedAt?: string;
 }
 
 export interface ClinicOption {
@@ -67,6 +70,8 @@ export interface AdminNovoEncaminhamentoPageModel {
   nuclei: CareNucleus[];
   offices: OfficeOption[];
   professionals: ProfessionalOption[];
-  handleFakeUpload: () => void;
+  handleUploadFiles: (files: File[]) => Promise<void>;
+  handleRemoveDocument: (id: string) => void;
+  isUploading: boolean;
   isSubmitting: boolean;
 }

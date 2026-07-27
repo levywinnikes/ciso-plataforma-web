@@ -115,8 +115,10 @@ export function NovoEncaminhamentoPageView({
 
           <CardSection title={t("documents")}>
             <FileUploadArea
-              files={model.documents.map((file) => file.name)}
-              onAddFile={model.handleFakeUpload}
+              files={model.documents}
+              onSelectFiles={model.handleUploadFiles}
+              onRemoveFile={model.handleRemoveDocument}
+              isUploading={model.isUploading}
               label={t("includeDocuments")}
             />
           </CardSection>

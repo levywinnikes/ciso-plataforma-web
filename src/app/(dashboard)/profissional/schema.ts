@@ -50,7 +50,9 @@ export interface ProfissionalPageModel {
   editSelectedNucleus?: CareNucleus;
   isSavingEdit: boolean;
   editDocuments: UploadedDocument[];
-  handleFakeUploadEdit: () => void;
+  handleUploadFilesEdit: (files: File[]) => Promise<void>;
+  handleRemoveDocumentEdit: (id: string) => void;
+  isUploadingEdit: boolean;
 
   // Actions
   deleteReferral: (id: string) => Promise<void>;

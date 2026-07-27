@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 
 import type { CareNucleus, Referral } from "@/features/referrals/types";
 import { useAppToast } from "@/hooks/use-app-toast";
+import { useFormError } from "@/i18n/use-form-error";
+import { uploadFilesToStorage } from "@/lib/upload-client";
 
 import {
   ClinicOption,
@@ -19,6 +21,7 @@ const ITEMS_PER_PAGE = 10;
 
 export function useProfissionalPageModel(): ProfissionalPageModel {
   const toast = useAppToast();
+  const tError = useFormError();
   const [isLoading, setIsLoading] = useState(true);
   const [referrals, setReferrals] = useState<Referral[]>([]);
 
@@ -46,6 +49,7 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
   const [editClinics, setEditClinics] = useState<ClinicOption[]>([]);
   const [editNuclei, setEditNuclei] = useState<CareNucleus[]>([]);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [isUploadingEdit, setIsUploadingEdit] = useState(false);
   const [editDocuments, setEditDocuments] = useState<UploadedDocument[]>([]);
 
   const editForm = useForm<NovoEncaminhamentoFormData>({
@@ -117,11 +121,22 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
     editForm.setValue("agreementId", "");
   }, [editClinicId, editForm]);
 
-  const handleFakeUploadEdit = () => {
-    setEditDocuments((current) => [
-      ...current,
-      { id: `DOC-${Date.now()}`, name: `documento-${current.length + 1}.pdf` },
-    ]);
+  const handleUploadFilesEdit = async (files: File[]) => {
+    setIsUploadingEdit(true);
+    try {
+      const uploaded = await uploadFilesToStorage(files);
+      setEditDocuments((current) => [...current, ...uploaded]);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "errors.uploadFailed";
+      toast.error(tError(message) ?? "");
+    } finally {
+      setIsUploadingEdit(false);
+    }
+  };
+
+  const handleRemoveDocumentEdit = (id: string) => {
+    setEditDocuments((current) => current.filter((item) => item.id !== id));
   };
 
   // Filtering Logic
@@ -233,7 +248,8 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
             documents: editDocuments.map((item) => ({
               id: item.id,
               name: item.name,
-              uploadedAt: new Date().toISOString(),
+              url: item.key || item.url,
+              uploadedAt: item.uploadedAt ?? new Date().toISOString(),
             })),
           }),
         },
@@ -307,7 +323,9 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
     editSelectedNucleus,
     isSavingEdit,
     editDocuments,
-    handleFakeUploadEdit,
+    handleUploadFilesEdit,
+    handleRemoveDocumentEdit,
+    isUploadingEdit,
     deleteReferral,
   };
 }

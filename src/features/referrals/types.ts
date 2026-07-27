@@ -17,6 +17,10 @@ export interface CareNucleus {
 export interface ReferralDocument {
   id: string;
   name: string;
+  /** Signed temporary URL for download/preview */
+  url?: string;
+  /** Persistent Spaces object key */
+  key?: string;
   uploadedAt: string;
 }
 

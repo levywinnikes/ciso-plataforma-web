@@ -15,6 +15,9 @@
     "no": "Não",
     "loading": "Carregando...",
     "saving": "Salvando...",
+    "uploading": "Enviando...",
+    "includeDocuments": "Incluir documentos",
+    "remove": "Remover",
     "hello": "Olá, {name}",
     "logout": "Sair do sistema"
   },
@@ -92,6 +95,8 @@
     "scheduledStatus": "Agendados",
     "completedStatus": "Concluídos",
     "clinicColumn": "Clínica",
+    "officeColumn": "Consultório",
+    "createdByColumn": "Criado por",
     "appointmentColumn": "Data agendamento",
     "createdColumn": "Data envio",
     "actionsColumn": "Ações",
@@ -468,6 +473,11 @@
     "referralNotFound": "Encaminhamento não encontrado.",
     "agreementNameRequired": "O nome do convênio é obrigatório.",
     "agreementNameUnique": "Já existe um convênio cadastrado com este nome.",
-    "genericRequestFailed": "Não foi possível concluir a operação. Tente novamente."
+    "genericRequestFailed": "Não foi possível concluir a operação. Tente novamente.",
+    "fileRequired": "Selecione um arquivo para enviar.",
+    "fileTooLarge": "O arquivo excede o tamanho máximo permitido (10 MB).",
+    "fileTypeNotAllowed": "Tipo de arquivo não permitido. Use PDF, imagem ou documento Word.",
+    "invalidUploadData": "Não foi possível processar o envio do arquivo.",
+    "uploadFailed": "Não foi possível enviar o arquivo. Tente novamente."
   }
 }

@@ -6,8 +6,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { Referral } from "@/features/referrals/types";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useFormError } from "@/i18n/use-form-error";
+import { uploadFilesToStorage } from "@/lib/upload-client";
 
-import type { MedicoPageModel } from "./schema";
+import type { MedicoPageModel, MedicoUploadedFile } from "./schema";
 
 export function useMedicoPageModel(): MedicoPageModel {
   const toast = useAppToast();
@@ -20,11 +21,12 @@ export function useMedicoPageModel(): MedicoPageModel {
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [notes, setNotes] = useState("");
   const [conduct, setConduct] = useState("");
-  const [files, setFiles] = useState<string[]>([]);
+  const [files, setFiles] = useState<MedicoUploadedFile[]>([]);
   const [surgeryId, setSurgeryId] = useState("");
   const [surgeryPrice, setSurgeryPrice] = useState<number | "">("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   useEffect(() => {
@@ -72,7 +74,15 @@ export function useMedicoPageModel(): MedicoPageModel {
     setSelectedReferral(referral);
     setNotes(referral.specialistNotes ?? "");
     setConduct(referral.specialistConduct ?? "");
-    setFiles((referral.specialistAttachments ?? []).map((item) => item.name));
+    setFiles(
+      (referral.specialistAttachments ?? []).map((item) => ({
+        id: item.id,
+        name: item.name,
+        url: item.url,
+        key: item.key,
+        uploadedAt: item.uploadedAt,
+      })),
+    );
     setSurgeryId(referral.surgeryId ?? "");
     setSurgeryPrice(
       referral.surgeryPrice !== undefined && referral.surgeryPrice !== null
@@ -81,8 +91,22 @@ export function useMedicoPageModel(): MedicoPageModel {
     );
   };
 
-  const handleAddFile = () => {
-    setFiles((current) => [...current, `arquivo-${current.length + 1}.pdf`]);
+  const handleUploadFiles = async (selectedFiles: File[]) => {
+    setIsUploading(true);
+    try {
+      const uploaded = await uploadFilesToStorage(selectedFiles);
+      setFiles((current) => [...current, ...uploaded]);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "errors.uploadFailed";
+      toast.error(tError(message) ?? "");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveFile = (id: string) => {
+    setFiles((current) => current.filter((item) => item.id !== id));
   };
 
   const handleSave = async (complete: boolean = false) => {
@@ -102,10 +126,11 @@ export function useMedicoPageModel(): MedicoPageModel {
             conduct,
             surgeryId: surgeryId || null,
             surgeryPrice: surgeryPrice !== "" ? surgeryPrice : null,
-            files: files.map((file, index) => ({
-              id: `SPC-${index + 1}`,
-              name: file,
-              uploadedAt: new Date().toISOString(),
+            files: files.map((file) => ({
+              id: file.id,
+              name: file.name,
+              url: file.key || file.url,
+              uploadedAt: file.uploadedAt ?? new Date().toISOString(),
             })),
             complete,
           }),
@@ -122,10 +147,11 @@ export function useMedicoPageModel(): MedicoPageModel {
                   specialistConduct: conduct,
                   surgeryId: surgeryId || undefined,
                   surgeryPrice: surgeryPrice !== "" ? surgeryPrice : undefined,
-                  specialistAttachments: files.map((file, index) => ({
-                    id: `SPC-${index + 1}`,
-                    name: file,
-                    uploadedAt: new Date().toISOString(),
+                  specialistAttachments: files.map((file) => ({
+                    id: file.id,
+                    name: file.name,
+                    url: file.url,
+                    uploadedAt: file.uploadedAt ?? new Date().toISOString(),
                   })),
                   status: complete ? "Atendido" : item.status,
                 }
@@ -162,6 +188,7 @@ export function useMedicoPageModel(): MedicoPageModel {
     items,
     isLoading,
     isSaving,
+    isUploading,
     surgeryId,
     setSurgeryId,
     surgeryPrice,
@@ -170,7 +197,8 @@ export function useMedicoPageModel(): MedicoPageModel {
     setNotes,
     setConduct,
     handleOpenAtendimento,
-    handleAddFile,
+    handleUploadFiles,
+    handleRemoveFile,
     handleSave,
     isConfirmOpen,
     setIsConfirmOpen,
