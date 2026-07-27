@@ -7,20 +7,30 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomUUID } from "crypto";
 
-import { env } from "@/env";
+import { env, getSpacesConfig } from "@/env";
 
-const spacesClient = new S3Client({
-  region: env.DO_SPACES_REGION,
-  endpoint: env.DO_SPACES_ENDPOINT,
-  credentials: {
-    accessKeyId: env.DO_SPACES_KEY,
-    secretAccessKey: env.DO_SPACES_SECRET,
-  },
-  forcePathStyle: false,
-});
+function getSpacesClient() {
+  const config = getSpacesConfig();
+  return {
+    config,
+    client: new S3Client({
+      region: config.region,
+      endpoint: config.endpoint,
+      credentials: {
+        accessKeyId: config.key,
+        secretAccessKey: config.secret,
+      },
+      forcePathStyle: false,
+    }),
+  };
+}
 
 function sanitizeFileName(fileName: string): string {
   return fileName.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 120);
+}
+
+function getFolderPrefix() {
+  return env.DO_SPACES_FOLDER.trim() || "integravisao";
 }
 
 export function buildStorageObjectKey(originalName: string): string {
@@ -29,7 +39,7 @@ export function buildStorageObjectKey(originalName: string): string {
   const month = String(now.getUTCMonth() + 1).padStart(2, "0");
   const safeName = sanitizeFileName(originalName);
 
-  return `${env.DO_SPACES_FOLDER}/${year}/${month}/${randomUUID()}-${safeName}`;
+  return `${getFolderPrefix()}/${year}/${month}/${randomUUID()}-${safeName}`;
 }
 
 export async function uploadToSpaces(params: {
@@ -37,11 +47,12 @@ export async function uploadToSpaces(params: {
   body: Buffer;
   contentType: string;
 }): Promise<{ key: string; fileName: string }> {
+  const { client, config } = getSpacesClient();
   const key = buildStorageObjectKey(params.fileName);
 
-  await spacesClient.send(
+  await client.send(
     new PutObjectCommand({
-      Bucket: env.DO_SPACES_BUCKET,
+      Bucket: config.bucket,
       Key: key,
       Body: params.body,
       ContentType: params.contentType,
@@ -56,10 +67,12 @@ export async function getSpacesDownloadUrl(
   key: string,
   expiresInSeconds = 3600,
 ): Promise<string> {
+  const { client, config } = getSpacesClient();
+
   return getSignedUrl(
-    spacesClient,
+    client,
     new GetObjectCommand({
-      Bucket: env.DO_SPACES_BUCKET,
+      Bucket: config.bucket,
       Key: key,
     }),
     { expiresIn: expiresInSeconds },
@@ -67,9 +80,11 @@ export async function getSpacesDownloadUrl(
 }
 
 export async function deleteFromSpaces(key: string): Promise<void> {
-  await spacesClient.send(
+  const { client, config } = getSpacesClient();
+
+  await client.send(
     new DeleteObjectCommand({
-      Bucket: env.DO_SPACES_BUCKET,
+      Bucket: config.bucket,
       Key: key,
     }),
   );
@@ -77,7 +92,7 @@ export async function deleteFromSpaces(key: string): Promise<void> {
 
 export function isSpacesObjectKey(value: string | null | undefined): boolean {
   if (!value) return false;
-  return value.startsWith(`${env.DO_SPACES_FOLDER}/`);
+  return value.startsWith(`${getFolderPrefix()}/`);
 }
 
 export async function resolveDocumentUrl(
@@ -85,5 +100,11 @@ export async function resolveDocumentUrl(
 ): Promise<string | undefined> {
   if (!storedValue) return undefined;
   if (!isSpacesObjectKey(storedValue)) return storedValue;
-  return getSpacesDownloadUrl(storedValue);
+
+  try {
+    return await getSpacesDownloadUrl(storedValue);
+  } catch (error) {
+    console.error("Failed to sign Spaces URL:", error);
+    return undefined;
+  }
 }

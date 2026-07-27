@@ -10,17 +10,12 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),
-  DO_SPACES_ENDPOINT: z
-    .string()
-    .url("DO_SPACES_ENDPOINT deve ser uma URL válida"),
-  DO_SPACES_REGION: z.string().min(1, "DO_SPACES_REGION é obrigatório"),
-  DO_SPACES_BUCKET: z.string().min(1, "DO_SPACES_BUCKET é obrigatório"),
-  DO_SPACES_KEY: z.string().min(1, "DO_SPACES_KEY é obrigatório"),
-  DO_SPACES_SECRET: z.string().min(1, "DO_SPACES_SECRET é obrigatório"),
-  DO_SPACES_FOLDER: z
-    .string()
-    .min(1, "DO_SPACES_FOLDER é obrigatório")
-    .default("integravisao"),
+  DO_SPACES_ENDPOINT: z.string().optional().default(""),
+  DO_SPACES_REGION: z.string().optional().default(""),
+  DO_SPACES_BUCKET: z.string().optional().default(""),
+  DO_SPACES_KEY: z.string().optional().default(""),
+  DO_SPACES_SECRET: z.string().optional().default(""),
+  DO_SPACES_FOLDER: z.string().optional().default("integravisao"),
 });
 
 function parseEnv() {
@@ -36,3 +31,26 @@ function parseEnv() {
 }
 
 export const env = parseEnv();
+
+export function getSpacesConfig() {
+  const endpoint = env.DO_SPACES_ENDPOINT.trim();
+  const region = env.DO_SPACES_REGION.trim();
+  const bucket = env.DO_SPACES_BUCKET.trim();
+  const key = env.DO_SPACES_KEY.trim();
+  const secret = env.DO_SPACES_SECRET.trim();
+  const folder = env.DO_SPACES_FOLDER.trim() || "integravisao";
+
+  if (!endpoint || !region || !bucket || !key || !secret) {
+    throw new Error("errors.uploadFailed");
+  }
+
+  try {
+    // Validate endpoint shape without failing the whole app boot.
+    // eslint-disable-next-line no-new
+    new URL(endpoint);
+  } catch {
+    throw new Error("errors.uploadFailed");
+  }
+
+  return { endpoint, region, bucket, key, secret, folder };
+}
