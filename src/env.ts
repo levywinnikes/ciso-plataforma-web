@@ -41,7 +41,7 @@ export function getSpacesConfig() {
   const folder = env.DO_SPACES_FOLDER.trim() || "integravisao";
 
   if (!endpoint || !region || !bucket || !key || !secret) {
-    throw new Error("errors.uploadFailed");
+    throw new Error("errors.spacesConfigMissing");
   }
 
   try {
@@ -49,7 +49,14 @@ export function getSpacesConfig() {
     // eslint-disable-next-line no-new
     new URL(endpoint);
   } catch {
-    throw new Error("errors.uploadFailed");
+    throw new Error("errors.spacesConfigInvalid");
+  }
+
+  // Bucket hostname as endpoint is a common misconfig:
+  // https://mitcho.nyc3.digitaloceanspaces.com  → wrong
+  // https://nyc3.digitaloceanspaces.com         → correct
+  if (endpoint.includes(`.${region}.digitaloceanspaces.com`)) {
+    throw new Error("errors.spacesEndpointInvalid");
   }
 
   return { endpoint, region, bucket, key, secret, folder };

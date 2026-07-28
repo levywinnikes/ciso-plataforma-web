@@ -50,13 +50,14 @@ export async function uploadToSpaces(params: {
   const { client, config } = getSpacesClient();
   const key = buildStorageObjectKey(params.fileName);
 
+  // DigitalOcean Spaces: omit ACL (objects are private by default).
+  // Passing ACL often causes AccessDenied in production.
   await client.send(
     new PutObjectCommand({
       Bucket: config.bucket,
       Key: key,
       Body: params.body,
       ContentType: params.contentType,
-      ACL: "private",
     }),
   );
 

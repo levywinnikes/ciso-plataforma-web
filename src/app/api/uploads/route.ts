@@ -71,6 +71,10 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Upload failed:", error);
+    const message = error instanceof Error ? error.message : "";
+    if (message.startsWith("errors.")) {
+      return apiError(message, 500);
+    }
     return apiError("errors.uploadFailed", 500);
   }
 }

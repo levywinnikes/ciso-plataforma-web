@@ -478,6 +478,9 @@
     "fileTooLarge": "O arquivo excede o tamanho máximo permitido (10 MB).",
     "fileTypeNotAllowed": "Tipo de arquivo não permitido. Use PDF, imagem ou documento Word.",
     "invalidUploadData": "Não foi possível processar o envio do arquivo.",
-    "uploadFailed": "Não foi possível enviar o arquivo. Tente novamente."
+    "uploadFailed": "Não foi possível enviar o arquivo. Tente novamente.",
+    "spacesConfigMissing": "Configuração de armazenamento incompleta. Verifique as variáveis do Spaces.",
+    "spacesConfigInvalid": "Configuração de armazenamento inválida. Verifique a URL do Spaces.",
+    "spacesEndpointInvalid": "A URL do Spaces está incorreta. Use o endpoint da região, não a URL do bucket."
   }
 }

@@ -7,7 +7,13 @@ Guia operacional para subir o projeto localmente e publicar no Vercel.
 - Node.js 20.x
 - npm 10+
 - PostgreSQL acessivel (Neon, Supabase, RDS ou local)
-- Conta no Vercel com acesso ao projeto
+- Conta no Vercel com acesso ao time **Andr Levy Scarpim Winnikes' projects**
+  (`andr-levy-scarpim-winnikes-projects`)
+- Projeto Vercel: `ciso-plataforma-web`
+- Dominio de producao: `https://www.integravisao.com.br`
+
+> O projeto nao fica mais na conta CronoGestor. Se a CLI estiver logada na conta
+> errada, faca logout e login novamente na conta correta.
 
 ## 2. Setup local rapido
 
@@ -39,13 +45,13 @@ npm run dev
 
 ## 3. Variaveis de ambiente obrigatorias
 
-Fonte de verdade: `src/env.ts`.
+Fonte de verdade: `src/env.ts` e `.env.example`.
 
 Obrigatorias para execucao:
 
 - `DATABASE_URL`
 - `NEXTAUTH_SECRET`
-- `NEXTAUTH_URL`
+- `NEXTAUTH_URL` (em producao: `https://www.integravisao.com.br`)
 - `DO_SPACES_ENDPOINT`
 - `DO_SPACES_REGION`
 - `DO_SPACES_BUCKET`
@@ -55,81 +61,108 @@ Obrigatorias para execucao:
 
 `NODE_ENV` e validada, mas em producao o Vercel ja define como `production`.
 
+### Valores corretos do DigitalOcean Spaces
+
+| Variavel             | Valor correto                         |
+| -------------------- | ------------------------------------- |
+| `DO_SPACES_ENDPOINT` | `https://nyc3.digitaloceanspaces.com` |
+| `DO_SPACES_REGION`   | `nyc3`                                |
+| `DO_SPACES_BUCKET`   | `mitcho`                              |
+| `DO_SPACES_FOLDER`   | `integravisao`                        |
+
+**Errado (comum):** `https://mitcho.nyc3.digitaloceanspaces.com`  
+**Certo:** `https://nyc3.digitaloceanspaces.com`
+
+Nao coloque aspas no valor das variaveis no painel do Vercel.
+
 ## 4. Deploy no Vercel
 
-Existem duas formas principais de publicar o projeto no Vercel: através da **Integração Automática com o GitHub** (Recomendado) ou manualmente via **Vercel CLI**.
+Existem duas formas principais de publicar o projeto no Vercel: atraves da
+**Integracao Automatica com o GitHub** ou manualmente via **Vercel CLI**.
 
-### Método A: Integração Automática com GitHub (Recomendado)
+Neste projeto o fluxo operacional atual e o **Metodo B (CLI)**.
 
-Esta é a melhor prática para produção. Cada push na branch `main` disparará um deploy automático.
+### Metodo A: Integracao Automatica com GitHub
 
-1. **Importar o Repositório**:
-   - Acesse o painel do Vercel e clique em **Add New...** > **Project**.
-   - Conecte sua conta do GitHub e selecione o repositório `ciso-plataforma-web`.
+Cada push na branch `main` pode disparar um deploy automatico, se o
+repositorio estiver conectado ao projeto no Vercel.
 
-2. **Configurações de Build**:
-   - O Vercel detectará automaticamente que é um projeto Next.js.
-   - **Build Command**: Deixe o padrão (`next build`) ou altere para `prisma generate && next build` para garantir que o cliente do banco de dados seja gerado a cada compilação.
-   - **Output Directory**: Padrão (`.next`).
+1. Acesse o painel do Vercel na conta/time corretos.
+2. **Add New...** > **Project**.
+3. Conecte o GitHub e selecione `ciso-plataforma-web`.
+4. Configure as variaveis da secao 3.
+5. Clique em **Deploy**.
 
-3. **Configurar Variáveis de Ambiente**:
-   - No campo **Environment Variables**, insira as chaves listadas na seção 3 (`DATABASE_URL`, `NEXTAUTH_SECRET`, etc.).
+### Metodo B: Deploy Manual via Vercel CLI (fluxo atual)
 
-4. **Deploy**:
-   - Clique em **Deploy**. O Vercel clonará o repositório, instalará as dependências, gerará o cliente Prisma, compilará o Next.js e publicará a aplicação.
+#### 1. Autenticar na conta correta
+
+```bash
+npx vercel whoami
+```
+
+Se nao estiver na conta certa:
+
+```bash
+npx vercel logout
+npx vercel login
+```
+
+Abra o link do navegador e autentique com a conta do time
+`andr-levy-scarpim-winnikes-projects`.
+
+Confirme o time:
+
+```bash
+npx vercel teams ls
+npx vercel project ls --scope andr-levy-scarpim-winnikes-projects
+```
+
+#### 2. Vincular o projeto local
+
+Na raiz do repositorio:
+
+```bash
+npx vercel link --yes --project ciso-plataforma-web --scope andr-levy-scarpim-winnikes-projects
+```
+
+#### 3. Conferir variaveis no painel
+
+Antes do deploy de producao, confira no dashboard:
+
+**Project → Settings → Environment Variables**
+
+Garanta Preview e Production para todas as chaves da secao 3, especialmente as
+do Spaces com os valores corretos acima.
+
+#### 4. Publicar para producao
+
+```bash
+npx vercel --prod --yes --scope andr-levy-scarpim-winnikes-projects
+```
+
+- `--prod` publica em producao
+- `--yes` usa o projeto ja vinculado
+- `--scope` evita publicar no time/conta errados
+
+Apos o deploy, o alias de producao deve apontar para:
+
+`https://www.integravisao.com.br`
 
 ---
 
-### Método B: Deploy Manual via Vercel CLI
+## 5. Sincronizacao do Banco de Dados em Producao
 
-Ideal para testes rápidos ou de pré-visualização (Preview) direto da máquina de desenvolvimento.
+Como as alteracoes de tabela do Prisma nao executam migracoes automaticas
+durante o build no Vercel, aplique as alteracoes de banco manualmente:
 
-1. **Instalar/Autenticar**:
-
-   ```bash
-   npx vercel login
-   ```
-
-   Siga as instruções na tela para fazer login na sua conta do Vercel pelo navegador.
-
-2. **Iniciar e Vincular o Projeto** (Executar na raiz do projeto):
-
-   ```bash
-   npx vercel
-   ```
-
-   - A CLI perguntará se deseja configurar o projeto: responda `Y`.
-   - Selecione a organização e se deseja vincular a um projeto existente (ou criar um novo).
-   - Defina o nome do projeto (ex: `ciso-plataforma-web`).
-   - Insira o diretório raiz como `./`.
-
-3. **Configurar as Variáveis no Painel**:
-   - Antes de prosseguir com o deploy final, configure as variáveis de ambiente no dashboard web do Vercel para o respectivo projeto.
-
-4. **Publicar para Produção**:
-
-   ```bash
-   npx vercel --prod --yes
-   ```
-
-   - O parâmetro `--prod` indica que o deploy deve ser enviado para produção.
-   - O parâmetro `--yes` ignora perguntas adicionais na CLI usando os padrões vinculados.
-
----
-
-## 5. Sincronização do Banco de Dados em Produção
-
-Como as alterações de tabela do Prisma não executam migrações automáticas durante o build no Vercel (já que o build apenas compila o frontend e rotas de API), você deve aplicar as alterações de banco manualmente após ou antes do deploy:
-
-### Para Bancos com Prisma Migrate (Recomendado em Produção)
+### Prisma Migrate (recomendado)
 
 ```bash
 npx prisma migrate deploy
 ```
 
-### Para Bancos em Desenvolvimento Rápido (Push Direto)
-
-Se você estiver utilizando Neon DB e a branch não possuir migrações completas criadas (comum em protótipos rápidos usando `db push`):
+### Desenvolvimento rapido (push direto)
 
 ```bash
 npx prisma db push
@@ -141,25 +174,49 @@ npx prisma db push
 
 ### 6.1 Erro `PrismaClientInitializationError` ou timeout de API
 
-- **Causa**: O Vercel não consegue se comunicar com o banco Postgres.
-- **Solução**: Verifique se a variável `DATABASE_URL` no painel do Vercel está correta e se o banco de dados (ex: Neon DB) está aceitando conexões externas. Se usar pooling, certifique-se de usar a URL correta de transações.
+- **Causa**: O Vercel nao consegue se comunicar com o banco Postgres.
+- **Solucao**: Verifique `DATABASE_URL` e se o Neon aceita conexoes externas.
 
-### 6.2 Erro `The specified token is not valid` na CLI
+### 6.2 Erro `The specified token is not valid` ou `Not authorized` na CLI
 
-- **Causa**: Token da CLI expirado localmente.
-- **Solução**: Execute `npx vercel login` novamente para revalidar a sessão.
+- **Causa**: Token expirado ou login na conta/time errados.
+- **Solucao**:
+
+```bash
+npx vercel logout
+npx vercel login
+npx vercel link --yes --project ciso-plataforma-web --scope andr-levy-scarpim-winnikes-projects
+```
 
 ### 6.3 Erro `Prisma has not been initialized yet` durante o build
 
-- **Causa**: O cliente do Prisma não foi gerado antes do Next.js compilar as rotas que importam o Prisma.
-- **Solução**: No painel do Vercel, altere o comando de Build para `npx prisma generate && next build`.
+- **Causa**: Cliente Prisma nao gerado no build.
+- **Solucao**: Build Command = `npx prisma generate && next build`
+  (ja coberto por `npm run build` neste projeto).
+
+### 6.4 Upload de arquivo falha em producao (500)
+
+- Confirme `DO_SPACES_ENDPOINT=https://nyc3.digitaloceanspaces.com`
+  (nao use a URL do bucket `mitcho.nyc3...`).
+- Confirme bucket `mitcho`, region `nyc3`, key/secret validos.
+- Confirme pasta `integravisao`.
+- Re-deploy apos alterar env vars (`npx vercel --prod --yes --scope ...`).
+
+### 6.5 Projeto sumiu / "Your Project was either deleted..."
+
+- **Causa**: `.vercel` apontando para projeto antigo (ex.: conta CronoGestor).
+- **Solucao**: religar com o comando `vercel link` da secao 4.
 
 ---
 
-## 7. Checklist Final de Publicação
+## 7. Checklist Final de Publicacao
 
-1. [ ] Build local executado com sucesso (`npm run build`).
-2. [ ] Todas as variáveis de ambiente configuradas no painel do Vercel (Development, Preview e Production).
-3. [ ] Alterações do schema enviadas ao banco (`npx prisma db push` ou `npx prisma migrate deploy`).
-4. [ ] Deploy executado com sucesso e status "Ready".
-5. [ ] Rota `/api/health` acessada no domínio do Vercel retornando JSON `{ status: "ok" }`.
+1. [ ] CLI autenticada na conta/time corretos (`npx vercel whoami` / `teams ls`).
+2. [ ] Projeto vinculado: `ciso-plataforma-web` no scope
+       `andr-levy-scarpim-winnikes-projects`.
+3. [ ] Variaveis de ambiente configuradas (incluindo Spaces com endpoint correto).
+4. [ ] Alteracoes do schema enviadas ao banco, se houver.
+5. [ ] `npx vercel --prod --yes --scope andr-levy-scarpim-winnikes-projects`
+6. [ ] Status Ready e dominio `https://www.integravisao.com.br` respondendo.
+7. [ ] Rota `/api/health` retornando `{ "status": "ok" }`.
+8. [ ] Teste de upload de documento em producao.
