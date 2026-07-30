@@ -70,6 +70,7 @@ Antes de codar, leia:
 - Exibicao de composicao, valor bruto, desconto e valor final do nucleo
 - Novo encaminhamento com area para incluir documentos
 - Status do encaminhamento:
+  - Bloqueado (oculto da clinica; exige justificativa; consultorio/admin)
   - Encaminhado
   - Agendado
   - Atendido

@@ -1,6 +1,11 @@
+import type { ReferralStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 
+import {
+  PROFESSIONAL_EDITABLE_STATUSES,
+  validateBlockedStatusInput,
+} from "@/features/referrals/block-status";
 import { mapReferralResponse } from "@/features/referrals/map-referral";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -47,7 +52,7 @@ export async function PUT(
     return NextResponse.json({ message: "Acesso negado" }, { status: 403 });
   }
 
-  if (referral.status !== "Encaminhado" && !isAdmin) {
+  if (!PROFESSIONAL_EDITABLE_STATUSES.includes(referral.status) && !isAdmin) {
     return NextResponse.json(
       {
         message:
@@ -71,6 +76,37 @@ export async function PUT(
       { status: 400 },
     );
   }
+
+  let nextStatus: ReferralStatus = referral.status;
+  let nextJustification = referral.justificativaBloqueio;
+
+  if (isAdmin) {
+    nextStatus = (body.status as ReferralStatus) || referral.status;
+  } else if (body.status === "Bloqueado" || body.status === "Encaminhado") {
+    nextStatus = body.status;
+  }
+
+  const statusValidation = validateBlockedStatusInput({
+    status: nextStatus,
+    justificativaBloqueio:
+      body.justificativaBloqueio !== undefined
+        ? body.justificativaBloqueio
+        : referral.justificativaBloqueio,
+    previousStatus: referral.status,
+  });
+
+  if (!statusValidation.ok) {
+    return NextResponse.json(
+      { message: statusValidation.message },
+      { status: 400 },
+    );
+  }
+
+  nextJustification =
+    nextStatus === "Bloqueado"
+      ? statusValidation.justificativaBloqueio
+      : (statusValidation.justificativaBloqueio ??
+        referral.justificativaBloqueio);
 
   const nucleus = await prisma.careNucleus.findUnique({
     where: { id: body.nucleusId },
@@ -100,7 +136,7 @@ export async function PUT(
       });
     }
 
-    return tx.referral.update({
+    const updated = await tx.referral.update({
       where: { id: referralId },
       data: {
         patientName: body.patientName,
@@ -121,8 +157,9 @@ export async function PUT(
         })),
         clinicId: body.clinicId,
         agreementId: body.agreementId || null,
+        status: nextStatus,
+        justificativaBloqueio: nextJustification,
         ...(isAdmin && {
-          status: body.status || referral.status,
           appointmentDate: body.appointmentDate
             ? new Date(body.appointmentDate)
             : null,
@@ -147,6 +184,23 @@ export async function PUT(
         surgery: { select: { name: true } },
       },
     });
+
+    if (nextStatus !== referral.status) {
+      await tx.referralStatusAudit.create({
+        data: {
+          referralId,
+          fromStatus: referral.status,
+          toStatus: nextStatus,
+          justificativaBloqueio:
+            nextStatus === "Bloqueado" || referral.status === "Bloqueado"
+              ? nextJustification
+              : null,
+          userId: session.user.id,
+        },
+      });
+    }
+
+    return updated;
   });
 
   return NextResponse.json(await mapReferralResponse(updatedReferral));
@@ -192,7 +246,7 @@ export async function DELETE(
     );
   }
 
-  if (referral.status !== "Encaminhado" && !isAdmin) {
+  if (!PROFESSIONAL_EDITABLE_STATUSES.includes(referral.status) && !isAdmin) {
     return NextResponse.json(
       {
         message:

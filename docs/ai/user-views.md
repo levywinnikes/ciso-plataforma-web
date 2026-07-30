@@ -16,6 +16,8 @@ Visão geral do sistema com:
 - Total de usuários por tipo
 - Últimas atividades
 - Cards de métricas gerais
+- Listagem de encaminhamentos com aba/filtro **Bloqueados** (além de Encaminhados / Agendados / Concluídos)
+- Encaminhamentos `Bloqueado` visíveis e editáveis; exigem justificativa ao definir o status
 
 ### Gerenciar Organizações
 
@@ -53,7 +55,7 @@ Matriz de permissões:
 
 ### Relatórios Globais
 
-**Rota:** `/admin/relatorios` (não implementado ainda)
+**Rota:** `/admin/relatorios` (não implementado ainda) / financeiro atual em `/admin/financeiro`
 
 Visualizações:
 
@@ -61,6 +63,7 @@ Visualizações:
 - Atividade por organização
 - Distribuição de referrals (origem vs. destino)
 - Métricas financeiras globais
+- **Por padrão, excluir status `Bloqueado`**; só incluir com filtro explícito “incluir bloqueados”
 
 ---
 
@@ -72,7 +75,8 @@ Visualizações:
 
 Listagem de referrals:
 
-- Referrals da clínica (filtrados por status)
+- Referrals da clínica (filtrados por status `Agendado` / `Atendido`)
+- **Não exibe** encaminhamentos `Bloqueado` (nem métricas deles)
 - Busca por paciente
 - Ordenação por data
 - Cards de métricas (total atendido hoje, pendentes, etc.)
@@ -91,7 +95,7 @@ Ficha completa do paciente:
   - Considerações clínicas
   - Conduta recomendada
   - Anexar documentos/exames
-- Salvar e atualizar status (Encaminhado → Agendado → Atendido)
+- Salvar e atualizar status (`Agendado` → `Atendido`; clínica não opera `Bloqueado`)
 
 ### Gerenciar Usuários (apenas se isAdmin=true)
 
@@ -127,6 +131,7 @@ Visualizações:
 - Agendamentos e atendimentos
 - Médicos mais ativos
 - Distribuição por status
+- **Sem** incluir `Bloqueado` (clínica não enxerga esse status)
 
 ---
 
@@ -139,9 +144,10 @@ Visualizações:
 Listagem de referrals enviados:
 
 - Meus referrals (filtrados por status)
+- Aba/filtro dedicado **Bloqueados**
 - Busca por paciente
-- Status do encaminhamento (Encaminhado, Agendado, Atendido)
-- Cards de métricas (total encaminhado mês, taxa de agendamento)
+- Status do encaminhamento (`Bloqueado`, `Encaminhado`, `Agendado`, `Atendido`)
+- Cards de métricas (total encaminhado mês, taxa de agendamento) — **excluir `Bloqueado` por padrão**
 
 ### Novo Referral
 
@@ -156,7 +162,9 @@ Formulário de encaminhamento:
 - Hipótese diagnóstica (suspeita clínica)
 - Seleção de núcleo de atendimento
 - Upload de documentos
-- Enviar
+- Status opcional: `Encaminhado` (default) ou `Bloqueado`
+- Se `Bloqueado`: campo obrigatório **Justificativa**
+- Enviar / Salvar
 
 ### Listar Meus Referrals
 
@@ -167,9 +175,10 @@ Visualização com:
 - ID do referral
 - Paciente
 - Clínica destino
-- Status atual (Encaminhado, Agendado, Atendido)
+- Status atual (`Bloqueado`, `Encaminhado`, `Agendado`, `Atendido`)
 - Data de envio
 - Ação: Clicar para ver detalhes
+- Edição permitida enquanto `Encaminhado` ou `Bloqueado` (inclui desbloquear para a clínica ver)
 
 ### Detalhe de Referral (Pós-Encaminhamento)
 
@@ -216,6 +225,7 @@ Visualizações:
 - Distribuição por clínica destino
 - Profissionais mais ativos
 - Taxa de agendamento
+- **Excluir `Bloqueado` por padrão**; incluir só com filtro explícito
 
 ---
 

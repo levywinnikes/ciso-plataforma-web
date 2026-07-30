@@ -41,6 +41,8 @@ export function useAdminNovoEncaminhamentoPageModel(): AdminNovoEncaminhamentoPa
       agreementId: "",
       officeId: "",
       createdByUserId: "",
+      status: "Encaminhado",
+      justificativaBloqueio: "",
     },
   });
 
@@ -152,6 +154,11 @@ export function useAdminNovoEncaminhamentoPageModel(): AdminNovoEncaminhamentoPa
           agreementId: data.agreementId || undefined,
           officeId: data.officeId,
           createdByUserId: data.createdByUserId,
+          status: data.status,
+          justificativaBloqueio:
+            data.status === "Bloqueado"
+              ? data.justificativaBloqueio?.trim()
+              : undefined,
           documents: documents.map((item) => ({
             id: item.id,
             name: item.name,

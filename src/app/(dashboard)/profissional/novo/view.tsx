@@ -11,6 +11,7 @@ import {
   Select,
   Textarea,
 } from "@/components/ui";
+import { BlockStatusFields } from "@/features/referrals/components/block-status-fields";
 import { PriceSummary } from "@/features/referrals/components/price-summary";
 import {
   formatCurrency,
@@ -31,7 +32,7 @@ export function NovoEncaminhamentoPageView({
   const common = useTranslations("common");
   const tError = useFormError();
 
-  const { register, formState } = model.form;
+  const { register, formState, watch } = model.form;
   const errors = formState.errors;
 
   const priceSummary = model.selectedNucleus
@@ -110,6 +111,12 @@ export function NovoEncaminhamentoPageView({
                   placeholder={t("clinicalNotesPlaceholder")}
                 />
               </Field>
+              <BlockStatusFields
+                register={register}
+                watch={watch}
+                statusError={errors.status}
+                justificationError={errors.justificativaBloqueio}
+              />
             </div>
           </CardSection>
 

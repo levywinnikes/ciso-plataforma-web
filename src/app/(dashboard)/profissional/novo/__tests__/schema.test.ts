@@ -10,6 +10,8 @@ describe("novoEncaminhamentoSchema", () => {
     clinicalNotes: "",
     nucleusId: "glaucoma",
     clinicId: "clinic-id-123",
+    status: "Encaminhado" as const,
+    justificativaBloqueio: "",
   };
 
   it("should accept valid data", () => {
@@ -63,6 +65,24 @@ describe("novoEncaminhamentoSchema", () => {
       patientDocument: "",
       systemicDiseases: "",
       clinicalNotes: "",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should require justificativa when status is Bloqueado", () => {
+    const result = novoEncaminhamentoSchema.safeParse({
+      ...validData,
+      status: "Bloqueado",
+      justificativaBloqueio: "",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("should accept Bloqueado with justificativa", () => {
+    const result = novoEncaminhamentoSchema.safeParse({
+      ...validData,
+      status: "Bloqueado",
+      justificativaBloqueio: "Cliente ainda não decidiu horário",
     });
     expect(result.success).toBe(true);
   });

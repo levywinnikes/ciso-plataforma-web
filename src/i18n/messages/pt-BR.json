@@ -94,6 +94,9 @@
     "pendingStatus": "Encaminhados",
     "scheduledStatus": "Agendados",
     "completedStatus": "Concluídos",
+    "blockedStatus": "Bloqueados",
+    "tabActive": "Ativos",
+    "tabBlocked": "Bloqueados",
     "clinicColumn": "Clínica",
     "officeColumn": "Consultório",
     "createdByColumn": "Criado por",
@@ -338,7 +341,9 @@
     "newReferral": "Novo Encaminhamento",
     "referrals": "Encaminhamentos",
     "nucleus": "Núcleo de Atendimento",
-    "date": "Data"
+    "date": "Data",
+    "tabActive": "Ativos",
+    "tabBlocked": "Bloqueados"
   },
   "newReferral": {
     "title": "Novo Encaminhamento",
@@ -363,7 +368,15 @@
     "selectAgreement": "Selecione o Convênio",
     "noAgreement": "Sem convênio",
     "selectNucleus": "Selecione o núcleo",
-    "saveReferral": "Salvar encaminhamento"
+    "saveReferral": "Salvar encaminhamento",
+    "status": "Status",
+    "statusEncaminhado": "Encaminhado",
+    "statusBloqueado": "Bloqueado",
+    "statusAgendado": "Agendado",
+    "statusAtendido": "Atendido",
+    "blockJustification": "Justificativa",
+    "blockJustificationHint": "Obrigatório quando o status for Bloqueado",
+    "blockJustificationPlaceholder": "Ex.: Cliente ainda não decidiu horário"
   },
   "financial": {
     "title": "Financeiro Administrativo",
@@ -457,6 +470,8 @@
     "clinicalSuspectRequired": "Suspeita clínica é obrigatória",
     "clinicRequired": "Selecione a clínica destino",
     "nucleusRequired": "Selecione um núcleo de atendimento",
+    "blockJustificationRequired": "Justificativa é obrigatória para status Bloqueado",
+    "blockJustificationMaxLength": "Justificativa deve ter no máximo 500 caracteres",
     "unauthorized": "Não autenticado. Faça login novamente.",
     "forbidden": "Acesso negado.",
     "invalidNucleusData": "Dados do núcleo inválidos.",

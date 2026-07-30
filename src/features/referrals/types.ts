@@ -1,4 +1,8 @@
-export type ReferralStatus = "Encaminhado" | "Agendado" | "Atendido";
+export type ReferralStatus =
+  | "Bloqueado"
+  | "Encaminhado"
+  | "Agendado"
+  | "Atendido";
 
 export interface NucleusService {
   id: string;
@@ -35,6 +39,7 @@ export interface Referral {
   clinicalSuspicion?: string;
   createdAt: string;
   status: ReferralStatus;
+  justificativaBloqueio?: string;
   nucleusId: string;
   nucleusName: string;
   nucleusPrice?: number;

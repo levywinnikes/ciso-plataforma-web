@@ -33,6 +33,7 @@ export async function GET(request: Request) {
         select: {
           users: true,
           referrals: true,
+          referralsSent: true,
         },
       },
       agreements: {
@@ -44,7 +45,20 @@ export async function GET(request: Request) {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(organizations);
+  // Consultórios contam encaminhamentos enviados (officeId);
+  // clínicas contam encaminhamentos recebidos (clinicId).
+  return NextResponse.json(
+    organizations.map((org) => ({
+      ...org,
+      _count: {
+        users: org._count.users,
+        referrals:
+          org.type === "PROFISSIONAL_GROUP"
+            ? org._count.referralsSent
+            : org._count.referrals,
+      },
+    })),
+  );
 }
 
 interface CreateOrganizationBody {
@@ -128,10 +142,23 @@ export async function POST(request: Request) {
         select: {
           users: true,
           referrals: true,
+          referralsSent: true,
         },
       },
     },
   });
 
-  return NextResponse.json(created, { status: 201 });
+  return NextResponse.json(
+    {
+      ...created,
+      _count: {
+        users: created._count.users,
+        referrals:
+          created.type === "PROFISSIONAL_GROUP"
+            ? created._count.referralsSent
+            : created._count.referrals,
+      },
+    },
+    { status: 201 },
+  );
 }

@@ -466,8 +466,9 @@ Authorization: Bearer <token>
 
 **Resposta varia por role:**
 
-- **PROFISSIONAL:** Apenas seus próprios referrals (`createdByUserId = id`)
-- **MEDICO:** Referrals da clínica (`organizationId = sua org`)
+- **PROFISSIONAL:** Seus referrals (`createdByUserId = id`) ou todos do consultório se `isAdmin`; inclui `Bloqueado`
+- **ADMINISTRATIVO:** Todos os referrals; inclui `Bloqueado`
+- **MEDICO:** Referrals da clínica (`organizationId = sua org`) nos status `Agendado` e `Atendido` apenas — **nunca** retorna `Bloqueado` (nem `Encaminhado` no filtro atual da clínica)
 
 **Response (200):**
 
@@ -478,6 +479,7 @@ Authorization: Bearer <token>
     "patientName": "João Silva",
     "patientPhone": "(11) 98765-4321",
     "status": "Encaminhado",
+    "justificativaBloqueio": null,
     "nucleusId": "nucleus_1",
     "nucleusName": "Consulta Simples",
     "organizationId": "org_123",
@@ -489,8 +491,9 @@ Authorization: Bearer <token>
 
 **Query params:**
 
-- `?status=Encaminhado` ou `?status=Agendado` ou `?status=Atendido`
+- `?status=Bloqueado` ou `?status=Encaminhado` ou `?status=Agendado` ou `?status=Atendido`
 - `?page=1&limit=10` (paginação)
+- Relatórios/financeiro: por padrão excluir `Bloqueado`; só incluir com flag/filtro explícito (ex.: `?includeBlocked=true`)
 
 ### Criar referral
 
@@ -513,9 +516,13 @@ Content-Type: application/json
   "clinicalSuspicion": "Miopia progressiva",
   "nucleusId": "nucleus_1",
   "organizationId": "org_123",
-  "documents": ["file_id_1", "file_id_2"]
+  "documents": ["file_id_1", "file_id_2"],
+  "status": "Bloqueado",
+  "justificativaBloqueio": "Cliente ainda não decidiu horário"
 }
 ```
+
+`status` e `justificativaBloqueio` são opcionais na criação. Se `status` for omitido, default = `Encaminhado`. Se `status = Bloqueado`, `justificativaBloqueio` é obrigatória (string não vazia, máx. 500).
 
 **Resposta (201):**
 
@@ -524,6 +531,7 @@ Content-Type: application/json
   "id": "ref_2",
   "patientName": "Maria Santos",
   "status": "Encaminhado",
+  "justificativaBloqueio": null,
   "organizationId": "org_123",
   "createdByUserId": "user_10",
   "createdAt": "2025-01-03T10:00:00Z"
@@ -535,8 +543,10 @@ Content-Type: application/json
 - PROFISSIONAL só pode criar para organizações que aparecem em `ProfessionalAccess`
 - Todos os campos obrigatórios
 - `organizationId` deve ser Organization com type=CLINICA
+- `status` na criação: apenas `Encaminhado` (default) ou `Bloqueado`
+- Se `Bloqueado`, exigir `justificativaBloqueio`
 
-**Acesso:** Apenas PROFISSIONAL
+**Acesso:** PROFISSIONAL e ADMINISTRATIVO (admin cria em nome de um profissional/consultório)
 
 ### Atualizar referral (médico preenchendo ficha)
 
@@ -571,9 +581,11 @@ Ou:
 **Restrições:**
 
 - MEDICO só pode atualizar se `organizationId = sua org`
-- PROFISSIONAL não pode atualizar após envio (status ≥ Agendado)
+- PROFISSIONAL pode editar em `Encaminhado` ou `Bloqueado` (incluindo troca entre esses status + justificativa); não pode atualizar após `Agendado`
+- Não é permitido alterar status de `Atendido` para `Bloqueado`
+- Mudanças envolvendo `Bloqueado` devem gerar registro de auditoria
 
-**Acesso:** Principalmente MEDICO (seu próprio fluxo)
+**Acesso:** Principalmente MEDICO (seu próprio fluxo); PROFISSIONAL e ADMINISTRATIVO conforme regras de edição
 
 ### Deletar referral
 
@@ -586,8 +598,8 @@ Authorization: Bearer <token>
 
 **Acesso:**
 
-- ADMINISTRATIVO → qualquer referral
-- PROFISSIONAL → apenas os que criou (status Encaminhado)
+- ADMINISTRATIVO → `Bloqueado`, `Encaminhado` ou `Agendado` (nunca `Atendido`)
+- PROFISSIONAL → apenas os que criou / do office, status `Encaminhado` ou `Bloqueado`
 - MEDICO → não pode deletar
 
 ---

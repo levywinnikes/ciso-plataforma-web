@@ -24,6 +24,7 @@ import {
   TableShell,
   Textarea,
 } from "@/components/ui";
+import { BlockStatusFields } from "@/features/referrals/components/block-status-fields";
 import { PriceSummary } from "@/features/referrals/components/price-summary";
 import { ReferralStatusBadge } from "@/features/referrals/components/referral-status-badge";
 import {
@@ -46,12 +47,16 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
   const tNew = useTranslations("newReferral");
   const tError = useFormError();
 
-  const { register, formState } = model.editForm;
+  const { register, formState, watch } = model.editForm;
   const errors = formState.errors;
 
   const priceSummary = model.editSelectedNucleus
     ? getNucleusPriceSummary(model.editSelectedNucleus)
     : null;
+
+  const blockedCount = model.referrals.filter(
+    (item) => item.status === "Bloqueado",
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -68,20 +73,51 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
         }
       />
 
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <Select
-          value={model.filters.status}
-          onChange={(e) =>
-            model.setFilters({ ...model.filters, status: e.target.value })
-          }
-          className="w-full md:w-48"
+      <div className="flex gap-2 border-b border-gray-200">
+        <button
+          type="button"
+          className={`px-4 py-2 text-sm font-medium ${
+            model.listTab === "active"
+              ? "border-b-2 border-primary text-primary"
+              : "text-gray-500"
+          }`}
+          onClick={() => model.setListTab("active")}
         >
-          <option value="ALL">Todos os Status</option>
-          <option value="Encaminhado">Encaminhado</option>
-          <option value="Agendado">Agendado</option>
-          <option value="Atendido">Atendido</option>
-          <option value="Cancelado">Cancelado</option>
-        </Select>
+          {t("tabActive")}
+        </button>
+        <button
+          type="button"
+          className={`px-4 py-2 text-sm font-medium ${
+            model.listTab === "blocked"
+              ? "border-b-2 border-primary text-primary"
+              : "text-gray-500"
+          }`}
+          onClick={() => model.setListTab("blocked")}
+        >
+          {t("tabBlocked")}
+          {blockedCount > 0 ? (
+            <span className="ml-2 rounded-full bg-orange-100 px-2 py-0.5 text-xs text-orange-800">
+              {blockedCount}
+            </span>
+          ) : null}
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-4 md:flex-row md:items-center">
+        {model.listTab === "active" ? (
+          <Select
+            value={model.filters.status}
+            onChange={(e) =>
+              model.setFilters({ ...model.filters, status: e.target.value })
+            }
+            className="w-full md:w-48"
+          >
+            <option value="ALL">Todos os Status</option>
+            <option value="Encaminhado">Encaminhado</option>
+            <option value="Agendado">Agendado</option>
+            <option value="Atendido">Atendido</option>
+          </Select>
+        ) : null}
 
         <Input
           type="date"
@@ -162,8 +198,11 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
                 <td className="ui-table-cell whitespace-nowrap">
                   {referral.doctor ?? common("toDefine")}
                 </td>
-                <td className="ui-table-cell whitespace-nowrap">
-                  <ReferralStatusBadge status={referral.status} />
+                <td className="ui-table-cell">
+                  <ReferralStatusBadge
+                    status={referral.status}
+                    justificativaBloqueio={referral.justificativaBloqueio}
+                  />
                 </td>
                 <td className="ui-table-cell space-x-1 text-right">
                   <Button
@@ -174,7 +213,8 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
                   >
                     <Eye className="h-4 w-4 text-emerald-700" />
                   </Button>
-                  {referral.status === "Encaminhado" ? (
+                  {referral.status === "Encaminhado" ||
+                  referral.status === "Bloqueado" ? (
                     <>
                       <Button
                         variant="ghost"
@@ -212,7 +252,7 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
                       </Button>
                       <div className="pointer-events-none absolute bottom-full right-0 z-50 mb-2 hidden whitespace-nowrap rounded bg-gray-900 px-2.5 py-1.5 text-xs text-white shadow-md group-hover:block">
                         Só é possível editar encaminhamentos com status
-                        &quot;Encaminhado&quot;
+                        &quot;Encaminhado&quot; ou &quot;Bloqueado&quot;
                       </div>
                     </div>
                   )}
@@ -319,6 +359,13 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
                 <span>Detalhes do Encaminhamento</span>
                 <ReferralStatusBadge status={model.selectedReferral.status} />
               </h4>
+              {model.selectedReferral.status === "Bloqueado" &&
+              model.selectedReferral.justificativaBloqueio ? (
+                <div className="mb-4 rounded-md border border-orange-100 bg-orange-50 p-3 text-sm text-orange-900">
+                  <span className="font-semibold">Justificativa: </span>
+                  {model.selectedReferral.justificativaBloqueio}
+                </div>
+              ) : null}
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div>
                   <span className="block text-xs font-semibold uppercase text-gray-500">
@@ -567,6 +614,12 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
                     placeholder={tNew("clinicalNotesPlaceholder")}
                   />
                 </Field>
+                <BlockStatusFields
+                  register={register}
+                  watch={watch}
+                  statusError={errors.status}
+                  justificationError={errors.justificativaBloqueio}
+                />
               </div>
             </CardSection>
 

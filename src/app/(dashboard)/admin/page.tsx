@@ -22,6 +22,7 @@ import {
   TableShell,
   Textarea,
 } from "@/components/ui";
+import { withBlockJustification } from "@/features/referrals/block-status-schema";
 import { ReferralStatusBadge } from "@/features/referrals/components/referral-status-badge";
 import type { Referral } from "@/features/referrals/types";
 import { formatDate, formatDateTime } from "@/features/referrals/utils";
@@ -36,7 +37,7 @@ const scheduleSchema = z.object({
 
 type ScheduleFormData = z.infer<typeof scheduleSchema>;
 
-const editReferralSchema = z.object({
+const editReferralSchema = withBlockJustification({
   patientName: z.string().min(1, "errors.required"),
   patientBirthDate: z.string().min(1, "errors.required"),
   patientPhone: z.string().min(1, "errors.required"),
@@ -47,7 +48,8 @@ const editReferralSchema = z.object({
   nucleusId: z.string().min(1, "errors.required"),
   clinicId: z.string().min(1, "errors.required"),
   agreementId: z.string().optional().nullable(),
-  status: z.enum(["Encaminhado", "Agendado", "Atendido"]),
+  status: z.enum(["Bloqueado", "Encaminhado", "Agendado", "Atendido"]),
+  justificativaBloqueio: z.string().optional().nullable(),
   appointmentDate: z.string().optional().nullable(),
   doctor: z.string().optional().nullable(),
   specialistNotes: z.string().optional().nullable(),
@@ -76,6 +78,7 @@ export default function AdminPage() {
   const tError = useFormError();
 
   const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [listTab, setListTab] = useState<"active" | "blocked">("active");
   const [clinics, setClinics] = useState<ClinicOption[]>([]);
   const [doctors, setDoctors] = useState<DoctorOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -119,6 +122,7 @@ export default function AdminPage() {
       clinicId: "",
       agreementId: "",
       status: "Encaminhado",
+      justificativaBloqueio: "",
       appointmentDate: "",
       doctor: "",
       specialistNotes: "",
@@ -283,18 +287,24 @@ export default function AdminPage() {
 
   const sortedReferrals = useMemo(() => {
     const priority: Record<string, number> = {
-      Encaminhado: 0,
-      Agendado: 1,
-      Atendido: 2,
+      Bloqueado: 0,
+      Encaminhado: 1,
+      Agendado: 2,
+      Atendido: 3,
     };
 
-    return [...referrals].sort((a, b) => {
+    const scoped =
+      listTab === "blocked"
+        ? referrals.filter((item) => item.status === "Bloqueado")
+        : referrals.filter((item) => item.status !== "Bloqueado");
+
+    return [...scoped].sort((a, b) => {
       const priorityDiff =
         (priority[a.status] ?? 99) - (priority[b.status] ?? 99);
       if (priorityDiff !== 0) return priorityDiff;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-  }, [referrals]);
+  }, [referrals, listTab]);
 
   const encaminhadosCount = useMemo(
     () => referrals.filter((item) => item.status === "Encaminhado").length,
@@ -308,6 +318,11 @@ export default function AdminPage() {
 
   const concluidosCount = useMemo(
     () => referrals.filter((item) => item.status === "Atendido").length,
+    [referrals],
+  );
+
+  const bloqueadosCount = useMemo(
+    () => referrals.filter((item) => item.status === "Bloqueado").length,
     [referrals],
   );
 
@@ -395,6 +410,7 @@ export default function AdminPage() {
       clinicId: referral.clinicId || "",
       agreementId: referral.agreementId || "",
       status: referral.status || "Encaminhado",
+      justificativaBloqueio: referral.justificativaBloqueio || "",
       appointmentDate: referral.appointmentDate
         ? new Date(referral.appointmentDate).toISOString().slice(0, 16)
         : "",
@@ -420,13 +436,21 @@ export default function AdminPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
+          justificativaBloqueio:
+            data.status === "Bloqueado"
+              ? data.justificativaBloqueio?.trim() || null
+              : data.justificativaBloqueio || null,
           surgeryPrice: data.surgeryPrice ? Number(data.surgeryPrice) : null,
         }),
       });
 
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        toast.error(tError(body.error ?? "errors.genericRequestFailed") ?? "");
+        toast.error(
+          body.message ||
+            tError(body.error ?? "errors.genericRequestFailed") ||
+            "",
+        );
         return;
       }
 
@@ -481,7 +505,7 @@ export default function AdminPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <CardSection title={t("pendingStatus")}>
           <p className="text-3xl font-bold text-amber-700">
             {encaminhadosCount}
@@ -493,6 +517,41 @@ export default function AdminPage() {
         <CardSection title={t("completedStatus")}>
           <p className="text-3xl font-bold text-green-700">{concluidosCount}</p>
         </CardSection>
+        <CardSection title={t("blockedStatus")}>
+          <p className="text-3xl font-bold text-orange-700">
+            {bloqueadosCount}
+          </p>
+        </CardSection>
+      </div>
+
+      <div className="flex gap-2 border-b border-gray-200">
+        <button
+          type="button"
+          className={`px-4 py-2 text-sm font-medium ${
+            listTab === "active"
+              ? "border-b-2 border-primary text-primary"
+              : "text-gray-500"
+          }`}
+          onClick={() => setListTab("active")}
+        >
+          {t("tabActive")}
+        </button>
+        <button
+          type="button"
+          className={`px-4 py-2 text-sm font-medium ${
+            listTab === "blocked"
+              ? "border-b-2 border-primary text-primary"
+              : "text-gray-500"
+          }`}
+          onClick={() => setListTab("blocked")}
+        >
+          {t("tabBlocked")}
+          {bloqueadosCount > 0 ? (
+            <span className="ml-2 rounded-full bg-orange-100 px-2 py-0.5 text-xs text-orange-800">
+              {bloqueadosCount}
+            </span>
+          ) : null}
+        </button>
       </div>
 
       <TableCard title={t("referralsTitle")}>
@@ -559,7 +618,10 @@ export default function AdminPage() {
                   {referral.patientName}
                 </td>
                 <td className="ui-table-cell">
-                  <ReferralStatusBadge status={referral.status} />
+                  <ReferralStatusBadge
+                    status={referral.status}
+                    justificativaBloqueio={referral.justificativaBloqueio}
+                  />
                 </td>
                 <td className="ui-table-cell">
                   {referral.officeName ?? common("notAvailable")}
@@ -804,11 +866,29 @@ export default function AdminPage() {
               error={tError(editForm.formState.errors.status?.message)}
             >
               <Select {...editForm.register("status")}>
+                <option value="Bloqueado">Bloqueado</option>
                 <option value="Encaminhado">Encaminhado</option>
                 <option value="Agendado">Agendado</option>
                 <option value="Atendido">Atendido</option>
               </Select>
             </Field>
+
+            {editForm.watch("status") === "Bloqueado" ? (
+              <Field
+                label="Justificativa"
+                required
+                error={tError(
+                  editForm.formState.errors.justificativaBloqueio?.message,
+                )}
+              >
+                <Textarea
+                  {...editForm.register("justificativaBloqueio")}
+                  maxLength={500}
+                  placeholder="Ex.: Cliente ainda não decidiu horário"
+                  rows={3}
+                />
+              </Field>
+            ) : null}
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">

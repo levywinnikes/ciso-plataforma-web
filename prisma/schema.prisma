@@ -19,6 +19,7 @@ enum OrganizationType {
 }
 
 enum ReferralStatus {
+  Bloqueado
   Encaminhado
   Agendado
   Atendido
@@ -39,6 +40,7 @@ model User {
   accounts       Account[]
   sessions       Session[]
   createdReferrals Referral[]  @relation("CreatedBy")
+  statusAudits     ReferralStatusAudit[]
 }
 
 model Account {
@@ -140,6 +142,7 @@ model Referral {
   clinicalNotes       String?
   clinicalSuspicion   String?
   status              ReferralStatus     @default(Encaminhado)
+  justificativaBloqueio String?
   doctor              String?
   appointmentDate     DateTime?
   specialistNotes     String?
@@ -162,8 +165,23 @@ model Referral {
   surgeryId           String?
   surgery             Surgery?           @relation(fields: [surgeryId], references: [id])
   surgeryPrice        Decimal?           @db.Decimal(10, 2)
+  statusAudits        ReferralStatusAudit[]
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
+}
+
+model ReferralStatusAudit {
+  id                    String         @id @default(cuid())
+  referralId            String
+  referral              Referral       @relation(fields: [referralId], references: [id], onDelete: Cascade)
+  fromStatus            ReferralStatus?
+  toStatus              ReferralStatus
+  justificativaBloqueio String?
+  userId                String
+  user                  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt             DateTime       @default(now())
+
+  @@index([referralId, createdAt])
 }
 
 model ReferralDocument {

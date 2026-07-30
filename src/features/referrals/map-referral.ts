@@ -9,7 +9,8 @@ type ReferralLike = {
   systemicDiseases: string | null;
   clinicalNotes: string | null;
   clinicalSuspicion: string | null;
-  status: "Encaminhado" | "Agendado" | "Atendido";
+  status: "Bloqueado" | "Encaminhado" | "Agendado" | "Atendido";
+  justificativaBloqueio: string | null;
   doctor: string | null;
   appointmentDate: Date | null;
   specialistNotes: string | null;
@@ -77,6 +78,7 @@ export async function mapReferralResponse(referral: ReferralLike) {
     clinicalSuspicion: referral.clinicalSuspicion ?? undefined,
     createdAt: referral.createdAt.toISOString().slice(0, 10),
     status: referral.status,
+    justificativaBloqueio: referral.justificativaBloqueio ?? undefined,
     nucleusId: referral.nucleusId,
     nucleusName: referral.nucleusSnapshotName,
     nucleusPrice: Number(referral.nucleusSnapshotPrice),

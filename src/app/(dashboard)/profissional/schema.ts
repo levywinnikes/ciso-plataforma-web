@@ -16,6 +16,8 @@ export interface ReferralFilters {
   date: string;
 }
 
+export type ReferralListTab = "active" | "blocked";
+
 export interface ProfissionalPageModel {
   // Data
   isLoading: boolean;
@@ -29,6 +31,8 @@ export interface ProfissionalPageModel {
   setCurrentPage: (page: number) => void;
 
   // Filtering
+  listTab: ReferralListTab;
+  setListTab: Dispatch<SetStateAction<ReferralListTab>>;
   filters: ReferralFilters;
   setFilters: Dispatch<SetStateAction<ReferralFilters>>;
 

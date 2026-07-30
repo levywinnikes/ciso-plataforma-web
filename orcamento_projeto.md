@@ -37,7 +37,7 @@ O banco de dados modelado no Prisma (`schema.prisma`) possui **12 tabelas** estr
 - `Organization`: Entidade principal para multi-tenant (separa Clínicas de Grupos Profissionais).
 - `ProfessionalAccess`: Controla quais grupos profissionais têm permissão de encaminhar pacientes para quais clínicas.
 - `CareNucleus` e `CareService`: Catálogo de núcleos de atendimento médico (ex: Glaucoma, Catarata) e seus respectivos exames/serviços com preços bases.
-- `Referral`: Tabela transacional principal de encaminhamentos, que armazena dados de pacientes, status (`Encaminhado`, `Agendado`, `Atendido`), médico atribuído, condutas do especialista, e snapshots dos preços praticados na criação do encaminhamento.
+- `Referral`: Tabela transacional principal de encaminhamentos, que armazena dados de pacientes, status (`Bloqueado`, `Encaminhado`, `Agendado`, `Atendido`), médico atribuído, condutas do especialista, e snapshots dos preços praticados na criação do encaminhamento. `Bloqueado` exige justificativa e permanece oculto da clínica até desbloqueio.
 - `ReferralDocument` e `ReferralAttachment`: Uploads de prontuários, documentos e exames médicos.
 
 ---

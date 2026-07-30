@@ -37,6 +37,8 @@ export function useNovoEncaminhamentoPageModel(): NovoEncaminhamentoPageModel {
       nucleusId: "",
       clinicId: "",
       agreementId: "",
+      status: "Encaminhado",
+      justificativaBloqueio: "",
     },
   });
 
@@ -108,6 +110,11 @@ export function useNovoEncaminhamentoPageModel(): NovoEncaminhamentoPageModel {
           nucleusId: selectedNucleus.id,
           clinicId: data.clinicId,
           agreementId: data.agreementId || undefined,
+          status: data.status,
+          justificativaBloqueio:
+            data.status === "Bloqueado"
+              ? data.justificativaBloqueio?.trim()
+              : undefined,
           documents: documents.map((item) => ({
             id: item.id,
             name: item.name,

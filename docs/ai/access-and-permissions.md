@@ -59,56 +59,56 @@ ADMINISTRATIVO (Global)
 
 ### ADMINISTRATIVO (Global)
 
-| Recurso                  | Criar | Ler        | Editar        | Deletar    | Notas                                           |
-| ------------------------ | ----- | ---------- | ------------- | ---------- | ----------------------------------------------- |
-| **Organização**          | ✅    | ✅ (todas) | ✅ (todas)    | ✅ (todas) | Ao criar, gera 1 ADMIN_LOCAL                    |
-| **ADMIN_LOCAL**          | ✅    | ✅ (todas) | ✅ (todas)    | ✅ (todas) | Designa admin para cada org                     |
-| **MEDICO**               | ✅    | ✅ (todas) | ✅ (todas)    | ✅ (todas) | CRUD em qualquer clínica                        |
-| **PROFISSIONAL**         | ✅    | ✅ (todas) | ✅ (todas)    | ✅ (todas) | CRUD em qualquer grupo profissional             |
-| **Designação de acesso** | ✅    | ✅ (todas) | ✅            | ❌         | Designa quais profissionais veem quais clínicas |
-| **Referral**             | ❌    | ✅ (todas) | ⚠️ financeiro | ❌         | Relatórios gerais apenas                        |
-| **Relatório global**     | ❌    | ✅         | ❌            | ❌         | Dashboard geral do sistema                      |
+| Recurso                  | Criar                                         | Ler                             | Editar                                                   | Deletar           | Notas                                                          |
+| ------------------------ | --------------------------------------------- | ------------------------------- | -------------------------------------------------------- | ----------------- | -------------------------------------------------------------- |
+| **Organização**          | ✅                                            | ✅ (todas)                      | ✅ (todas)                                               | ✅ (todas)        | Ao criar, gera 1 ADMIN_LOCAL                                   |
+| **ADMIN_LOCAL**          | ✅                                            | ✅ (todas)                      | ✅ (todas)                                               | ✅ (todas)        | Designa admin para cada org                                    |
+| **MEDICO**               | ✅                                            | ✅ (todas)                      | ✅ (todas)                                               | ✅ (todas)        | CRUD em qualquer clínica                                       |
+| **PROFISSIONAL**         | ✅                                            | ✅ (todas)                      | ✅ (todas)                                               | ✅ (todas)        | CRUD em qualquer grupo profissional                            |
+| **Designação de acesso** | ✅                                            | ✅ (todas)                      | ✅                                                       | ❌                | Designa quais profissionais veem quais clínicas                |
+| **Referral**             | ✅ (em nome do consultório; pode `Bloqueado`) | ✅ (todas; inclui `Bloqueado`)  | ✅ (qualquer status não-`Atendido`→`Bloqueado` indevido) | ⚠️ não-`Atendido` | Aba Bloqueados; justificativa obrigatória se `Bloqueado`       |
+| **Relatório global**     | ❌                                            | ✅ (sem `Bloqueado` por padrão) | ❌                                                       | ❌                | Dashboard/financeiro; filtro explícito para incluir bloqueados |
 
 ### MEDICO (Clínica, isAdmin=false)
 
-| Recurso                 | Criar | Ler | Editar                              | Deletar | Notas                                |
-| ----------------------- | ----- | --- | ----------------------------------- | ------- | ------------------------------------ |
-| **Referral da clínica** | ❌    | ✅  | ✅ (considerações, conduta, anexos) | ❌      | Atendimento e preenchimento de ficha |
-| **Dados da clínica**    | ❌    | ✅  | ❌                                  | ❌      | Informações básicas apenas           |
-| **Usuários da clínica** | ❌    | ❌  | ❌                                  | ❌      | Sem acesso                           |
-| **Outras clínicas**     | ❌    | ❌  | ❌                                  | ❌      | Acesso bloqueado                     |
+| Recurso                 | Criar | Ler                                             | Editar                              | Deletar | Notas                                |
+| ----------------------- | ----- | ----------------------------------------------- | ----------------------------------- | ------- | ------------------------------------ |
+| **Referral da clínica** | ❌    | ✅ (`Agendado`/`Atendido`; **sem** `Bloqueado`) | ✅ (considerações, conduta, anexos) | ❌      | Atendimento e preenchimento de ficha |
+| **Dados da clínica**    | ❌    | ✅                                              | ❌                                  | ❌      | Informações básicas apenas           |
+| **Usuários da clínica** | ❌    | ❌                                              | ❌                                  | ❌      | Sem acesso                           |
+| **Outras clínicas**     | ❌    | ❌                                              | ❌                                  | ❌      | Acesso bloqueado                     |
 
 ### MEDICO (Clínica, isAdmin=true)
 
-| Recurso                  | Criar | Ler | Editar                              | Deletar | Notas                         |
-| ------------------------ | ----- | --- | ----------------------------------- | ------- | ----------------------------- |
-| **Referral da clínica**  | ❌    | ✅  | ✅ (considerações, conduta, anexos) | ❌      | Igual a MEDICO regular        |
-| **Dados da clínica**     | ❌    | ✅  | ⚠️ info básica                      | ❌      | Informações, sem alterar tipo |
-| **Usuários da clínica**  | ✅    | ✅  | ✅                                  | ✅      | Gerencia outros MEDICO        |
-| **Relatório da clínica** | ❌    | ✅  | ❌                                  | ❌      | Dashboard de sua clínica      |
-| **Outras clínicas**      | ❌    | ❌  | ❌                                  | ❌      | Sem acesso                    |
+| Recurso                  | Criar | Ler                                             | Editar                              | Deletar | Notas                         |
+| ------------------------ | ----- | ----------------------------------------------- | ----------------------------------- | ------- | ----------------------------- |
+| **Referral da clínica**  | ❌    | ✅ (`Agendado`/`Atendido`; **sem** `Bloqueado`) | ✅ (considerações, conduta, anexos) | ❌      | Igual a MEDICO regular        |
+| **Dados da clínica**     | ❌    | ✅                                              | ⚠️ info básica                      | ❌      | Informações, sem alterar tipo |
+| **Usuários da clínica**  | ✅    | ✅                                              | ✅                                  | ✅      | Gerencia outros MEDICO        |
+| **Relatório da clínica** | ❌    | ✅ (sem `Bloqueado`)                            | ❌                                  | ❌      | Dashboard de sua clínica      |
+| **Outras clínicas**      | ❌    | ❌                                              | ❌                                  | ❌      | Sem acesso                    |
 
 ### PROFISSIONAL (Grupo Profissional, isAdmin=false)
 
-| Recurso                         | Criar | Ler                 | Editar                | Deletar | Notas                                       |
-| ------------------------------- | ----- | ------------------- | --------------------- | ------- | ------------------------------------------- |
-| **Referral**                    | ✅    | ✅ (só os seus)     | ⚠️ pré-encaminhamento | ❌      | Encaminha para clínicas designadas          |
-| **Seleção de clínica destino**  | ✅    | ✅                  | ✅                    | ❌      | Apenas clínicas designadas por ADMIN_GLOBAL |
-| **Dados do grupo profissional** | ❌    | ✅                  | ❌                    | ❌      | Informações básicas apenas                  |
-| **Usuários do grupo**           | ❌    | ❌                  | ❌                    | ❌      | Sem acesso                                  |
-| **Referral pós-encaminhamento** | ❌    | ⚠️ leitura limitada | ❌                    | ❌      | Pode ver status apenas                      |
-| **Outras orgs**                 | ❌    | ❌                  | ❌                    | ❌      | Sem acesso                                  |
+| Recurso                         | Criar                                   | Ler                                 | Editar                       | Deletar                      | Notas                                                |
+| ------------------------------- | --------------------------------------- | ----------------------------------- | ---------------------------- | ---------------------------- | ---------------------------------------------------- |
+| **Referral**                    | ✅ (inclui `Bloqueado` + justificativa) | ✅ (só os seus; inclui `Bloqueado`) | ⚠️ `Encaminhado`/`Bloqueado` | ⚠️ `Encaminhado`/`Bloqueado` | Encaminha para clínicas designadas; pode desbloquear |
+| **Seleção de clínica destino**  | ✅                                      | ✅                                  | ✅                           | ❌                           | Apenas clínicas designadas por ADMIN_GLOBAL          |
+| **Dados do grupo profissional** | ❌                                      | ✅                                  | ❌                           | ❌                           | Informações básicas apenas                           |
+| **Usuários do grupo**           | ❌                                      | ❌                                  | ❌                           | ❌                           | Sem acesso                                           |
+| **Referral pós-encaminhamento** | ❌                                      | ⚠️ leitura limitada                 | ❌                           | ❌                           | Pode ver status apenas (`Agendado`/`Atendido`)       |
+| **Outras orgs**                 | ❌                                      | ❌                                  | ❌                           | ❌                           | Sem acesso                                           |
 
 ### PROFISSIONAL (Grupo Profissional, isAdmin=true)
 
-| Recurso                         | Criar | Ler                 | Editar                | Deletar | Notas                         |
-| ------------------------------- | ----- | ------------------- | --------------------- | ------- | ----------------------------- |
-| **Referral**                    | ✅    | ✅ (todos do grupo) | ⚠️ pré-encaminhamento | ❌      | Igual a PROFISSIONAL regular  |
-| **Seleção de clínica destino**  | ✅    | ✅                  | ✅                    | ❌      | Apenas clínicas designadas    |
-| **Dados do grupo profissional** | ❌    | ✅                  | ⚠️ info básica        | ❌      | Informações, sem alterar tipo |
-| **Usuários do grupo**           | ✅    | ✅                  | ✅                    | ✅      | Gerencia outros PROFISSIONAL  |
-| **Relatório do grupo**          | ❌    | ✅                  | ❌                    | ❌      | Dashboard de seu grupo        |
-| **Outras orgs**                 | ❌    | ❌                  | ❌                    | ❌      | Sem acesso                    |
+| Recurso                         | Criar                                   | Ler                                     | Editar                       | Deletar                      | Notas                         |
+| ------------------------------- | --------------------------------------- | --------------------------------------- | ---------------------------- | ---------------------------- | ----------------------------- |
+| **Referral**                    | ✅ (inclui `Bloqueado` + justificativa) | ✅ (todos do grupo; inclui `Bloqueado`) | ⚠️ `Encaminhado`/`Bloqueado` | ⚠️ `Encaminhado`/`Bloqueado` | Igual a PROFISSIONAL regular  |
+| **Seleção de clínica destino**  | ✅                                      | ✅                                      | ✅                           | ❌                           | Apenas clínicas designadas    |
+| **Dados do grupo profissional** | ❌                                      | ✅                                      | ⚠️ info básica               | ❌                           | Informações, sem alterar tipo |
+| **Usuários do grupo**           | ✅                                      | ✅                                      | ✅                           | ✅                           | Gerencia outros PROFISSIONAL  |
+| **Relatório do grupo**          | ❌                                      | ✅ (sem `Bloqueado` por padrão)         | ❌                           | ❌                           | Dashboard de seu grupo        |
+| **Outras orgs**                 | ❌                                      | ❌                                      | ❌                           | ❌                           | Sem acesso                    |
 
 ---
 
@@ -123,7 +123,9 @@ Login → Dashboard Admin Global
 ├─ Editar dados de organização
 ├─ Gerenciar todos os usuários (create/update/delete)
 ├─ Designar acesso (ex: "Grupo Prof. X pode enviar para Clínica Y")
-├─ Visualizar relatório financeiro global
+├─ Criar/editar encaminhamentos (inclui Bloqueado + justificativa)
+├─ Aba Bloqueados na listagem
+├─ Visualizar relatório financeiro global (sem Bloqueado por padrão)
 ├─ Dashboard com métricas gerais
 └─ Logs de auditoria
 ```
@@ -164,9 +166,12 @@ Login → Dashboard Profissional (Grupo)
 │  ├─ Preencher dados do paciente
 │  ├─ Selecionar clínica destino (apenas as designadas)
 │  ├─ Anexar documentos
+│  ├─ Opcional: salvar como Bloqueado (+ justificativa)
 │  └─ Enviar
 ├─ Listar referrals (próprios + do grupo)
-├─ Ver status e relatório
+│  └─ Aba Bloqueados
+├─ Editar/desbloquear referrals Encaminhado/Bloqueado
+├─ Ver status e relatório (sem Bloqueado por padrão)
 ├─ + Gerenciar usuários do grupo
 │  ├─ Adicionar novo PROFISSIONAL
 │  ├─ Editar perfil de outro profissional
@@ -184,8 +189,10 @@ Login → Dashboard Profissional (Grupo)
 │  ├─ Preencher dados do paciente
 │  ├─ Selecionar clínica destino (apenas as designadas)
 │  ├─ Anexar documentos
+│  ├─ Opcional: salvar como Bloqueado (+ justificativa)
 │  └─ Enviar
-├─ Listar meus referrals
+├─ Listar meus referrals (inclui aba Bloqueados)
+├─ Editar/desbloquear próprios Encaminhado/Bloqueado
 ├─ Ver status do referral
 └─ ❌ Sem acesso a gerenciamento de usuários
 ```
@@ -289,6 +296,8 @@ PROFISSIONAL ao criar referral:
 
 ## Próximas Evoluções (Não Implementadas Agora)
 
+- [ ] Status `Bloqueado` + `justificativaBloqueio` + aba Bloqueados (consultório/admin) + exclusão de relatórios por padrão — **especificado em** `docs/ai/referral-management.md` §0.1
+- [ ] Auditoria de mudanças de status (mínimo: entrar/sair de `Bloqueado`)
 - [ ] Um médico pertencer a múltiplas clínicas (requer mudança no modelo)
 - [ ] Roles customizáveis por organização (TRIAGEM, ATENDIMENTO, GESTOR)
 - [ ] Delegação temporária de permissões

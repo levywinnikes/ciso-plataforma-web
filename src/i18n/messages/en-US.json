@@ -94,6 +94,9 @@
     "pendingStatus": "Pending",
     "scheduledStatus": "Scheduled",
     "completedStatus": "Completed",
+    "blockedStatus": "Blocked",
+    "tabActive": "Active",
+    "tabBlocked": "Blocked",
     "clinicColumn": "Clinic",
     "officeColumn": "Office",
     "createdByColumn": "Created by",
@@ -332,7 +335,9 @@
     "newReferral": "New Referral",
     "referrals": "Referrals",
     "nucleus": "Care Nucleus",
-    "date": "Date"
+    "date": "Date",
+    "tabActive": "Active",
+    "tabBlocked": "Blocked"
   },
   "newReferral": {
     "title": "New Referral",
@@ -357,7 +362,15 @@
     "selectAgreement": "Select Agreement",
     "noAgreement": "No agreement",
     "selectNucleus": "Select nucleus",
-    "saveReferral": "Save referral"
+    "saveReferral": "Save referral",
+    "status": "Status",
+    "statusEncaminhado": "Referred",
+    "statusBloqueado": "Blocked",
+    "statusAgendado": "Scheduled",
+    "statusAtendido": "Completed",
+    "blockJustification": "Justification",
+    "blockJustificationHint": "Required when status is Blocked",
+    "blockJustificationPlaceholder": "E.g.: Patient has not decided the time yet"
   },
   "financial": {
     "title": "Administrative Finance",
@@ -450,6 +463,8 @@
     "phoneMinDigits": "Phone must have at least 10 digits",
     "clinicalSuspectRequired": "Clinical suspicion is required",
     "nucleusRequired": "Select a care nucleus",
+    "blockJustificationRequired": "Justification is required for Blocked status",
+    "blockJustificationMaxLength": "Justification must be at most 500 characters",
     "unauthorized": "Not authenticated. Please sign in again.",
     "forbidden": "Access denied.",
     "invalidNucleusData": "Invalid nucleus data.",

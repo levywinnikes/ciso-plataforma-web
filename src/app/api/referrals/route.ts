@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 
+import { resolveCreateStatus } from "@/features/referrals/block-status";
 import { mapReferralResponse } from "@/features/referrals/map-referral";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -143,6 +144,18 @@ export async function POST(request: Request) {
     );
   }
 
+  const statusResult = resolveCreateStatus({
+    status: body.status,
+    justificativaBloqueio: body.justificativaBloqueio,
+  });
+
+  if (!statusResult.ok) {
+    return NextResponse.json(
+      { message: statusResult.message },
+      { status: 400 },
+    );
+  }
+
   const nucleus = await prisma.careNucleus.findUnique({
     where: { id: body.nucleusId },
     include: { services: { include: { service: true } } },
@@ -155,48 +168,66 @@ export async function POST(request: Request) {
     );
   }
 
-  const referral = await prisma.referral.create({
-    data: {
-      patientName: body.patientName,
-      patientBirthDate: parseBirthDate(body.patientBirthDate),
-      patientPhone: String(body.patientPhone).replace(/\D/g, ""),
-      patientDocument: body.patientDocument || null,
-      systemicDiseases: body.systemicDiseases || null,
-      clinicalNotes: body.clinicalNotes || null,
-      clinicalSuspicion: body.clinicalSuspicion || null,
-      nucleusId: body.nucleusId,
-      nucleusSnapshotName: nucleus.name,
-      nucleusSnapshotPrice: nucleus.chargedPrice,
-      nucleusSnapshotServices: nucleus.services.map((junction) => ({
-        name: junction.service.name,
-        basePrice: junction.service.basePrice.toNumber
-          ? junction.service.basePrice.toNumber()
-          : Number(junction.service.basePrice),
-      })),
-      clinicId: body.clinicId,
-      officeId,
-      createdByUserId,
-      agreementId: body.agreementId || null,
-      documents: {
-        create:
-          body.documents?.map(
-            (item: { name?: string; url?: string; key?: string }) => ({
-              fileName: item.name || "documento",
-              url: item.url || item.key || null,
-            }),
-          ) ?? [],
+  const referral = await prisma.$transaction(async (tx) => {
+    const created = await tx.referral.create({
+      data: {
+        patientName: body.patientName,
+        patientBirthDate: parseBirthDate(body.patientBirthDate),
+        patientPhone: String(body.patientPhone).replace(/\D/g, ""),
+        patientDocument: body.patientDocument || null,
+        systemicDiseases: body.systemicDiseases || null,
+        clinicalNotes: body.clinicalNotes || null,
+        clinicalSuspicion: body.clinicalSuspicion || null,
+        status: statusResult.status,
+        justificativaBloqueio: statusResult.justificativaBloqueio,
+        nucleusId: body.nucleusId,
+        nucleusSnapshotName: nucleus.name,
+        nucleusSnapshotPrice: nucleus.chargedPrice,
+        nucleusSnapshotServices: nucleus.services.map((junction) => ({
+          name: junction.service.name,
+          basePrice: junction.service.basePrice.toNumber
+            ? junction.service.basePrice.toNumber()
+            : Number(junction.service.basePrice),
+        })),
+        clinicId: body.clinicId,
+        officeId,
+        createdByUserId,
+        agreementId: body.agreementId || null,
+        documents: {
+          create:
+            body.documents?.map(
+              (item: { name?: string; url?: string; key?: string }) => ({
+                fileName: item.name || "documento",
+                url: item.url || item.key || null,
+              }),
+            ) ?? [],
+        },
       },
-    },
-    include: {
-      nucleus: { select: { name: true } },
-      clinic: { select: { name: true } },
-      office: { select: { name: true } },
-      createdByUser: { select: { name: true, email: true } },
-      documents: true,
-      specialistFiles: true,
-      agreement: { select: { name: true } },
-      surgery: { select: { name: true } },
-    },
+      include: {
+        nucleus: { select: { name: true } },
+        clinic: { select: { name: true } },
+        office: { select: { name: true } },
+        createdByUser: { select: { name: true, email: true } },
+        documents: true,
+        specialistFiles: true,
+        agreement: { select: { name: true } },
+        surgery: { select: { name: true } },
+      },
+    });
+
+    if (statusResult.status === "Bloqueado") {
+      await tx.referralStatusAudit.create({
+        data: {
+          referralId: created.id,
+          fromStatus: null,
+          toStatus: "Bloqueado",
+          justificativaBloqueio: statusResult.justificativaBloqueio,
+          userId: session.user.id,
+        },
+      });
+    }
+
+    return created;
   });
 
   return NextResponse.json(await mapReferralResponse(referral), {

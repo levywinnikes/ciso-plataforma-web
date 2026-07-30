@@ -1,10 +1,14 @@
 import type { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
+import {
+  createStatusField,
+  withBlockJustification,
+} from "@/features/referrals/block-status-schema";
 import type { CareNucleus } from "@/features/referrals/types";
 
 // Mensagens sao chaves i18n resolvidas pela view via useTranslations().
-export const adminNovoEncaminhamentoSchema = z.object({
+export const adminNovoEncaminhamentoSchema = withBlockJustification({
   patientName: z.string().min(1, "errors.patientNameRequired"),
   patientBirthDate: z
     .string()
@@ -26,6 +30,8 @@ export const adminNovoEncaminhamentoSchema = z.object({
   agreementId: z.string().optional(),
   officeId: z.string().min(1, "errors.required"),
   createdByUserId: z.string().min(1, "errors.required"),
+  status: createStatusField,
+  justificativaBloqueio: z.string().optional(),
 });
 
 export type AdminNovoEncaminhamentoFormData = z.infer<

@@ -15,7 +15,11 @@ import {
   novoEncaminhamentoSchema,
   UploadedDocument,
 } from "./novo/schema";
-import type { ProfissionalPageModel, ReferralFilters } from "./schema";
+import type {
+  ProfissionalPageModel,
+  ReferralFilters,
+  ReferralListTab,
+} from "./schema";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -26,6 +30,7 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
   const [referrals, setReferrals] = useState<Referral[]>([]);
 
   // Filtering
+  const [listTab, setListTab] = useState<ReferralListTab>("active");
   const [filters, setFilters] = useState<ReferralFilters>({
     status: "ALL",
     doctor: "ALL",
@@ -64,6 +69,8 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
       nucleusId: "",
       clinicId: "",
       agreementId: "",
+      status: "Encaminhado",
+      justificativaBloqueio: "",
     },
   });
 
@@ -143,7 +150,17 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
   const filteredReferrals = referrals.filter((referral) => {
     let match = true;
 
-    if (filters.status !== "ALL" && referral.status !== filters.status) {
+    if (listTab === "blocked") {
+      if (referral.status !== "Bloqueado") match = false;
+    } else if (referral.status === "Bloqueado") {
+      match = false;
+    }
+
+    if (
+      listTab === "active" &&
+      filters.status !== "ALL" &&
+      referral.status !== filters.status
+    ) {
       match = false;
     }
 
@@ -174,7 +191,7 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters]);
+  }, [filters, listTab]);
 
   // Pagination Logic
   const totalPages = Math.ceil(filteredReferrals.length / ITEMS_PER_PAGE) || 1;
@@ -207,6 +224,8 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
       nucleusId: referral.nucleusId || "",
       clinicId: referral.clinicId || "",
       agreementId: referral.agreementId || "",
+      status: referral.status === "Bloqueado" ? "Bloqueado" : "Encaminhado",
+      justificativaBloqueio: referral.justificativaBloqueio || "",
     });
 
     if (referral.documents) {
@@ -245,6 +264,11 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
             nucleusId: data.nucleusId,
             clinicId: data.clinicId,
             agreementId: data.agreementId || undefined,
+            status: data.status,
+            justificativaBloqueio:
+              data.status === "Bloqueado"
+                ? data.justificativaBloqueio?.trim()
+                : undefined,
             documents: editDocuments.map((item) => ({
               id: item.id,
               name: item.name,
@@ -308,6 +332,8 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
     setCurrentPage,
     filters,
     setFilters,
+    listTab,
+    setListTab,
     selectedReferral,
     isModalOpen,
     openModal,

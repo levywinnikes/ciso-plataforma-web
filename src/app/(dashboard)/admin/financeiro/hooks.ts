@@ -52,6 +52,9 @@ export function useFinanceiroPageModel(): FinanceiroPageModel {
 
   const filteredReferrals = useMemo(() => {
     return referrals.filter((item) => {
+      if (item.status === "Bloqueado") {
+        return false;
+      }
       let matches = true;
       if (selectedOfficeId && item.officeId !== selectedOfficeId) {
         matches = false;
