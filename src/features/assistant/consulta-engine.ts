@@ -9,6 +9,14 @@ import {
 
 const MAX_ROWS = 40;
 
+export function groupCount(count: unknown): number {
+  if (typeof count !== "object" || count === null || !("_all" in count)) {
+    return 0;
+  }
+  const value = (count as { _all?: unknown })._all;
+  return typeof value === "number" ? value : 0;
+}
+
 export type ReferralFact = {
   status: ReferralStatus;
   appointmentDate: Date | string | null;
@@ -299,7 +307,7 @@ export async function runAssistantConsulta(consulta: AssistantConsulta) {
       profissional: 0,
     };
     for (const row of usersByRole) {
-      const total = row._count?._all ?? 0;
+      const total = groupCount(row._count);
       if (row.role === "ADMINISTRATIVO") papel.administrativo = total;
       if (row.role === "MEDICO") papel.medico = total;
       if (row.role === "PROFISSIONAL") papel.profissional = total;
@@ -307,11 +315,12 @@ export async function runAssistantConsulta(consulta: AssistantConsulta) {
 
     const linhas = aggregateCadastros(
       {
-        clinicas:
-          orgByType.find((row) => row.type === "CLINICA")?._count?._all ?? 0,
-        consultorios:
-          orgByType.find((row) => row.type === "PROFISSIONAL_GROUP")?._count
-            ?._all ?? 0,
+        clinicas: groupCount(
+          orgByType.find((row) => row.type === "CLINICA")?._count,
+        ),
+        consultorios: groupCount(
+          orgByType.find((row) => row.type === "PROFISSIONAL_GROUP")?._count,
+        ),
         nucleos,
         convenios,
         servicos,

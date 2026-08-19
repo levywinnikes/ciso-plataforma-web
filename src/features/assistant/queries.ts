@@ -5,6 +5,7 @@ import { isReferralOverdue } from "@/features/referrals/overdue";
 import type { ReferralStatus } from "@/features/referrals/types";
 import { prisma, withPrismaRetry } from "@/lib/prisma";
 
+import { groupCount } from "./consulta-engine";
 import { ASSISTANT_PRODUCT_GUIDANCE } from "./product-guidance";
 
 export const ASSISTANT_QUERY_SOURCES = [
@@ -218,17 +219,18 @@ function mapCadastros(
   };
 
   for (const row of usersByRole) {
-    const total = row._count?._all ?? 0;
+    const total = groupCount(row._count);
     if (row.role === "ADMINISTRATIVO") papel.administrativo = total;
     if (row.role === "MEDICO") papel.medico = total;
     if (row.role === "PROFISSIONAL") papel.profissional = total;
   }
 
-  const clinicas =
-    orgByType.find((row) => row.type === "CLINICA")?._count?._all ?? 0;
-  const consultorios =
-    orgByType.find((row) => row.type === "PROFISSIONAL_GROUP")?._count?._all ??
-    0;
+  const clinicas = groupCount(
+    orgByType.find((row) => row.type === "CLINICA")?._count,
+  );
+  const consultorios = groupCount(
+    orgByType.find((row) => row.type === "PROFISSIONAL_GROUP")?._count,
+  );
 
   return {
     clinicas,
