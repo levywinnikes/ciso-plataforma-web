@@ -7,7 +7,7 @@ export function startOfLocalDay(date: Date): Date {
 export function isReferralOverdue(
   referral: {
     status: ReferralStatus;
-    appointmentDate?: string | null;
+    appointmentDate?: string | Date | null;
   },
   now: Date = new Date(),
 ): boolean {
