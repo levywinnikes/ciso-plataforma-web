@@ -18,6 +18,7 @@ export async function PATCH(
   if (!auth.user.id) {
     return apiError("errors.unauthorized", 401);
   }
+  const userId = auth.user.id;
 
   const parsedParams = idSchema.safeParse(params);
   if (!parsedParams.success) {
@@ -55,7 +56,7 @@ export async function PATCH(
         referralId: referral.id,
         fromStatus: referral.status,
         toStatus: "Atendido",
-        userId: auth.user.id,
+        userId,
       },
     });
 
