@@ -75,7 +75,7 @@ Não é obrigatório registrar:
 | **Arquivos** | `docs/ai/access-and-permissions.md`, `docs/ai/user-views.md`, `docs/ai/api-routes.md`, `docs/ai/decision-log.md`, `docs/ai/doc-index.md`                                                                                               |
 | **Horas**    | 2h                                                                                                                                                                                                                                     |
 | **Valor**    | R$ 220,00                                                                                                                                                                                                                              |
-| **Status**   | Aguardando commit                                                                                                                                                                                                                      |
+| **Status**   | Commitado em `b194886`                                                                                                                                                                                                                 |
 
 ### ENT-002 — Refinar regra de gestão de usuários
 
@@ -88,7 +88,7 @@ Não é obrigatório registrar:
 | **Arquivos** | `docs/ai/decision-log.md`, `docs/ai/access-and-permissions.md`, `docs/ai/user-views.md`, `docs/ai/api-routes.md`                                    |
 | **Horas**    | 0,5h                                                                                                                                                |
 | **Valor**    | R$ 55,00                                                                                                                                            |
-| **Status**   | Aguardando commit                                                                                                                                   |
+| **Status**   | Commitado em `b194886`                                                                                                                              |
 
 ### ENT-003 — Marcar `isAdmin` / admin local como questão em aberto
 
@@ -101,7 +101,7 @@ Não é obrigatório registrar:
 | **Arquivos** | `docs/ai/decision-log.md`, `docs/ai/access-and-permissions.md`, `docs/ai/user-views.md`, `docs/ai/api-routes.md`                                                  |
 | **Horas**    | 0,25h                                                                                                                                                             |
 | **Valor**    | R$ 27,50                                                                                                                                                          |
-| **Status**   | Aguardando commit                                                                                                                                                 |
+| **Status**   | Commitado em `b194886`                                                                                                                                            |
 
 ### ENT-004 — Planejar Assistente administrativo (piloto Gemini)
 
@@ -114,7 +114,7 @@ Não é obrigatório registrar:
 | **Arquivos** | `docs/ai/admin-assistant.md`, `docs/ai/decision-log.md`, `docs/ai/doc-index.md`, `docs/ai/patterns.md`, `docs/ai/user-views.md`                    |
 | **Horas**    | 0,75h                                                                                                                                              |
 | **Valor**    | R$ 82,50                                                                                                                                           |
-| **Status**   | Aguardando commit                                                                                                                                  |
+| **Status**   | Commitado em `b194886`                                                                                                                             |
 
 ### ENT-005 — Fechar decisões do piloto do Assistente
 
@@ -127,7 +127,7 @@ Não é obrigatório registrar:
 | **Arquivos** | `docs/ai/admin-assistant.md`, `docs/ai/decision-log.md`, `docs/ai/patterns.md`, `docs/ai/access-and-permissions.md`                                                                                                                                                      |
 | **Horas**    | 0,5h                                                                                                                                                                                                                                                                     |
 | **Valor**    | R$ 55,00                                                                                                                                                                                                                                                                 |
-| **Status**   | Aguardando commit                                                                                                                                                                                                                                                        |
+| **Status**   | Commitado em `b194886`                                                                                                                                                                                                                                                   |
 
 ### ENT-006 — Atrasados e marcar como atendido no painel administrativo
 
@@ -140,7 +140,7 @@ Não é obrigatório registrar:
 | **Arquivos** | `src/app/(dashboard)/admin/page.tsx`, `src/app/api/referrals/[id]/complete/route.ts`, `src/features/referrals/overdue.ts`, `src/features/referrals/components/mark-attended-dialog.tsx`, `docs/ai/referral-management.md`, `docs/ai/user-views.md`, `docs/ai/api-routes.md` |
 | **Horas**    | 1,5h                                                                                                                                                                                                                                                                        |
 | **Valor**    | R$ 165,00                                                                                                                                                                                                                                                                   |
-| **Status**   | Aguardando commit                                                                                                                                                                                                                                                           |
+| **Status**   | Commitado em `b194886`                                                                                                                                                                                                                                                      |
 
 ### ENT-007 — Auditoria de status e limpeza de pendências
 
@@ -153,7 +153,7 @@ Não é obrigatório registrar:
 | **Arquivos** | `src/app/api/referrals/[id]/schedule/route.ts`, `src/app/api/referrals/[id]/specialist/route.ts`, `src/app/(dashboard)/admin/page.tsx`, `docs/ai/documentation-roadmap.md` |
 | **Horas**    | 1h                                                                                                                                                                         |
 | **Valor**    | R$ 110,00                                                                                                                                                                  |
-| **Status**   | Aguardando commit                                                                                                                                                          |
+| **Status**   | Commitado em `b194886`                                                                                                                                                     |
 
 ### ENT-008 — Piloto do Assistente administrativo
 
@@ -166,7 +166,7 @@ Não é obrigatório registrar:
 | **Arquivos** | `src/features/assistant/*`, `src/lib/ai/gemini.ts`, `src/app/api/admin/assistant/chat/route.ts`, `prisma/schema.prisma`                   |
 | **Horas**    | 2,5h                                                                                                                                      |
 | **Valor**    | R$ 275,00                                                                                                                                 |
-| **Status**   | Aguardando commit                                                                                                                         |
+| **Status**   | Commitado em `b194886`                                                                                                                    |
 
 ### ENT-009 — Consulta genérica do Assistente
 
@@ -179,7 +179,7 @@ Não é obrigatório registrar:
 | **Arquivos** | `src/features/assistant/consulta-engine.ts`, `src/app/api/admin/assistant/queries/route.ts`, `src/app/api/admin/assistant/chat/route.ts`, `docs/ai/assistant-contract.md`, `docs/ai/assistant-knowledge.md`, `docs/ai/assistant-autonomy.md` |
 | **Horas**    | 2h                                                                                                                                                                                                                                           |
 | **Valor**    | R$ 220,00                                                                                                                                                                                                                                    |
-| **Status**   | Aguardando commit                                                                                                                                                                                                                            |
+| **Status**   | Commitado em `b194886`                                                                                                                                                                                                                       |
 
 ### ENT-010 — Layout das ações na lista admin
 
@@ -192,7 +192,11 @@ Não é obrigatório registrar:
 | **Arquivos** | `src/app/(dashboard)/admin/page.tsx`, `docs/ai/referral-management.md`                                        |
 | **Horas**    | 0,5h                                                                                                          |
 | **Valor**    | R$ 55,00                                                                                                      |
-| **Status**   | Aguardando commit                                                                                             |
+| **Status**   | Commitado em `b194886`                                                                                        |
+
+#### Commits
+
+- `b194886` — feat: piloto do Assistente, atrasados e consulta operacional no admin
 
 ---
 
