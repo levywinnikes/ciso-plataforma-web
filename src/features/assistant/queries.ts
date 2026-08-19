@@ -218,15 +218,16 @@ function mapCadastros(
   };
 
   for (const row of usersByRole) {
-    if (row.role === "ADMINISTRATIVO") papel.administrativo = row._count._all;
-    if (row.role === "MEDICO") papel.medico = row._count._all;
-    if (row.role === "PROFISSIONAL") papel.profissional = row._count._all;
+    const total = row._count?._all ?? 0;
+    if (row.role === "ADMINISTRATIVO") papel.administrativo = total;
+    if (row.role === "MEDICO") papel.medico = total;
+    if (row.role === "PROFISSIONAL") papel.profissional = total;
   }
 
   const clinicas =
-    orgByType.find((row) => row.type === "CLINICA")?._count._all ?? 0;
+    orgByType.find((row) => row.type === "CLINICA")?._count?._all ?? 0;
   const consultorios =
-    orgByType.find((row) => row.type === "PROFISSIONAL_GROUP")?._count._all ??
+    orgByType.find((row) => row.type === "PROFISSIONAL_GROUP")?._count?._all ??
     0;
 
   return {
