@@ -266,10 +266,12 @@ async function loadConsultaData() {
       prisma.organization.groupBy({
         by: ["type"],
         _count: { _all: true },
+        orderBy: { type: "asc" },
       }),
       prisma.user.groupBy({
         by: ["role"],
         _count: { _all: true },
+        orderBy: { role: "asc" },
       }),
       prisma.careNucleus.count(),
       prisma.agreement.count(),

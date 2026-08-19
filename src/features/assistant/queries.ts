@@ -181,10 +181,12 @@ async function fetchLiveRows() {
       prisma.organization.groupBy({
         by: ["type"],
         _count: { _all: true },
+        orderBy: { type: "asc" },
       }),
       prisma.user.groupBy({
         by: ["role"],
         _count: { _all: true },
+        orderBy: { role: "asc" },
       }),
       prisma.agreement.count(),
       prisma.careService.count(),
