@@ -23,6 +23,7 @@ export async function POST(request: Request) {
   if (!auth.user.id) {
     return apiError("errors.unauthorized", 401);
   }
+  const userId = auth.user.id;
 
   const body = await request.json().catch(() => null);
   const parsed = assistantChatRequestSchema.safeParse(body);
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
   try {
     usage = await prisma.assistantDailyUsage.findUnique({
       where: {
-        userId_day: { userId: auth.user.id, day },
+        userId_day: { userId, day },
       },
     });
   } catch {
@@ -111,9 +112,9 @@ export async function POST(request: Request) {
 
     await prisma.assistantDailyUsage.upsert({
       where: {
-        userId_day: { userId: auth.user.id, day },
+        userId_day: { userId, day },
       },
-      create: { userId: auth.user.id, day, count: 1 },
+      create: { userId, day, count: 1 },
       update: { count: { increment: 1 } },
     });
 
