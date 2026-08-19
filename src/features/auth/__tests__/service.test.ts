@@ -19,8 +19,11 @@ describe("canAccessPath", () => {
       expect(canAccessPath("ADMINISTRATIVO", "/admin")).toBe(true);
     });
 
-    it("can access /admin/financeiro", () => {
-      expect(canAccessPath("ADMINISTRATIVO", "/admin/financeiro")).toBe(true);
+    it("lets API routes through so each handler authorizes itself", () => {
+      expect(canAccessPath("ADMINISTRATIVO", "/api/admin/assistant/chat")).toBe(
+        true,
+      );
+      expect(canAccessPath("MEDICO", "/api/referrals")).toBe(true);
     });
 
     it("cannot access /medico", () => {

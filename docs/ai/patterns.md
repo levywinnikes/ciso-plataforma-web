@@ -173,6 +173,7 @@ import { Button, Input, Select, Textarea, Card } from "@/components/ui";
 | `Card`           | `card.tsx`             | Container de secao                            |
 | `CardSection`    | `card-section.tsx`     | Sub-secao do card                             |
 | `Modal`          | `modal.tsx`            | Dialog modal                                  |
+| `ConfirmDialog`  | `confirm-dialog.tsx`   | Confirmacao simples (excluir, avisos)         |
 | `PageHeader`     | `page-header.tsx`      | Cabecalho de pagina                           |
 | `StatCard`       | `stat-card.tsx`        | Card de metrica                               |
 | `TableCard`      | `table-card.tsx`       | Card de tabela                                |
@@ -431,3 +432,24 @@ return (
 ```
 
 Mensagens de loading devem usar `common.loading` e `common.saving` (ja existentes em ambos os JSONs).
+
+---
+
+## 12. Assistente / chat com IA (vigente no piloto admin)
+
+Padrão de projeto:
+
+1. Chamada ao modelo **somente no servidor**; chave nunca no cliente (`src/lib/ai/gemini.ts`).
+2. Autorização explícita por papel (`requireAdministrativo` no piloto).
+3. Provedor: **Gemini**, com fallback **apenas entre modelos Gemini** (Flash → Flash 2.0 → flash-lite). **Proibido DeepSeek**.
+4. UI: widget `AssistantWidget`, linguagem de negócio + i18n; erros visíveis (`patterns.md` §11).
+5. Pergunta do chat: Zod + React Hook Form + `<Field>` (`src/features/assistant`).
+6. Histórico só na sessão do navegador. Limite **200 perguntas/dia**, contado no servidor (`AssistantDailyUsage`).
+7. Papel `ADMINISTRATIVO`: sem recusa/máscara do texto da pergunta. Outros papéis exigem contrato próprio **antes** de implementar.
+8. Números: o modelo monta uma **consulta** (recorte/quebra); o servidor agrega (`consulta-engine.ts`). Não usar relatório fixo nem `GET /api/referrals` no modelo.
+
+---
+
+## 13. Confirmação de atendimento (admin)
+
+Para concluir encaminhamento pela listagem administrativa, usar `MarkAttendedDialog` (`src/features/referrals/components/mark-attended-dialog.tsx`): modal com resumo dos dados + confirmação. Não substitui o `ConfirmDialog` genérico de exclusão.

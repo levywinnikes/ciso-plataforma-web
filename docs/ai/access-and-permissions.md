@@ -1,305 +1,196 @@
 # Modelo de Acesso e Permissões
 
-## Visão Geral
+## Visão geral
 
-O sistema implementa controle de acesso baseado em roles (RBAC) com suporte a organizações multi-tipo:
+O `Integra Visão` usa RBAC com três papéis principais e vínculo organizacional simples:
 
-- **Organizações de clínicas:** agrupam médicos
-- **Organizações de profissionais:** agrupam optometristas/referradores
+- `ADMINISTRATIVO`: acesso global
+- `MEDICO`: vinculado a uma organização do tipo `CLINICA`
+- `PROFISSIONAL`: vinculado a uma organização do tipo `PROFISSIONAL_GROUP`
 
-Dentro de cada organização, um usuário com `isAdmin=true` gerencia usuários internos.
+Usuários de organização possuem o campo `isAdmin` no modelo, pensado como **admin local**, mas o contrato completo dessa flag ainda **não está fechado** (ver seção abaixo e `decision-log.md`).
 
----
-
-## Roles do Sistema
-
-| Role               | Tipo de Organização | isAdmin | Descrição                                                                                                         |
-| ------------------ | ------------------- | ------- | ----------------------------------------------------------------------------------------------------------------- |
-| **ADMINISTRATIVO** | Nenhuma (Global)    | —       | Gestor geral do sistema. Cria organizações, designa acesso entre profissionais e clínicas, vê relatórios globais. |
-| **MEDICO**         | Clínica             | false   | Profissional que atende pacientes. Acessa e preenche referrals.                                                   |
-| **MEDICO**         | Clínica             | true    | Médico que também gerencia usuários (outros MEDICO) de sua clínica.                                               |
-| **PROFISSIONAL**   | Grupo Profissional  | false   | Referenciador (optometrista). Encaminha para clínicas designadas.                                                 |
-| **PROFISSIONAL**   | Grupo Profissional  | true    | Profissional que também gerencia usuários (outros PROFISSIONAL) de seu grupo.                                     |
+> Fonte de verdade técnica: `prisma/schema.prisma`, `src/lib/auth.ts` e `src/lib/api-auth.ts`.
 
 ---
 
-## Estrutura Organizacional
+## Estrutura organizacional vigente
 
-```
-ADMINISTRATIVO (Global)
-├─ Organization (Clínica)
-│  ├─ MEDICO (isAdmin=true)   ← gerencia usuários da clínica
-│  ├─ MEDICO (isAdmin=false)
-│  ├─ MEDICO (isAdmin=false)
-│  └─ ...
-├─ Organization (Grupo Profissional)
-│  ├─ PROFISSIONAL (isAdmin=true)   ← gerencia usuários do grupo
-│  ├─ PROFISSIONAL (isAdmin=false)
-│  ├─ PROFISSIONAL (isAdmin=false)
-│  └─ ...
-└─ ...
+```text
+ADMINISTRATIVO (global)
+├─ Organization (CLINICA)
+│  ├─ MEDICO (isAdmin=true)
+│  └─ MEDICO (isAdmin=false)
+└─ Organization (PROFISSIONAL_GROUP)
+   ├─ PROFISSIONAL (isAdmin=true)
+   └─ PROFISSIONAL (isAdmin=false)
 ```
 
-### Regras de Vinculação
+### Regras de vinculação
 
-- **ADMINISTRATIVO:** Nenhuma organização. Pode criar e gerenciar todas as organizações.
-- **MEDICO:** Vinculado a 1 organização de clínica. Se `isAdmin=true`, pode gerenciar outros MEDICO da clínica.
-- **PROFISSIONAL:** Vinculado a 1 organização de profissionais. Se `isAdmin=true`, pode gerenciar outros PROFISSIONAL do grupo.
-
-### Tipos de Organização
-
-| Tipo                   | Usuários                                                           | Função                                               |
-| ---------------------- | ------------------------------------------------------------------ | ---------------------------------------------------- |
-| **CLINICA**            | MEDICO(s) — 1 com `isAdmin=true`, outros com `isAdmin=false`       | Recebe referrals de profissionais, atende pacientes. |
-| **PROFISSIONAL_GROUP** | PROFISSIONAL(s) — 1 com `isAdmin=true`, outros com `isAdmin=false` | Encaminha referrals para clínicas designadas.        |
+- `ADMINISTRATIVO`: não possui `organizationId`
+- `MEDICO`: pertence a uma única clínica
+- `PROFISSIONAL`: pertence a um único grupo profissional
+- `isAdmin`: flag de **admin local** no modelo; efeitos completos ainda não fechados como regra de produto
 
 ---
 
-## Matriz de Permissões
+## `isAdmin` (admin local) — questão em aberto
 
-### ADMINISTRATIVO (Global)
+**Intenção do campo:** marcar um usuário como administrador dentro da própria organização.
 
-| Recurso                  | Criar                                         | Ler                             | Editar                                                   | Deletar           | Notas                                                          |
-| ------------------------ | --------------------------------------------- | ------------------------------- | -------------------------------------------------------- | ----------------- | -------------------------------------------------------------- |
-| **Organização**          | ✅                                            | ✅ (todas)                      | ✅ (todas)                                               | ✅ (todas)        | Ao criar, gera 1 ADMIN_LOCAL                                   |
-| **ADMIN_LOCAL**          | ✅                                            | ✅ (todas)                      | ✅ (todas)                                               | ✅ (todas)        | Designa admin para cada org                                    |
-| **MEDICO**               | ✅                                            | ✅ (todas)                      | ✅ (todas)                                               | ✅ (todas)        | CRUD em qualquer clínica                                       |
-| **PROFISSIONAL**         | ✅                                            | ✅ (todas)                      | ✅ (todas)                                               | ✅ (todas)        | CRUD em qualquer grupo profissional                            |
-| **Designação de acesso** | ✅                                            | ✅ (todas)                      | ✅                                                       | ❌                | Designa quais profissionais veem quais clínicas                |
-| **Referral**             | ✅ (em nome do consultório; pode `Bloqueado`) | ✅ (todas; inclui `Bloqueado`)  | ✅ (qualquer status não-`Atendido`→`Bloqueado` indevido) | ⚠️ não-`Atendido` | Aba Bloqueados; justificativa obrigatória se `Bloqueado`       |
-| **Relatório global**     | ❌                                            | ✅ (sem `Bloqueado` por padrão) | ❌                                                       | ❌                | Dashboard/financeiro; filtro explícito para incluir bloqueados |
+**Não é regra vigente fechada.** Por enquanto:
 
-### MEDICO (Clínica, isAdmin=false)
+- **não** implementar nem documentar como contrato rígido quem pode ou não gerenciar usuários com base em `isAdmin`
+- **não** alterar código de permissões até decisão formal
 
-| Recurso                 | Criar | Ler                                             | Editar                              | Deletar | Notas                                |
-| ----------------------- | ----- | ----------------------------------------------- | ----------------------------------- | ------- | ------------------------------------ |
-| **Referral da clínica** | ❌    | ✅ (`Agendado`/`Atendido`; **sem** `Bloqueado`) | ✅ (considerações, conduta, anexos) | ❌      | Atendimento e preenchimento de ficha |
-| **Dados da clínica**    | ❌    | ✅                                              | ❌                                  | ❌      | Informações básicas apenas           |
-| **Usuários da clínica** | ❌    | ❌                                              | ❌                                  | ❌      | Sem acesso                           |
-| **Outras clínicas**     | ❌    | ❌                                              | ❌                                  | ❌      | Acesso bloqueado                     |
+**Comportamento parcial já presente no código:**
 
-### MEDICO (Clínica, isAdmin=true)
+| Contexto                                     | Com `isAdmin=true`                        | Sem `isAdmin`         |
+| -------------------------------------------- | ----------------------------------------- | --------------------- |
+| Listagem de encaminhamentos (`PROFISSIONAL`) | vê encaminhamentos de todo o consultório  | vê apenas os próprios |
+| Gestão de usuários                           | enforcement **inconsistente** entre rotas | idem                  |
 
-| Recurso                  | Criar | Ler                                             | Editar                              | Deletar | Notas                         |
-| ------------------------ | ----- | ----------------------------------------------- | ----------------------------------- | ------- | ----------------------------- |
-| **Referral da clínica**  | ❌    | ✅ (`Agendado`/`Atendido`; **sem** `Bloqueado`) | ✅ (considerações, conduta, anexos) | ❌      | Igual a MEDICO regular        |
-| **Dados da clínica**     | ❌    | ✅                                              | ⚠️ info básica                      | ❌      | Informações, sem alterar tipo |
-| **Usuários da clínica**  | ✅    | ✅                                              | ✅                                  | ✅      | Gerencia outros MEDICO        |
-| **Relatório da clínica** | ❌    | ✅ (sem `Bloqueado`)                            | ❌                                  | ❌      | Dashboard de sua clínica      |
-| **Outras clínicas**      | ❌    | ❌                                              | ❌                                  | ❌      | Sem acesso                    |
-
-### PROFISSIONAL (Grupo Profissional, isAdmin=false)
-
-| Recurso                         | Criar                                   | Ler                                 | Editar                       | Deletar                      | Notas                                                |
-| ------------------------------- | --------------------------------------- | ----------------------------------- | ---------------------------- | ---------------------------- | ---------------------------------------------------- |
-| **Referral**                    | ✅ (inclui `Bloqueado` + justificativa) | ✅ (só os seus; inclui `Bloqueado`) | ⚠️ `Encaminhado`/`Bloqueado` | ⚠️ `Encaminhado`/`Bloqueado` | Encaminha para clínicas designadas; pode desbloquear |
-| **Seleção de clínica destino**  | ✅                                      | ✅                                  | ✅                           | ❌                           | Apenas clínicas designadas por ADMIN_GLOBAL          |
-| **Dados do grupo profissional** | ❌                                      | ✅                                  | ❌                           | ❌                           | Informações básicas apenas                           |
-| **Usuários do grupo**           | ❌                                      | ❌                                  | ❌                           | ❌                           | Sem acesso                                           |
-| **Referral pós-encaminhamento** | ❌                                      | ⚠️ leitura limitada                 | ❌                           | ❌                           | Pode ver status apenas (`Agendado`/`Atendido`)       |
-| **Outras orgs**                 | ❌                                      | ❌                                  | ❌                           | ❌                           | Sem acesso                                           |
-
-### PROFISSIONAL (Grupo Profissional, isAdmin=true)
-
-| Recurso                         | Criar                                   | Ler                                     | Editar                       | Deletar                      | Notas                         |
-| ------------------------------- | --------------------------------------- | --------------------------------------- | ---------------------------- | ---------------------------- | ----------------------------- |
-| **Referral**                    | ✅ (inclui `Bloqueado` + justificativa) | ✅ (todos do grupo; inclui `Bloqueado`) | ⚠️ `Encaminhado`/`Bloqueado` | ⚠️ `Encaminhado`/`Bloqueado` | Igual a PROFISSIONAL regular  |
-| **Seleção de clínica destino**  | ✅                                      | ✅                                      | ✅                           | ❌                           | Apenas clínicas designadas    |
-| **Dados do grupo profissional** | ❌                                      | ✅                                      | ⚠️ info básica               | ❌                           | Informações, sem alterar tipo |
-| **Usuários do grupo**           | ✅                                      | ✅                                      | ✅                           | ✅                           | Gerencia outros PROFISSIONAL  |
-| **Relatório do grupo**          | ❌                                      | ✅ (sem `Bloqueado` por padrão)         | ❌                           | ❌                           | Dashboard de seu grupo        |
-| **Outras orgs**                 | ❌                                      | ❌                                      | ❌                           | ❌                           | Sem acesso                    |
+**Direção provável (não adotada):** admin local geriria colaboradores da org; usuário comum faria o resto do sistema sem CRUD de usuários.
 
 ---
 
-## Fluxos por Role
+## Matriz de permissões vigente
 
 ### ADMINISTRATIVO
 
-```
-Login → Dashboard Admin Global
-├─ Listar todas as organizações (clínicas + grupos profissionais)
-├─ Criar nova organização (gera 1 MEDICO ou PROFISSIONAL com isAdmin=true inicial)
-├─ Editar dados de organização
-├─ Gerenciar todos os usuários (create/update/delete)
-├─ Designar acesso (ex: "Grupo Prof. X pode enviar para Clínica Y")
-├─ Criar/editar encaminhamentos (inclui Bloqueado + justificativa)
-├─ Aba Bloqueados na listagem
-├─ Visualizar relatório financeiro global (sem Bloqueado por padrão)
-├─ Dashboard com métricas gerais
-└─ Logs de auditoria
-```
+| Recurso                          | Criar | Ler | Editar | Deletar              | Notas                                   |
+| -------------------------------- | ----- | --- | ------ | -------------------- | --------------------------------------- |
+| Organizações                     | ✅    | ✅  | ✅     | ✅                   | Escopo global                           |
+| Usuários globais                 | ✅    | ✅  | ✅     | ✅                   | Escopo global                           |
+| Usuários de qualquer organização | ✅    | ✅  | ✅     | ✅                   | Escopo global                           |
+| Encaminhamentos                  | ✅    | ✅  | ✅     | ✅ exceto `Atendido` | Inclui `Bloqueado`                      |
+| Assistente (orientação)          | ❌    | ✅  | ❌     | ❌                   | Widget em `/admin/**`; não altera dados |
+| Financeiro / relatórios globais  | ❌    | ✅  | ❌     | ❌                   | `Bloqueado` fora por padrão             |
 
-### MEDICO (isAdmin=true)
+### MEDICO
 
-```
-Login → Dashboard Médico (Clínica)
-├─ Listar referrals da clínica
-├─ Ver detalhes de referral
-├─ Preencher considerações, conduta, anexos
-├─ Atualizar status do referral
-├─ + Gerenciar usuários da clínica
-│  ├─ Adicionar novo MEDICO
-│  ├─ Editar perfil de outro médico
-│  ├─ Remover médico
-│  └─ Reset de senha
-├─ + Ver dados da clínica
-└─ + Visualizar relatório da clínica
-```
+| Recurso                    | Criar | Ler | Editar          | Deletar | Notas                                                                   |
+| -------------------------- | ----- | --- | --------------- | ------- | ----------------------------------------------------------------------- |
+| Encaminhamentos da clínica | ❌    | ✅  | ✅ parcialmente | ❌      | Atua em fluxo clínico (`Agendado` / `Atendido`)                         |
+| Usuários da organização    | ⚠️    | ⚠️  | ⚠️              | ⚠️      | Comportamento atual não uniforme; ver questão em aberto sobre `isAdmin` |
+| Dados da própria clínica   | ❌    | ✅  | ❌              | ❌      | Somente leitura                                                         |
 
-### MEDICO (isAdmin=false)
+### PROFISSIONAL
 
-```
-Login → Dashboard Médico (Clínica)
-├─ Listar referrals da clínica
-├─ Ver detalhes de referral
-├─ Preencher considerações, conduta, anexos
-├─ Atualizar status do referral
-└─ ❌ Sem acesso a gerenciamento de usuários
-```
-
-### PROFISSIONAL (isAdmin=true)
-
-```
-Login → Dashboard Profissional (Grupo)
-├─ Novo referral
-│  ├─ Preencher dados do paciente
-│  ├─ Selecionar clínica destino (apenas as designadas)
-│  ├─ Anexar documentos
-│  ├─ Opcional: salvar como Bloqueado (+ justificativa)
-│  └─ Enviar
-├─ Listar referrals (próprios + do grupo)
-│  └─ Aba Bloqueados
-├─ Editar/desbloquear referrals Encaminhado/Bloqueado
-├─ Ver status e relatório (sem Bloqueado por padrão)
-├─ + Gerenciar usuários do grupo
-│  ├─ Adicionar novo PROFISSIONAL
-│  ├─ Editar perfil de outro profissional
-│  ├─ Remover profissional
-│  └─ Reset de senha
-├─ + Ver dados do grupo
-└─ + Visualizar relatório do grupo
-```
-
-### PROFISSIONAL (isAdmin=false)
-
-```
-Login → Dashboard Profissional (Grupo)
-├─ Novo referral
-│  ├─ Preencher dados do paciente
-│  ├─ Selecionar clínica destino (apenas as designadas)
-│  ├─ Anexar documentos
-│  ├─ Opcional: salvar como Bloqueado (+ justificativa)
-│  └─ Enviar
-├─ Listar meus referrals (inclui aba Bloqueados)
-├─ Editar/desbloquear próprios Encaminhado/Bloqueado
-├─ Ver status do referral
-└─ ❌ Sem acesso a gerenciamento de usuários
-```
+| Recurso                                   | Criar | Ler | Editar                                | Deletar                               | Notas                                                                   |
+| ----------------------------------------- | ----- | --- | ------------------------------------- | ------------------------------------- | ----------------------------------------------------------------------- |
+| Encaminhamentos                           | ✅    | ✅  | ✅ enquanto `Encaminhado`/`Bloqueado` | ✅ enquanto `Encaminhado`/`Bloqueado` | Com `isAdmin=true`, listagem inclui todo o consultório                  |
+| Usuários da organização                   | ⚠️    | ⚠️  | ⚠️                                    | ⚠️                                    | Comportamento atual não uniforme; ver questão em aberto sobre `isAdmin` |
+| Dados do próprio grupo                    | ❌    | ✅  | ❌                                    | ❌                                    | Somente leitura                                                         |
+| Seleção de clínica no novo encaminhamento | ✅    | ✅  | ✅                                    | ❌                                    | Regra vigente: todas as clínicas                                        |
 
 ---
 
-## Considerações Técnicas
+## Encaminhamentos e visibilidade
 
-### Schema Prisma (Planejado)
+### Status `Bloqueado`
 
-```prisma
-enum UserRole {
-  ADMINISTRATIVO
-  MEDICO
-  PROFISSIONAL
-}
+O status `Bloqueado` está implementado e vigente.
 
-enum OrganizationType {
-  CLINICA
-  PROFISSIONAL_GROUP
-}
+- pode ser usado por `ADMINISTRATIVO` e `PROFISSIONAL`
+- exige `justificativaBloqueio`
+- não aparece para a clínica
+- fica fora de relatórios e financeiro por padrão
 
-model Organization {
-  id        String   @id @default(cuid())
-  name      String
-  type      OrganizationType
-  cnpj      String?
-  createdAt DateTime @default(now())
-  users     User[]
-}
+Consulte `docs/ai/referral-management.md` para o contrato completo de criação, edição, exclusão e transições.
 
-model User {
-  id             String   @id @default(cuid())
-  email          String   @unique
-  password       String
-  role           UserRole
-  organizationId String?
-  organization   Organization? @relation(fields: [organizationId], references: [id])
-  isAdmin        Boolean  @default(false)
-  createdAt      DateTime @default(now())
-}
+### Auditoria de status
 
-model ProfessionalAccess {
-  id                    String   @id @default(cuid())
-  professionalOrgId     String   // Organização de profissionais
-  clinicOrgId           String   // Clínica destino
-  createdAt             DateTime @default(now())
+A diretriz oficial do projeto é manter auditoria de **todas** as mudanças de status de encaminhamento.
 
-  @@unique([professionalOrgId, clinicOrgId])
-}
-```
+Rotas que devem gravar `ReferralStatusAudit` na transição:
 
-### Regras
+- criação com `Bloqueado`
+- `PUT /api/referrals/:id` quando o status muda
+- `PATCH /api/referrals/:id/schedule` (`Encaminhado` → `Agendado`)
+- `PATCH /api/referrals/:id/complete` (admin → `Atendido`)
+- `PATCH /api/referrals/:id/specialist` quando `complete` marca `Atendido`
 
-- **ADMINISTRATIVO:** `organizationId = null`, `isAdmin` não usado
-- **MEDICO:** `organizationId = organizacaoId`, `isAdmin = true/false` (true → gerencia usuários)
-- **PROFISSIONAL:** `organizationId = organizacaoId`, `isAdmin = true/false` (true → gerencia usuários)
-
-### Armazenamento no JWT
-
-O token JWT deve incluir:
-
-- `userId`
-- `email`
-- `role` (ADMINISTRATIVO | MEDICO | PROFISSIONAL)
-- `organizationId` (null se ADMINISTRATIVO; present se MEDICO ou PROFISSIONAL)
-- `organizationType` (CLINICA | PROFISSIONAL_GROUP; null se ADMINISTRATIVO)
-- `isAdmin` (boolean; false se ADMINISTRATIVO)
-
-### Middleware de Proteção de Rotas
-
-- `/admin` → requer `role=ADMINISTRATIVO`
-- `/admin-local` → requer (`role=MEDICO` OR `role=PROFISSIONAL`) + `isAdmin=true` + `organizationId`
-- `/medico` → requer `role=MEDICO` + `organizationType=CLINICA`
-- `/profissional` → requer `role=PROFISSIONAL` + `organizationType=PROFISSIONAL_GROUP`
-
-### Queries com Filtro por Organização
-
-Sempre que MEDICO ou PROFISSIONAL consultarem dados, a query deve incluir:
-
-```ts
-where: {
-  organizationId: user.organizationId;
-}
-```
-
-ADMINISTRATIVO não precisa de filtro (acesso global).
-
-### Designação de Acesso (ProfessionalAccess)
-
-Admin global designa quais grupos de profissionais podem encaminhar para quais clínicas via tabela `ProfessionalAccess`.
-
-PROFISSIONAL ao criar referral:
-
-1. Consulta `ProfessionalAccess` filtrado por `professionalOrgId = user.organizationId`
-2. Vê apenas as clínicas designadas
-3. Escolhe 1 clínica destino
-4. Referral é criado com `organizationId = clínicaId`
+Cada registro deve ter `fromStatus`, `toStatus`, `userId` e `createdAt`. Quando houver `Bloqueado`, incluir `justificativaBloqueio`.
 
 ---
 
-## Próximas Evoluções (Não Implementadas Agora)
+## Usuários por organização
 
-- [ ] Status `Bloqueado` + `justificativaBloqueio` + aba Bloqueados (consultório/admin) + exclusão de relatórios por padrão — **especificado em** `docs/ai/referral-management.md` §0.1
-- [ ] Auditoria de mudanças de status (mínimo: entrar/sair de `Bloqueado`)
-- [ ] Um médico pertencer a múltiplas clínicas (requer mudança no modelo)
-- [ ] Roles customizáveis por organização (TRIAGEM, ATENDIMENTO, GESTOR)
-- [ ] Delegação temporária de permissões
-- [ ] Auditoria e logs de acesso por ação
-- [ ] UI para admin global designar acessos (atualmente via seed/sql)
+### Comportamento atual (não fechado como contrato)
+
+A gestão de colaboradores em clínicas e consultórios **não tem regra de produto fechada** via `isAdmin` neste momento.
+
+**Hoje no código:**
+
+- `/organizacao/usuarios` aparece para todo `MEDICO` e `PROFISSIONAL` na sidebar
+- `/api/users/organization` permite CRUD por qualquer membro autenticado da org
+- `/api/organizations/:id/users` usa `canManageOrg` (exige `isAdmin=true` ou `ADMINISTRATIVO`)
+
+Até a decisão sobre admin local ser formalizada, tratar gestão de usuários como **área instável**, não como contrato rígido.
+
+### Restrições já implementadas
+
+- clínica só cria usuários `MEDICO`
+- grupo profissional só cria usuários `PROFISSIONAL`
+- `ADMINISTRATIVO`: por enquanto qualquer usuário administrativo pode fazer tudo (questão em aberto)
+
+---
+
+## JWT e sessão
+
+O token/sessão deve carregar:
+
+- `id`
+- `role`
+- `organizationId`
+- `organizationType`
+- `organizationName`
+- `isAdmin`
+
+Esses campos já são preenchidos em `src/lib/auth.ts`.
+
+---
+
+## Proteção de rotas
+
+Regras atuais:
+
+- `/admin/**` → `ADMINISTRATIVO`
+- `/medico/**` → `MEDICO`
+- `/profissional/**` → `PROFISSIONAL`
+- `/organizacao/usuarios` → `MEDICO` ou `PROFISSIONAL` (regras de admin local via `isAdmin` ainda em aberto)
+
+No backend, usar sempre os helpers de `src/lib/api-auth.ts`.
+
+---
+
+## Regra vigente sobre clínicas disponíveis
+
+Ao criar encaminhamento como `PROFISSIONAL`, a regra vigente é:
+
+- o sistema pode listar **todas as clínicas**
+- `ProfessionalAccess` **não governa** o fluxo operacional atual
+
+Essa decisão foi formalizada em 18/08/2026 e deve permanecer assim até nova decisão de negócio.
+
+---
+
+## Roadmap e não-vigente
+
+### `ProfessionalAccess`
+
+`ProfessionalAccess` permanece no modelo e nas rotas como base técnica para evolução futura, mas **não é regra vigente** do produto neste momento.
+
+Quando essa política mudar, este documento deve ser atualizado antes de qualquer alteração estrutural no fluxo de encaminhamento.
+
+### Outros itens futuros
+
+- fechar contrato de **admin local** (`isAdmin`) para gestão de usuários por organização
+- restringir gestão de usuários `ADMINISTRATIVO` a um subconjunto de admins globais
+- médico pertencer a múltiplas clínicas
+- papéis customizados por organização
+- delegação temporária de permissões
+- logs de acesso por ação além das mudanças de status
+- Assistente (chat): piloto vigente só `ADMINISTRATIVO`. Abrir para clínica/consultório exige **contrato por papel** — ver `docs/ai/admin-assistant.md`

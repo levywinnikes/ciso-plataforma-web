@@ -17,6 +17,10 @@ export function canAccessPath(role: UserRole, pathname: string): boolean {
     return true;
   }
 
+  if (normalizedPath.startsWith("/api")) {
+    return true;
+  }
+
   const roleHomePath = resolveRolePath(role);
   return normalizedPath.startsWith(roleHomePath);
 }

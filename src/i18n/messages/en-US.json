@@ -19,7 +19,9 @@
     "includeDocuments": "Include documents",
     "remove": "Remove",
     "hello": "Hello, {name}",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "edit": "Edit",
+    "delete": "Delete"
   },
   "layout": {
     "title": "Integra Visão | Referral Platform",
@@ -97,6 +99,17 @@
     "blockedStatus": "Blocked",
     "tabActive": "Active",
     "tabBlocked": "Blocked",
+    "tabOverdue": "Overdue",
+    "overdueStatus": "Overdue",
+    "overdueBadge": "Overdue",
+    "overdueReferralsTitle": "Overdue referrals",
+    "emptyOverdueReferrals": "No appointments are past the scheduled date.",
+    "markAttendedAction": "Mark as attended",
+    "markAttendedTitle": "Confirm attendance",
+    "markAttendedMessage": "Review this referral before marking it as attended.",
+    "markAttendedHint": "After this, the record is completed and no longer appears as overdue.",
+    "markAttendedConfirm": "Confirm attendance",
+    "markAttendedSuccess": "Referral marked as attended.",
     "clinicColumn": "Clinic",
     "officeColumn": "Office",
     "createdByColumn": "Created by",
@@ -126,7 +139,14 @@
     "nucleiTitle": "Nuclei Management",
     "nucleiDescription": "Create nuclei, select services, and manage existing services.",
     "financialTitle": "Financial Report",
-    "financialDescription": "Track indicators and revenue by care nucleus."
+    "financialDescription": "Track indicators and revenue by care nucleus.",
+    "agreementsTitle": "Agreements",
+    "agreementsDescription": "Manage partner agreements accepted by clinics.",
+    "newReferralAction": "New referral",
+    "editReferralTitle": "Edit referral",
+    "updateSuccess": "Referral updated successfully.",
+    "deleteSuccess": "Referral deleted successfully.",
+    "confirmDeleteReferral": "Delete the referral for {name}?"
   },
   "adminGlobal": {
     "clinics": {
@@ -448,6 +468,16 @@
     "noSurgery": "No surgery",
     "surgeryPriceLabel": "Surgery Price (R$)"
   },
+  "assistant": {
+    "title": "Assistant",
+    "subtitle": "Guidance for everyday use of the system",
+    "open": "Open Assistant",
+    "close": "Close Assistant",
+    "placeholder": "Ask about referrals, records, overdue items...",
+    "send": "Ask",
+    "emptyTitle": "Hello. How can I help?",
+    "emptyBody": "Ask how to mark a visit as attended, what Blocked means, or where finance lives. I guide; the screens still handle the records."
+  },
   "errors": {
     "required": "Required field",
     "nameRequired": "Name is required",
@@ -478,7 +508,10 @@
     "invalidEmail": "Invalid email format.",
     "passwordsDoNotMatch": "Passwords do not match.",
     "invalidScheduleData": "Invalid scheduling data.",
-    "referralNotFound": "Referral not found.",
+    "invalidSpecialistData": "Invalid care data.",
+    "referralAlreadyCompleted": "This referral is already marked as attended.",
+    "referralBlockedCannotComplete": "Blocked referrals cannot be marked as attended.",
+    "cannotCompleteReferral": "This referral cannot be marked as attended.",
     "agreementNameRequired": "Agreement name is required.",
     "agreementNameUnique": "An agreement with this name already exists.",
     "genericRequestFailed": "Could not complete the operation. Please try again.",
@@ -489,6 +522,12 @@
     "uploadFailed": "Could not upload the file. Please try again.",
     "spacesConfigMissing": "Storage configuration is incomplete. Check the Spaces variables.",
     "spacesConfigInvalid": "Storage configuration is invalid. Check the Spaces URL.",
-    "spacesEndpointInvalid": "The Spaces URL is incorrect. Use the region endpoint, not the bucket URL."
+    "spacesEndpointInvalid": "The Spaces URL is incorrect. Use the region endpoint, not the bucket URL.",
+    "assistantUnavailable": "Guidance is unavailable right now. Please try again in a moment.",
+    "assistantNotConfigured": "The Assistant is not available in this environment yet.",
+    "assistantDailyLimit": "You have used today's guidance. Please try again tomorrow.",
+    "assistantMessageTooLong": "The question is too long. Shorten it and send again.",
+    "invalidAssistantData": "This question could not be sent. Review the text and try again.",
+    "invalidAssistantQuery": "These numbers could not be loaded. Check the period or office and try again."
   }
 }

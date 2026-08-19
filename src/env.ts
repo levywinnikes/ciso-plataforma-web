@@ -10,6 +10,7 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),
+  GEMINI_API_KEY: z.string().optional().default(""),
   DO_SPACES_ENDPOINT: z.string().optional().default(""),
   DO_SPACES_REGION: z.string().optional().default(""),
   DO_SPACES_BUCKET: z.string().optional().default(""),

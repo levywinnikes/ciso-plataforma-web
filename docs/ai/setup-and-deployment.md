@@ -61,6 +61,10 @@ Obrigatorias para execucao:
 
 `NODE_ENV` e validada, mas em producao o Vercel ja define como `production`.
 
+Opcional para o Assistente (piloto admin):
+
+- `GEMINI_API_KEY` — se ausente, o widget aparece e a pergunta falha com erro visível
+
 ### Valores corretos do DigitalOcean Spaces
 
 | Variavel             | Valor correto                         |
@@ -176,6 +180,11 @@ npx prisma db push
 
 - **Causa**: O Vercel nao consegue se comunicar com o banco Postgres.
 - **Solucao**: Verifique `DATABASE_URL` e se o Neon aceita conexoes externas.
+
+### 6.1.1 `terminating connection due to administrator command` (`57P01`)
+
+- **Causa**: o Neon (ou outro Postgres gerenciado) encerrou conexões ociosas ou reiniciou o compute. Não é falha de regra de negócio.
+- **Solucao**: a próxima consulta deve reconectar sozinha (`withPrismaRetry` em `src/lib/prisma.ts`). Se persistir, abra o projeto no painel do Neon para acordar o banco e recarregue a tela.
 
 ### 6.2 Erro `The specified token is not valid` ou `Not authorized` na CLI
 

@@ -70,8 +70,13 @@ Este arquivo e o ponto de entrada obrigatorio para qualquer agente antes de coda
 - docs/ai/access-and-permissions.md (roles, vinculacao organizacional, matriz de permissoes, fluxos)
 - docs/ai/user-views.md (telas e views por role, rotas, funcionalidades)
 - docs/ai/api-routes.md (endpoints REST, payloads, respostas, permissoes por endpoint)
+- docs/ai/decision-log.md (decisoes formais de produto e governanca que afetam a implementacao)
 - docs/ai/security-checklist.md (padrao obrigatorio para handlers de API)
 - docs/ai/referral-management.md (gestão de encaminhamentos: status incl. `Bloqueado`, regras de criação/edição/exclusão por papel, justificativa, visibilidade e relatórios)
+- docs/ai/admin-assistant.md (piloto vigente do Assistente para ADMINISTRATIVO; Gemini; sem DeepSeek)
+- docs/ai/assistant-knowledge.md (manual de consulta do Assistente — linguagem de negócio; não substitui docs de desenvolvimento)
+- docs/ai/assistant-contract.md (o que o Assistente pode / não pode)
+- docs/ai/assistant-autonomy.md (planejamento de autonomia de consulta: destacar / localizar; ainda não no código)
 
 > **IMPORTANTE**: Qualquer mudanca que envolva autenticacao, autorizacao, criacao de roles, acesso a dados OU API deve consultar estes documentos primeiro.
 
@@ -88,6 +93,7 @@ Este arquivo e o ponto de entrada obrigatorio para qualquer agente antes de coda
 ### Setup e deployment
 
 - docs/ai/setup-and-deployment.md (setup local, env obrigatorias, deploy no Vercel)
+- docs/ai/documentation-roadmap.md (inventário atual vs dívida; **não** usar o audit de maio/2026)
 
 ## Checklist antes de implementar
 

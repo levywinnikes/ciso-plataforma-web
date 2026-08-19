@@ -1,259 +1,152 @@
 # Telas e Views por Role
 
-Mapa de quais telas cada role pode acessar e o que faz em cada uma.
+Este documento descreve apenas as telas **vigentes** do `Integra Visão`.
+
+Itens planejados, experimentais ou ainda não adotados como regra de produto devem ficar em roadmap ou decision log separado.
 
 ---
 
-## ADMINISTRATIVO (Global)
+## ADMINISTRATIVO
 
-### Dashboard Admin
+### Dashboard principal
 
 **Rota:** `/admin`
 
-Visão geral do sistema com:
+Capacidades:
 
-- Total de organizações (clínicas + grupos profissionais)
-- Total de usuários por tipo
-- Últimas atividades
-- Cards de métricas gerais
-- Listagem de encaminhamentos com aba/filtro **Bloqueados** (além de Encaminhados / Agendados / Concluídos)
-- Encaminhamentos `Bloqueado` visíveis e editáveis; exigem justificativa ao definir o status
+- visão geral do sistema
+- listagem de encaminhamentos
+- aba/filtro de `Bloqueado`
+- aba **Atrasados** (agendamento em dia anterior ao atual, ainda não `Atendido`); a aba Ativos continua mostrando todos os não bloqueados, inclusive atrasados
+- destaque visual de atrasados (faixa, fundo suave e selo **Atrasado**)
+- atalho **Marcar como atendido** com confirmação dos dados (status `Encaminhado` ou `Agendado`)
+- edição administrativa de encaminhamentos
+- atalhos para os módulos administrativos
 
-### Gerenciar Organizações
+### Cadastros e operação administrativa
 
-**Rota:** `/admin/organizacoes` (não implementado ainda)
+Rotas atualmente presentes no projeto:
 
-CRUD de organizações:
+- `/admin/novo`
+- `/admin/clinicas`
+- `/admin/grupos-profissionais`
+- `/admin/usuarios`
+- `/admin/convenios`
+- `/admin/nucleos`
+- `/admin/servicos`
+- `/admin/cirurgias`
+- `/admin/financeiro`
+- `/admin/organizacoes`
+- `/admin/relatorios`
+- `/admin/acessos`
 
-- Listar todas
-- Criar nova (escolhe tipo: CLINICA ou PROFISSIONAL_GROUP)
-- Editar dados (nome, CNPJ, etc.)
-- Deletar
-- Ao criar, gera 1 MEDICO (se CLINICA) ou 1 PROFISSIONAL (se PROFISSIONAL_GROUP) com `isAdmin=true`
+Observações:
 
-### Gerenciar Usuários
-
-**Rota:** `/admin/usuarios` (não implementado ainda)
-
-CRUD de todos os usuários:
-
-- Listar por organização ou tipo de role
-- Criar novo usuário
-- Editar perfil
-- Deletar
-- Filtrar por organização, role, status
-
-### Designar Acessos (Profissionais → Clínicas)
-
-**Rota:** `/admin/acessos` (não implementado ainda)
-
-Matriz de permissões:
-
-- Selecionar grupo profissional
-- Selecionar clínicas que podem receber referrals desse grupo
-- Salvar permissão (cria/remove de `ProfessionalAccess`)
-
-### Relatórios Globais
-
-**Rota:** `/admin/relatorios` (não implementado ainda) / financeiro atual em `/admin/financeiro`
-
-Visualizações:
-
-- Referrals por clínica (últimos 30 dias)
-- Atividade por organização
-- Distribuição de referrals (origem vs. destino)
-- Métricas financeiras globais
-- **Por padrão, excluir status `Bloqueado`**; só incluir com filtro explícito “incluir bloqueados”
+- a presença da rota não significa que o módulo esteja fechado como contrato de negócio
+- `admin/acessos` e `ProfessionalAccess` não governam o fluxo vigente de encaminhamento neste momento
+- financeiro e relatórios devem excluir `Bloqueado` por padrão
+- **Assistente (chat):** piloto vigente para `ADMINISTRATIVO` — widget flutuante nas telas `/admin`. Clínica e consultório só depois de contrato por papel. Ver `docs/ai/admin-assistant.md`.
 
 ---
 
-## MEDICO (Clínica)
+## MEDICO
 
-### Dashboard Médico
+### Dashboard médico
 
 **Rota:** `/medico`
 
-Listagem de referrals:
+Capacidades vigentes:
 
-- Referrals da clínica (filtrados por status `Agendado` / `Atendido`)
-- **Não exibe** encaminhamentos `Bloqueado` (nem métricas deles)
-- Busca por paciente
-- Ordenação por data
-- Cards de métricas (total atendido hoje, pendentes, etc.)
+- listar encaminhamentos da clínica
+- visualizar apenas o fluxo clínico (`Agendado` e `Atendido`)
+- preencher notas, conduta e anexos do especialista
+- concluir atendimento quando aplicável
 
-### Detalhe de Referral
+Restrições:
 
-**Rota:** `/medico/referral/:id`
+- não enxerga encaminhamentos `Bloqueado`
+- não administra encaminhamentos de outras clínicas
 
-Ficha completa do paciente:
+### Colaboradores da organização
 
-- Dados do paciente (nome, DOB, telefone, CPF, doenças sistêmicas)
-- Histórico do encaminhamento
-- Status atual
-- Data de agendamento
-- ✏️ **Edição permitida:**
-  - Considerações clínicas
-  - Conduta recomendada
-  - Anexar documentos/exames
-- Salvar e atualizar status (`Agendado` → `Atendido`; clínica não opera `Bloqueado`)
+**Rota:** `/organizacao/usuarios`
 
-### Gerenciar Usuários (apenas se isAdmin=true)
+Capacidades atuais (comportamento no código):
 
-**Rota:** `/medico/usuarios` (novo, condicional)
+- a tela existe para `MEDICO` e `PROFISSIONAL`
+- gestão de colaboradores da própria organização está disponível, mas **sem contrato fechado** sobre quem deveria ter acesso
 
-CRUD de usuários da clínica:
-
-- Listar médicos da clínica
-- Adicionar novo médico (cria usuário MEDICO com isAdmin=false)
-- Editar perfil de outro médico
-- Remover médico da clínica
-- Reset de senha
-
-### Dados da Clínica (apenas se isAdmin=true)
-
-**Rota:** `/medico/configuracoes` (novo, condicional)
-
-Edição de informações básicas:
-
-- Nome da clínica
-- CNPJ/CPF
-- Endereço
-- Contato
-- ❌ Não pode alterar tipo
-
-### Relatórios da Clínica (apenas se isAdmin=true)
-
-**Rota:** `/medico/relatorios` (novo, condicional)
-
-Visualizações:
-
-- Referrals recebidos (últimos 30 dias)
-- Agendamentos e atendimentos
-- Médicos mais ativos
-- Distribuição por status
-- **Sem** incluir `Bloqueado` (clínica não enxerga esse status)
+**Questão em aberto:** `isAdmin` como admin local para restringir essa área — não implementar por enquanto.
 
 ---
 
-## PROFISSIONAL (Grupo Profissional)
+## PROFISSIONAL
 
-### Dashboard Profissional
+### Dashboard profissional
 
 **Rota:** `/profissional`
 
-Listagem de referrals enviados:
+Capacidades vigentes:
 
-- Meus referrals (filtrados por status)
-- Aba/filtro dedicado **Bloqueados**
-- Busca por paciente
-- Status do encaminhamento (`Bloqueado`, `Encaminhado`, `Agendado`, `Atendido`)
-- Cards de métricas (total encaminhado mês, taxa de agendamento) — **excluir `Bloqueado` por padrão**
+- listar encaminhamentos próprios
+- se `isAdmin=true`, acompanhar encaminhamentos de todo o consultório (comportamento já no código)
+- usar aba/filtro `Bloqueado`
+- editar e excluir encaminhamentos enquanto estiverem em status inicial permitido
 
-### Novo Referral
+### Novo encaminhamento
 
 **Rota:** `/profissional/novo`
 
-Formulário de encaminhamento:
+Capacidades vigentes:
 
-- Dados do paciente (obrigatório)
-- Seleção de clínica destino:
-  - ✅ Dropdown com apenas clínicas designadas por ADMIN_GLOBAL
-  - Busca e filtro
-- Hipótese diagnóstica (suspeita clínica)
-- Seleção de núcleo de atendimento
-- Upload de documentos
-- Status opcional: `Encaminhado` (default) ou `Bloqueado`
-- Se `Bloqueado`: campo obrigatório **Justificativa**
-- Enviar / Salvar
+- cadastrar dados do paciente
+- escolher clínica destino
+- escolher núcleo e convênio quando aplicável
+- anexar documentos
+- salvar como `Encaminhado` ou `Bloqueado`
 
-### Listar Meus Referrals
+Regra vigente para escolha de clínica:
 
-**Rota:** `/profissional` (dashboard já listar)
+- o sistema pode listar **todas as clínicas**
+- `ProfessionalAccess` fica fora da regra operacional atual
 
-Visualização com:
+### Colaboradores da organização
 
-- ID do referral
-- Paciente
-- Clínica destino
-- Status atual (`Bloqueado`, `Encaminhado`, `Agendado`, `Atendido`)
-- Data de envio
-- Ação: Clicar para ver detalhes
-- Edição permitida enquanto `Encaminhado` ou `Bloqueado` (inclui desbloquear para a clínica ver)
+**Rota:** `/organizacao/usuarios`
 
-### Detalhe de Referral (Pós-Encaminhamento)
+Capacidades atuais (comportamento no código):
 
-**Rota:** `/profissional/referral/:id`
+- a tela existe para `MEDICO` e `PROFISSIONAL`
+- gestão de colaboradores da própria organização está disponível, mas **sem contrato fechado** sobre quem deveria ter acesso
 
-Informações limitadas:
-
-- Status atualizado
-- Data de agendamento (se agendado)
-- ❌ Sem acesso a considerações/conduta do médico
-- ❌ Sem acesso a outros documentos que médico anexou
-
-### Gerenciar Usuários (apenas se isAdmin=true)
-
-**Rota:** `/profissional/usuarios` (novo, condicional)
-
-CRUD de usuários do grupo profissional:
-
-- Listar profissionais do grupo
-- Adicionar novo profissional (cria usuário PROFISSIONAL com isAdmin=false)
-- Editar perfil de outro profissional
-- Remover profissional do grupo
-- Reset de senha
-
-### Dados do Grupo (apenas se isAdmin=true)
-
-**Rota:** `/profissional/configuracoes` (novo, condicional)
-
-Edição de informações básicas:
-
-- Nome do grupo
-- CNPJ/CPF
-- Endereço
-- Contato
-- ❌ Não pode alterar tipo
-
-### Relatórios do Grupo (apenas se isAdmin=true)
-
-**Rota:** `/profissional/relatorios` (novo, condicional)
-
-Visualizações:
-
-- Referrals enviados (últimos 30 dias)
-- Distribuição por clínica destino
-- Profissionais mais ativos
-- Taxa de agendamento
-- **Excluir `Bloqueado` por padrão**; incluir só com filtro explícito
+**Questão em aberto:** `isAdmin` como admin local para restringir essa área — não implementar por enquanto.
 
 ---
 
-## Rotas Não Implementadas (Legado)
+## Rotas legadas e compatibilidade
 
-- ❌ `/clinica` — **DEPRECATED**, roles redefinidos
-- ❌ `/centro` — **DEPRECATED**, redirecionado para `/admin`
-- ✅ `/optometrista` → redirecionado para `/profissional` (mantém compatibilidade)
+- `/optometrista` → redireciona para `/profissional`
+- `/optometrista/novo` → redireciona para `/profissional/novo`
+- `/centro` → rota legada/deprecada
+- `/clinica` → rota existente no projeto, mas fora do fluxo principal vigente definido para o produto
 
 ---
 
-## Resumo de Rotas
+## Resumo de rotas vigentes
 
-| Rota                          | Role/Condição               | Função                            |
-| ----------------------------- | --------------------------- | --------------------------------- |
-| `/admin`                      | ADMINISTRATIVO              | Dashboard global                  |
-| `/admin/organizacoes`         | ADMINISTRATIVO              | CRUD de organizações              |
-| `/admin/usuarios`             | ADMINISTRATIVO              | CRUD de todos os usuários         |
-| `/admin/acessos`              | ADMINISTRATIVO              | Designar profissionais → clínicas |
-| `/admin/relatorios`           | ADMINISTRATIVO              | Relatórios globais                |
-| `/medico`                     | MEDICO                      | Dashboard + listar referrals      |
-| `/medico/referral/:id`        | MEDICO                      | Detalhe + edição de referral      |
-| `/medico/usuarios`            | MEDICO + isAdmin=true       | CRUD de médicos da clínica        |
-| `/medico/configuracoes`       | MEDICO + isAdmin=true       | Editar dados da clínica           |
-| `/medico/relatorios`          | MEDICO + isAdmin=true       | Relatórios da clínica             |
-| `/profissional`               | PROFISSIONAL                | Dashboard + listar meus referrals |
-| `/profissional/novo`          | PROFISSIONAL                | Criar novo referral               |
-| `/profissional/referral/:id`  | PROFISSIONAL                | Detalhe de meu referral           |
-| `/profissional/usuarios`      | PROFISSIONAL + isAdmin=true | CRUD de profissionais do grupo    |
-| `/profissional/configuracoes` | PROFISSIONAL + isAdmin=true | Editar dados do grupo             |
-| `/profissional/relatorios`    | PROFISSIONAL + isAdmin=true | Relatórios do grupo               |
+| Rota                          | Papel                     | Uso atual                            |
+| ----------------------------- | ------------------------- | ------------------------------------ |
+| `/admin`                      | `ADMINISTRATIVO`          | Dashboard global                     |
+| `/admin/novo`                 | `ADMINISTRATIVO`          | Novo encaminhamento administrativo   |
+| `/admin/clinicas`             | `ADMINISTRATIVO`          | Gestão de clínicas                   |
+| `/admin/grupos-profissionais` | `ADMINISTRATIVO`          | Gestão de grupos profissionais       |
+| `/admin/usuarios`             | `ADMINISTRATIVO`          | Gestão administrativa de usuários    |
+| `/admin/convenios`            | `ADMINISTRATIVO`          | Gestão de convênios                  |
+| `/admin/nucleos`              | `ADMINISTRATIVO`          | Gestão de núcleos                    |
+| `/admin/servicos`             | `ADMINISTRATIVO`          | Gestão de serviços                   |
+| `/admin/cirurgias`            | `ADMINISTRATIVO`          | Gestão de cirurgias                  |
+| `/admin/financeiro`           | `ADMINISTRATIVO`          | Indicadores financeiros              |
+| `/medico`                     | `MEDICO`                  | Operação clínica                     |
+| `/profissional`               | `PROFISSIONAL`            | Encaminhamentos do profissional      |
+| `/profissional/novo`          | `PROFISSIONAL`            | Novo encaminhamento                  |
+| `/organizacao/usuarios`       | `MEDICO` / `PROFISSIONAL` | Colaboradores da própria organização |

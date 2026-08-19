@@ -25,23 +25,24 @@ Este documento descreve a estrutura das tabelas do banco da aplicação, com foc
 
 Armazena as contas de acesso do sistema.
 
-| Campo          | Tipo     | Obrigatório | Regras                                                 |
-| -------------- | -------- | ----------- | ------------------------------------------------------ |
-| id             | String   | Sim         | Chave primária                                         |
-| email          | String   | Sim         | Único                                                  |
-| emailVerified  | DateTime | Não         | Usado por fluxos de confirmação                        |
-| name           | String   | Sim         | Nome exibido na interface                              |
-| image          | String   | Não         | Avatar/foto de perfil                                  |
-| passwordHash   | String   | Não         | Senha criptografada para login por credenciais         |
-| role           | UserRole | Sim         | Default `PROFISSIONAL`                                 |
-| organizationId | String   | Não         | FK para `Organization.id`; null se role=ADMINISTRATIVO |
-| isAdmin        | Boolean  | Não         | Default `false`; permite gerenciar usuários se true    |
-| createdAt      | DateTime | Sim         | Default `now()`                                        |
+| Campo          | Tipo     | Obrigatório | Regras                                                                           |
+| -------------- | -------- | ----------- | -------------------------------------------------------------------------------- |
+| id             | String   | Sim         | Chave primária                                                                   |
+| email          | String   | Sim         | Único                                                                            |
+| emailVerified  | DateTime | Não         | Usado por fluxos de confirmação                                                  |
+| name           | String   | Sim         | Nome exibido na interface                                                        |
+| image          | String   | Não         | Avatar/foto de perfil                                                            |
+| passwordHash   | String   | Não         | Senha criptografada para login por credenciais                                   |
+| role           | UserRole | Sim         | Default `PROFISSIONAL`                                                           |
+| organizationId | String   | Não         | FK para `Organization.id`; null se role=ADMINISTRATIVO                           |
+| isAdmin        | Boolean  | Não         | Default `false`; intenção de **admin local** (contrato completo ainda em aberto) |
+| createdAt      | DateTime | Sim         | Default `now()`                                                                  |
 
 ### Relações
 
 - 1 User tem várias Account
 - 1 User tem várias Session
+- 1 User tem vários registros `AssistantDailyUsage`
 - 1 User pertence a 1 Organization (se organizationId != null)
 
 ## Tabela: Account
@@ -297,6 +298,20 @@ Registrar mudanças de status (em especial entrar/sair de `Bloqueado`) em tabela
 - `justificativaBloqueio` (quando aplicável)
 - `userId`
 - `createdAt`
+
+## Tabela: AssistantDailyUsage
+
+Contagem diária de perguntas do Assistente por administrador.
+
+| Campo                 | Tipo     | Obrigatório | Regras                                |
+| --------------------- | -------- | ----------- | ------------------------------------- |
+| id                    | String   | Sim         | PK                                    |
+| userId                | String   | Sim         | FK User                               |
+| day                   | String   | Sim         | `YYYY-MM-DD` (UTC)                    |
+| count                 | Int      | Sim         | Incrementa após resposta bem-sucedida |
+| createdAt / updatedAt | DateTime | Sim         |                                       |
+
+Único por (`userId`, `day`). Limite vigente: 200.
 
 ## Pontos para evoluir depois
 

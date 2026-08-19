@@ -123,7 +123,9 @@ Authorization: Bearer <admin_token>
 
 ---
 
-## Usuários (ADMINISTRATIVO + Admin Local)
+## Usuários (ADMINISTRATIVO + organizações)
+
+> **Questão em aberto:** `isAdmin` representa **admin local** no modelo, mas o contrato de quem pode gerenciar usuários ainda não está fechado. Abaixo descreve o **comportamento atual** das rotas, não a regra final desejada.
 
 ### Listar Gestores Globais (Administradores)
 
@@ -201,12 +203,29 @@ Authorization: Bearer <token>
 ]
 ```
 
-**Acesso:**
+**Acesso (comportamento atual):**
 
-- ADMINISTRATIVO → todos os usuários de qualquer org
-- MEDICO/PROFISSIONAL com isAdmin=true → apenas usuários de sua org
+- ADMINISTRATIVO → qualquer org, via `canManageOrg`
+- MEDICO/PROFISSIONAL com `isAdmin=true` → própria org, via `canManageOrg`
+- MEDICO/PROFISSIONAL sem `isAdmin` → 403 nesta rota
 
-### Criar usuário em organização
+### Listar/criar usuários (rota alternativa da org)
+
+```
+GET /users/organization?organizationId=...
+POST /users/organization
+PATCH /users/organization/:id
+DELETE /users/organization/:id
+```
+
+**Acesso (comportamento atual):**
+
+- qualquer `MEDICO` ou `PROFISSIONAL` autenticado da org pode listar, criar, editar e remover usuários da própria org
+- `ADMINISTRATIVO` pode informar `organizationId` na query
+
+> Enforcement de `isAdmin` **não está uniforme** entre `/organizations/:id/users` e `/users/organization`. Tratar como dívida técnica até fechar o contrato de admin local.
+
+### Criar usuário em organização (via `/organizations/:id/users`)
 
 ```
 POST /organizations/:orgId/users
@@ -245,10 +264,12 @@ Content-Type: application/json
 - Password min 8 caracteres
 - Role deve corresponder ao tipo de org (CLINICA → MEDICO, PROFISSIONAL_GROUP → PROFISSIONAL)
 
-**Acesso:**
+**Acesso (comportamento atual):**
 
-- ADMINISTRATIVO → criar em qualquer org
-- MEDICO/PROFISSIONAL com isAdmin=true → criar em sua própria org
+- ADMINISTRATIVO → criar em qualquer org (`canManageOrg`)
+- MEDICO/PROFISSIONAL com `isAdmin=true` → criar na própria org
+- MEDICO/PROFISSIONAL sem `isAdmin` → 403 nesta rota
+- via `/users/organization`: qualquer membro da org (ver rota alternativa acima)
 
 ### Editar usuário
 
@@ -269,10 +290,11 @@ Content-Type: application/json
 
 **Resposta (200):** Usuário atualizado
 
-**Acesso:**
+**Acesso (comportamento atual):**
 
 - ADMINISTRATIVO → editar qualquer usuário
-- MEDICO/PROFISSIONAL com isAdmin=true → editar usuários da própria org (não pode alterar role)
+- MEDICO/PROFISSIONAL com `isAdmin=true` → editar usuários da própria org (`canManageUser`)
+- demais casos → variam conforme a rota usada (ver inconsistência acima)
 
 ### Deletar usuário
 
@@ -283,10 +305,11 @@ Authorization: Bearer <token>
 
 **Resposta (204):** Sem corpo
 
-**Acesso:**
+**Acesso (comportamento atual):**
 
 - ADMINISTRATIVO → deletar qualquer usuário
-- MEDICO/PROFISSIONAL com isAdmin=true → deletar usuários da própria org
+- MEDICO/PROFISSIONAL com `isAdmin=true` → deletar usuários da própria org
+- demais casos → variam conforme a rota usada (ver inconsistência acima)
 
 ---
 
@@ -457,6 +480,21 @@ Authorization: Bearer <admin_token>
 
 ## Referrals (PROFISSIONAL cria, MEDICO edita)
 
+### Listar clínicas disponíveis para encaminhamento
+
+```
+GET /referrals/clinics
+Authorization: Bearer <token>
+```
+
+**Resposta (200):** lista de organizações `CLINICA`, com convênios ativos quando existirem.
+
+**Regra vigente:**
+
+- `PROFISSIONAL` pode visualizar todas as clínicas
+- `ProfessionalAccess` não governa o fluxo atual desta rota
+- se essa regra mudar, o contrato de acesso deve ser atualizado antes da implementação
+
 ### Listar referrals (com filtro por organização)
 
 ```
@@ -515,7 +553,7 @@ Content-Type: application/json
   "clinicalNotes": "Paciente com queixa de miopia",
   "clinicalSuspicion": "Miopia progressiva",
   "nucleusId": "nucleus_1",
-  "organizationId": "org_123",
+  "clinicId": "org_123",
   "documents": ["file_id_1", "file_id_2"],
   "status": "Bloqueado",
   "justificativaBloqueio": "Cliente ainda não decidiu horário"
@@ -540,9 +578,8 @@ Content-Type: application/json
 
 **Validações:**
 
-- PROFISSIONAL só pode criar para organizações que aparecem em `ProfessionalAccess`
+- A clínica de destino deve ser uma organização do tipo `CLINICA`
 - Todos os campos obrigatórios
-- `organizationId` deve ser Organization com type=CLINICA
 - `status` na criação: apenas `Encaminhado` (default) ou `Bloqueado`
 - Se `Bloqueado`, exigir `justificativaBloqueio`
 
@@ -586,6 +623,73 @@ Ou:
 - Mudanças envolvendo `Bloqueado` devem gerar registro de auditoria
 
 **Acesso:** Principalmente MEDICO (seu próprio fluxo); PROFISSIONAL e ADMINISTRATIVO conforme regras de edição
+
+### Marcar como atendido (administrativo)
+
+```
+PATCH /referrals/:referralId/complete
+```
+
+Sem corpo. Autorização: `requireAdministrativo`.
+
+**Resposta (200):**
+
+```json
+{ "id": "ref_123", "status": "Atendido" }
+```
+
+**Erros:** `errors.referralNotFound`, `errors.referralAlreadyCompleted`, `errors.referralBlockedCannotComplete`, `errors.cannotCompleteReferral`.
+
+**Regras:** somente `Encaminhado` ou `Agendado`. Gera `ReferralStatusAudit`.
+
+### Assistente administrativo (piloto)
+
+```
+POST /admin/assistant/chat
+```
+
+Autorização: `requireAdministrativo`. Corpo: `{ "message": "...", "locale": "pt-BR", "history": [] }`.
+
+**Resposta (200):** `{ "reply": "...", "remaining": 199 }`
+
+**Erros:** `errors.invalidAssistantData`, `errors.assistantDailyLimit` (429), `errors.assistantUnavailable`, `errors.assistantNotConfigured`.
+
+Limite: 200 perguntas por usuário por dia. Fallback só entre modelos Gemini.
+
+O chat envia o **manual** e a **gramática da consulta**. Se a pergunta pedir número, o modelo pede um recorte; o servidor agrega; o modelo responde. Não anexa relatório pronto. Não envia lista de encaminhamentos.
+
+### Consultas do Assistente
+
+```
+GET /admin/assistant/queries
+POST /admin/assistant/queries
+```
+
+Autorização: `requireAdministrativo`. Só totais — **sem** paciente.
+
+**GET:** dimensões possíveis (não números).
+
+**POST:** `{ "consulta": { "assunto", "medir", "quebrarPor", "filtros" } }` (Zod). Financeiro exclui `Bloqueado` salvo `incluirBloqueados`.
+
+**Erros:** `errors.invalidAssistantQuery`, `errors.assistantUnavailable`.
+
+O Gemini **não** chama este endereço. O chat usa `runAssistantConsulta` no servidor.
+
+### Agendar encaminhamento (administrativo)
+
+```
+PATCH /referrals/:referralId/schedule
+```
+
+**Payload:** `clinicId`, `doctorUserId`, `appointmentDate`. Só a partir de `Encaminhado`. Gera `ReferralStatusAudit` (`Encaminhado` → `Agendado`).
+
+### Concluir atendimento (médico)
+
+```
+PATCH /referrals/:referralId/specialist
+```
+
+Notas, conduta, cirurgia e `complete`. Só `MEDICO` da clínica. Se `complete` for verdadeiro e o status ainda não for `Atendido`, gera `ReferralStatusAudit`.
 
 ### Deletar referral
 
@@ -726,5 +830,8 @@ GET /health
 | `/users/globals`           | Admin         | Admin         | —             | —                |
 | `/nuclei`                  | Todos         | Admin         | Admin         | Admin            |
 | `/referrals`               | Prof/Med      | Prof          | Med           | Admin/Prof(novo) |
+| `/referrals/:id/complete`  | —             | —             | Admin         | —                |
+| `/admin/assistant/chat`    | —             | Admin         | —             | —                |
+| `/admin/assistant/queries` | Admin         | Admin         | —             | —                |
 | `/professional-access`     | Admin         | Admin         | —             | Admin            |
 | `/health`                  | Público       | —             | —             | —                |

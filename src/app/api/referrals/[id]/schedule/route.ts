@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { apiError, requireSession } from "@/lib/api-auth";
+import { apiError, requireAdministrativo } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 const scheduleSchema = z.object({
@@ -14,11 +14,12 @@ export async function PATCH(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  const auth = await requireSession();
+  const auth = await requireAdministrativo();
   if ("error" in auth) return auth.error;
-  if (auth.user.role !== "ADMINISTRATIVO") {
-    return apiError("errors.forbidden", 403);
+  if (!auth.user.id) {
+    return apiError("errors.unauthorized", 401);
   }
+  const userId = auth.user.id;
 
   const body = await request.json();
   const parsed = scheduleSchema.safeParse(body);
@@ -60,14 +61,27 @@ export async function PATCH(
     return apiError("errors.invalidUserData", 400);
   }
 
-  const updated = await prisma.referral.update({
-    where: { id: params.id },
-    data: {
-      clinicId: parsed.data.clinicId,
-      doctor: doctor.name,
-      appointmentDate: new Date(parsed.data.appointmentDate),
-      status: "Agendado",
-    },
+  const updated = await prisma.$transaction(async (tx) => {
+    const next = await tx.referral.update({
+      where: { id: params.id },
+      data: {
+        clinicId: parsed.data.clinicId,
+        doctor: doctor.name,
+        appointmentDate: new Date(parsed.data.appointmentDate),
+        status: "Agendado",
+      },
+    });
+
+    await tx.referralStatusAudit.create({
+      data: {
+        referralId: referral.id,
+        fromStatus: referral.status,
+        toStatus: "Agendado",
+        userId,
+      },
+    });
+
+    return next;
   });
 
   return NextResponse.json({

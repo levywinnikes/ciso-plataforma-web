@@ -6,6 +6,8 @@ import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import React, { useState } from "react";
 
+import { AssistantWidget } from "@/features/assistant/assistant-widget";
+
 import { LanguageSwitcher } from "./language-switcher";
 import { Sidebar } from "./sidebar";
 
@@ -71,6 +73,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <div className="mx-auto max-w-7xl">{children}</div>
         </main>
       </div>
+      <AssistantWidget />
     </div>
   );
 }

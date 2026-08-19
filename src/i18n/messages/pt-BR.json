@@ -19,7 +19,9 @@
     "includeDocuments": "Incluir documentos",
     "remove": "Remover",
     "hello": "Olá, {name}",
-    "logout": "Sair do sistema"
+    "logout": "Sair do sistema",
+    "edit": "Editar",
+    "delete": "Excluir"
   },
   "layout": {
     "title": "Integra Visão | Plataforma de Encaminhamentos",
@@ -97,6 +99,17 @@
     "blockedStatus": "Bloqueados",
     "tabActive": "Ativos",
     "tabBlocked": "Bloqueados",
+    "tabOverdue": "Atrasados",
+    "overdueStatus": "Atrasados",
+    "overdueBadge": "Atrasado",
+    "overdueReferralsTitle": "Encaminhamentos atrasados",
+    "emptyOverdueReferrals": "Nenhum atendimento passou da data agendada.",
+    "markAttendedAction": "Marcar como atendido",
+    "markAttendedTitle": "Confirmar atendimento",
+    "markAttendedMessage": "Confirme os dados deste encaminhamento antes de marcar como atendido.",
+    "markAttendedHint": "Depois disso, o registro entra como concluído e deixa de aparecer como atrasado.",
+    "markAttendedConfirm": "Confirmar atendimento",
+    "markAttendedSuccess": "Encaminhamento marcado como atendido.",
     "clinicColumn": "Clínica",
     "officeColumn": "Consultório",
     "createdByColumn": "Criado por",
@@ -126,7 +139,14 @@
     "nucleiTitle": "Gestão de Núcleos",
     "nucleiDescription": "Cadastre núcleos, selecione serviços e gerencie serviços existentes.",
     "financialTitle": "Relatório Financeiro",
-    "financialDescription": "Acompanhe indicadores e receita por núcleo de atendimento."
+    "financialDescription": "Acompanhe indicadores e receita por núcleo de atendimento.",
+    "agreementsTitle": "Convênios",
+    "agreementsDescription": "Gerencie os convênios parceiros aceitos pelas clínicas.",
+    "newReferralAction": "Novo encaminhamento",
+    "editReferralTitle": "Editar encaminhamento",
+    "updateSuccess": "Encaminhamento atualizado com sucesso.",
+    "deleteSuccess": "Encaminhamento excluído com sucesso.",
+    "confirmDeleteReferral": "Excluir o encaminhamento de {name}?"
   },
   "adminGlobal": {
     "clinics": {
@@ -454,6 +474,16 @@
     "noSurgery": "Sem cirurgia",
     "surgeryPriceLabel": "Valor da Cirurgia (R$)"
   },
+  "assistant": {
+    "title": "Assistente",
+    "subtitle": "Orientação para o dia a dia do sistema",
+    "open": "Abrir Assistente",
+    "close": "Fechar Assistente",
+    "placeholder": "Pergunte sobre encaminhamentos, cadastros, atrasados...",
+    "send": "Perguntar",
+    "emptyTitle": "Olá. Como posso orientar?",
+    "emptyBody": "Pergunte como marcar um atendimento, o que é Bloqueado ou onde fica o financeiro. Eu oriento; as telas continuam fazendo o cadastro."
+  },
   "errors": {
     "required": "Campo obrigatório",
     "nameRequired": "Nome é obrigatório",
@@ -485,7 +515,10 @@
     "invalidEmail": "Formato de e-mail inválido.",
     "passwordsDoNotMatch": "As senhas não coincidem.",
     "invalidScheduleData": "Dados de agendamento inválidos.",
-    "referralNotFound": "Encaminhamento não encontrado.",
+    "invalidSpecialistData": "Dados do atendimento inválidos.",
+    "referralAlreadyCompleted": "Este encaminhamento já está atendido.",
+    "referralBlockedCannotComplete": "Encaminhamentos bloqueados não podem ser marcados como atendidos.",
+    "cannotCompleteReferral": "Não é possível marcar este encaminhamento como atendido.",
     "agreementNameRequired": "O nome do convênio é obrigatório.",
     "agreementNameUnique": "Já existe um convênio cadastrado com este nome.",
     "genericRequestFailed": "Não foi possível concluir a operação. Tente novamente.",
@@ -496,6 +529,12 @@
     "uploadFailed": "Não foi possível enviar o arquivo. Tente novamente.",
     "spacesConfigMissing": "Configuração de armazenamento incompleta. Verifique as variáveis do Spaces.",
     "spacesConfigInvalid": "Configuração de armazenamento inválida. Verifique a URL do Spaces.",
-    "spacesEndpointInvalid": "A URL do Spaces está incorreta. Use o endpoint da região, não a URL do bucket."
+    "spacesEndpointInvalid": "A URL do Spaces está incorreta. Use o endpoint da região, não a URL do bucket.",
+    "assistantUnavailable": "Não foi possível obter orientação agora. Tente de novo em instantes.",
+    "assistantNotConfigured": "O Assistente ainda não está disponível neste ambiente.",
+    "assistantDailyLimit": "Você já usou as orientações de hoje. Tente novamente amanhã.",
+    "assistantMessageTooLong": "A pergunta está longa demais. Resuma um pouco e envie de novo.",
+    "invalidAssistantData": "Não foi possível enviar esta pergunta. Revise o texto e tente novamente.",
+    "invalidAssistantQuery": "Não foi possível obter esses números. Revise o período ou o consultório e tente de novo."
   }
 }

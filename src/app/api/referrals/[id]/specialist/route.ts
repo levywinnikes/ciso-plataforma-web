@@ -1,77 +1,108 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
+import { z } from "zod";
 
-import { authOptions } from "@/lib/auth";
+import { apiError, requireSession } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { resolveDocumentUrl } from "@/lib/storage";
+
+const specialistSchema = z.object({
+  notes: z.string().optional().nullable(),
+  conduct: z.string().optional().nullable(),
+  surgeryId: z.string().optional().nullable(),
+  surgeryPrice: z.union([z.number(), z.null()]).optional(),
+  complete: z.boolean().optional(),
+  files: z
+    .array(
+      z.object({
+        name: z.string().optional(),
+        url: z.string().optional(),
+        key: z.string().optional(),
+      }),
+    )
+    .optional(),
+});
 
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    return NextResponse.json({ message: "Não autenticado" }, { status: 401 });
+  const auth = await requireSession();
+  if ("error" in auth) return auth.error;
+  if (!auth.user.id) {
+    return apiError("errors.unauthorized", 401);
   }
+  const userId = auth.user.id;
 
-  if (session.user.role !== "MEDICO" || !session.user.organizationId) {
-    return NextResponse.json(
-      { message: "Apenas médicos da clínica podem concluir referrals" },
-      { status: 403 },
-    );
+  if (auth.user.role !== "MEDICO" || !auth.user.organizationId) {
+    return apiError("errors.forbidden", 403);
   }
 
   const body = await request.json();
+  const parsed = specialistSchema.safeParse(body);
+  if (!parsed.success) {
+    return apiError("errors.invalidSpecialistData", 400);
+  }
 
   const referral = await prisma.referral.findFirst({
     where: {
       id: params.id,
-      clinicId: session.user.organizationId,
+      clinicId: auth.user.organizationId,
     },
   });
 
   if (!referral) {
-    return NextResponse.json(
-      { message: "Referral não encontrado para esta clínica" },
-      { status: 404 },
-    );
+    return apiError("errors.referralNotFound", 404);
   }
 
+  const shouldComplete = Boolean(parsed.data.complete);
+  const nextStatus = shouldComplete ? "Atendido" : undefined;
+
   const updated = await prisma.$transaction(async (tx) => {
-    if (body.files) {
+    if (parsed.data.files) {
       await tx.referralAttachment.deleteMany({
         where: { referralId: params.id },
       });
     }
 
-    return await tx.referral.update({
+    const next = await tx.referral.update({
       where: { id: params.id },
       data: {
-        specialistNotes: body.notes || null,
-        specialistConduct: body.conduct || null,
-        surgeryId: body.surgeryId || null,
+        specialistNotes: parsed.data.notes || null,
+        specialistConduct: parsed.data.conduct || null,
+        surgeryId: parsed.data.surgeryId || null,
         surgeryPrice:
-          body.surgeryPrice !== undefined && body.surgeryPrice !== null
-            ? body.surgeryPrice
+          parsed.data.surgeryPrice !== undefined &&
+          parsed.data.surgeryPrice !== null
+            ? parsed.data.surgeryPrice
             : null,
-        ...(body.files && {
+        ...(parsed.data.files && {
           specialistFiles: {
-            create: body.files.map(
-              (item: { name?: string; url?: string; key?: string }) => ({
-                fileName: item.name || "arquivo",
-                url: item.url || item.key || null,
-              }),
-            ),
+            create: parsed.data.files.map((item) => ({
+              fileName: item.name || "arquivo",
+              url: item.url || item.key || null,
+            })),
           },
         }),
-        status: body.complete ? "Atendido" : undefined,
+        status: nextStatus,
       },
       include: {
         specialistFiles: true,
         surgery: { select: { name: true } },
       },
     });
+
+    if (shouldComplete && referral.status !== "Atendido") {
+      await tx.referralStatusAudit.create({
+        data: {
+          referralId: referral.id,
+          fromStatus: referral.status,
+          toStatus: "Atendido",
+          userId,
+        },
+      });
+    }
+
+    return next;
   });
 
   const specialistAttachments = await Promise.all(

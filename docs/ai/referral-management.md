@@ -67,6 +67,20 @@ A filtragem de visibilidade deve ser aplicada na **API** (não só na UI).
 - Não é permitido mover um encaminhamento `Atendido` para `Bloqueado`.
 - Agendamento (`PATCH .../schedule`) e conclusão de atendimento (`complete` → `Atendido`) **não** se aplicam enquanto o status for `Bloqueado`.
 
+### Atraso (data do agendamento)
+
+Um encaminhamento é **atrasado** quando:
+
+- tem `appointmentDate`
+- o **dia civil** do agendamento (fuso local) é **anterior ao dia de hoje**
+- o status **não** é `Atendido`
+
+Atrasados **continuam na aba Ativos**. Há uma aba extra só com atrasados. O destaque visual (faixa à esquerda, fundo rosado, selo) aparece em qualquer lista onde o item esteja atrasado.
+
+### Marcar como atendido (administrativo)
+
+Em `/admin`, o administrador pode concluir `Encaminhado` ou `Agendado` pelo ícone de concluir na coluna de ações (rótulo **Marcar como atendido** ao passar o mouse), com modal de confirmação dos dados. A API é `PATCH /api/referrals/:id/complete` (`requireAdministrativo`), com auditoria de status. Não vale para `Bloqueado` nem para quem já está `Atendido`.
+
 ### Relatórios e financeiro
 
 - Por padrão, encaminhamentos `Bloqueado` **não entram** em relatórios/métricas/financeiro (não foram finalizados / não estão no fluxo operacional).

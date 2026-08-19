@@ -1,8 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Pencil, Trash2 } from "lucide-react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -12,6 +19,7 @@ import { Field } from "@/components/forms/field";
 import {
   Button,
   CardSection,
+  cn,
   ConfirmDialog,
   FloatingInput,
   Modal,
@@ -23,7 +31,12 @@ import {
   Textarea,
 } from "@/components/ui";
 import { withBlockJustification } from "@/features/referrals/block-status-schema";
+import { MarkAttendedDialog } from "@/features/referrals/components/mark-attended-dialog";
 import { ReferralStatusBadge } from "@/features/referrals/components/referral-status-badge";
+import {
+  canAdminMarkAsAttended,
+  isReferralOverdue,
+} from "@/features/referrals/overdue";
 import type { Referral } from "@/features/referrals/types";
 import { formatDate, formatDateTime } from "@/features/referrals/utils";
 import { useAppToast } from "@/hooks/use-app-toast";
@@ -76,9 +89,12 @@ export default function AdminPage() {
   const common = useTranslations("common");
   const toast = useAppToast();
   const tError = useFormError();
+  const searchParams = useSearchParams();
 
   const [referrals, setReferrals] = useState<Referral[]>([]);
-  const [listTab, setListTab] = useState<"active" | "blocked">("active");
+  const [listTab, setListTab] = useState<"active" | "blocked" | "overdue">(
+    "active",
+  );
   const [clinics, setClinics] = useState<ClinicOption[]>([]);
   const [doctors, setDoctors] = useState<DoctorOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -105,6 +121,8 @@ export default function AdminPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingReferral, setEditingReferral] = useState<Referral | null>(null);
   const [pendingDeleteReferral, setPendingDeleteReferral] =
+    useState<Referral | null>(null);
+  const [pendingCompleteReferral, setPendingCompleteReferral] =
     useState<Referral | null>(null);
   const [editDoctors, setEditDoctors] = useState<DoctorOption[]>([]);
 
@@ -134,6 +152,13 @@ export default function AdminPage() {
 
   const editClinicId = editForm.watch("clinicId");
 
+  useEffect(() => {
+    const aba = searchParams.get("aba");
+    if (aba === "atrasados") setListTab("overdue");
+    if (aba === "bloqueados") setListTab("blocked");
+    if (aba === "ativos") setListTab("active");
+  }, [searchParams]);
+
   const cards = [
     {
       title: t("professionalGroupsTitle"),
@@ -146,8 +171,8 @@ export default function AdminPage() {
       href: "/admin/clinicas",
     },
     {
-      title: "Convênios",
-      description: "Gerencie os convênios parceiros aceitos pelas clínicas.",
+      title: t("agreementsTitle"),
+      description: t("agreementsDescription"),
       href: "/admin/convenios",
     },
     {
@@ -296,9 +321,25 @@ export default function AdminPage() {
     const scoped =
       listTab === "blocked"
         ? referrals.filter((item) => item.status === "Bloqueado")
-        : referrals.filter((item) => item.status !== "Bloqueado");
+        : listTab === "overdue"
+          ? referrals.filter((item) => isReferralOverdue(item))
+          : referrals.filter((item) => item.status !== "Bloqueado");
 
     return [...scoped].sort((a, b) => {
+      if (listTab === "overdue") {
+        const aTime = a.appointmentDate
+          ? new Date(a.appointmentDate).getTime()
+          : 0;
+        const bTime = b.appointmentDate
+          ? new Date(b.appointmentDate).getTime()
+          : 0;
+        return aTime - bTime;
+      }
+
+      const aOverdue = isReferralOverdue(a) ? 0 : 1;
+      const bOverdue = isReferralOverdue(b) ? 0 : 1;
+      if (aOverdue !== bOverdue) return aOverdue - bOverdue;
+
       const priorityDiff =
         (priority[a.status] ?? 99) - (priority[b.status] ?? 99);
       if (priorityDiff !== 0) return priorityDiff;
@@ -323,6 +364,11 @@ export default function AdminPage() {
 
   const bloqueadosCount = useMemo(
     () => referrals.filter((item) => item.status === "Bloqueado").length,
+    [referrals],
+  );
+
+  const atrasadosCount = useMemo(
+    () => referrals.filter((item) => isReferralOverdue(item)).length,
     [referrals],
   );
 
@@ -462,7 +508,7 @@ export default function AdminPage() {
         ),
       );
 
-      toast.success("Encaminhamento atualizado com sucesso!");
+      toast.success(t("updateSuccess"));
       setIsEditModalOpen(false);
       setEditingReferral(null);
     } catch {
@@ -487,9 +533,36 @@ export default function AdminPage() {
       }
 
       setReferrals((current) => current.filter((item) => item.id !== id));
-      toast.success("Encaminhamento excluído com sucesso!");
+      toast.success(t("deleteSuccess"));
     } catch {
       toast.error(tError("errors.genericRequestFailed") ?? "");
+    }
+  }
+
+  async function onMarkAttended(referral: Referral) {
+    setIsSaving(true);
+    try {
+      const response = await fetch(`/api/referrals/${referral.id}/complete`, {
+        method: "PATCH",
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        toast.error(tError(body.error ?? "errors.genericRequestFailed") ?? "");
+        return;
+      }
+
+      setReferrals((current) =>
+        current.map((item) =>
+          item.id === referral.id ? { ...item, status: "Atendido" } : item,
+        ),
+      );
+      toast.success(t("markAttendedSuccess"));
+      setPendingCompleteReferral(null);
+    } catch {
+      toast.error(tError("errors.genericRequestFailed") ?? "");
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -500,12 +573,12 @@ export default function AdminPage() {
         subtitle={t("subtitle")}
         action={
           <Link href="/admin/novo">
-            <Button>Novo Encaminhamento</Button>
+            <Button>{t("newReferralAction")}</Button>
           </Link>
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-5">
         <CardSection title={t("pendingStatus")}>
           <p className="text-3xl font-bold text-amber-700">
             {encaminhadosCount}
@@ -521,6 +594,9 @@ export default function AdminPage() {
           <p className="text-3xl font-bold text-orange-700">
             {bloqueadosCount}
           </p>
+        </CardSection>
+        <CardSection title={t("overdueStatus")}>
+          <p className="text-3xl font-bold text-rose-700">{atrasadosCount}</p>
         </CardSection>
       </div>
 
@@ -552,9 +628,31 @@ export default function AdminPage() {
             </span>
           ) : null}
         </button>
+        <button
+          type="button"
+          className={`px-4 py-2 text-sm font-medium ${
+            listTab === "overdue"
+              ? "border-b-2 border-rose-600 text-rose-700"
+              : "text-gray-500"
+          }`}
+          onClick={() => setListTab("overdue")}
+        >
+          {t("tabOverdue")}
+          {atrasadosCount > 0 ? (
+            <span className="ml-2 rounded-full bg-rose-100 px-2 py-0.5 text-xs text-rose-800">
+              {atrasadosCount}
+            </span>
+          ) : null}
+        </button>
       </div>
 
-      <TableCard title={t("referralsTitle")}>
+      <TableCard
+        title={
+          listTab === "overdue"
+            ? t("overdueReferralsTitle")
+            : t("referralsTitle")
+        }
+      >
         <TableShell
           columns={
             <tr>
@@ -608,73 +706,114 @@ export default function AdminPage() {
                 colSpan={9}
                 className="ui-table-cell py-8 text-center text-gray-500"
               >
-                {t("emptyReferrals")}
+                {listTab === "overdue"
+                  ? t("emptyOverdueReferrals")
+                  : t("emptyReferrals")}
               </td>
             </tr>
           ) : (
-            sortedReferrals.map((referral) => (
-              <tr key={referral.id} className="ui-table-row">
-                <td className="ui-table-cell font-medium text-gray-900">
-                  {referral.patientName}
-                </td>
-                <td className="ui-table-cell">
-                  <ReferralStatusBadge
-                    status={referral.status}
-                    justificativaBloqueio={referral.justificativaBloqueio}
-                  />
-                </td>
-                <td className="ui-table-cell">
-                  {referral.officeName ?? common("notAvailable")}
-                </td>
-                <td className="ui-table-cell">
-                  {referral.createdByUserName ?? common("notAvailable")}
-                </td>
-                <td className="ui-table-cell">
-                  {referral.clinicName ?? common("notAvailable")}
-                </td>
-                <td className="ui-table-cell">
-                  {referral.doctor ?? common("notAvailable")}
-                </td>
-                <td className="ui-table-cell">
-                  {referral.appointmentDate
-                    ? formatDateTime(referral.appointmentDate)
-                    : common("notAvailable")}
-                </td>
-                <td className="ui-table-cell">
-                  {formatDate(referral.createdAt)}
-                </td>
-                <td className="ui-table-cell text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    {referral.status === "Encaminhado" ? (
-                      <Button
-                        variant="outline"
-                        onClick={() => openScheduleModal(referral)}
-                      >
-                        {t("scheduleAction")}
-                      </Button>
-                    ) : null}
-                    <Button
-                      variant="ghost"
-                      className="p-2"
-                      onClick={() => openEditReferralModal(referral)}
-                      title="Editar"
-                    >
-                      <Pencil className="h-4 w-4 text-amber-600" />
-                    </Button>
-                    {referral.status !== "Atendido" ? (
+            sortedReferrals.map((referral) => {
+              const overdue = isReferralOverdue(referral);
+              return (
+                <tr
+                  key={referral.id}
+                  className={cn(
+                    "ui-table-row",
+                    overdue &&
+                      "!bg-rose-50 shadow-[inset_4px_0_0_0_rgb(225,29,72)] hover:!bg-rose-100/80",
+                  )}
+                >
+                  <td className="ui-table-cell font-medium text-gray-900">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span>{referral.patientName}</span>
+                      {overdue ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-rose-800">
+                          <Clock className="h-3 w-3" />
+                          {t("overdueBadge")}
+                        </span>
+                      ) : null}
+                    </div>
+                  </td>
+                  <td className="ui-table-cell">
+                    <ReferralStatusBadge
+                      status={referral.status}
+                      justificativaBloqueio={referral.justificativaBloqueio}
+                    />
+                  </td>
+                  <td className="ui-table-cell">
+                    {referral.officeName ?? common("notAvailable")}
+                  </td>
+                  <td className="ui-table-cell">
+                    {referral.createdByUserName ?? common("notAvailable")}
+                  </td>
+                  <td className="ui-table-cell">
+                    {referral.clinicName ?? common("notAvailable")}
+                  </td>
+                  <td className="ui-table-cell">
+                    {referral.doctor ?? common("notAvailable")}
+                  </td>
+                  <td
+                    className={cn(
+                      "ui-table-cell",
+                      overdue && "font-medium text-rose-800",
+                    )}
+                  >
+                    {referral.appointmentDate
+                      ? formatDateTime(referral.appointmentDate)
+                      : common("notAvailable")}
+                  </td>
+                  <td className="ui-table-cell">
+                    {formatDate(referral.createdAt)}
+                  </td>
+                  <td className="ui-table-cell whitespace-nowrap text-right">
+                    <div className="inline-flex items-center justify-end gap-0.5">
+                      {canAdminMarkAsAttended(referral.status) ? (
+                        <Button
+                          variant="ghost"
+                          className="h-9 w-9 p-0 text-emerald-700 hover:bg-emerald-50"
+                          onClick={() => setPendingCompleteReferral(referral)}
+                          title={t("markAttendedAction")}
+                          aria-label={t("markAttendedAction")}
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                        </Button>
+                      ) : null}
+                      {referral.status === "Encaminhado" ? (
+                        <Button
+                          variant="ghost"
+                          className="h-9 w-9 p-0 text-primary hover:bg-primary/5"
+                          onClick={() => openScheduleModal(referral)}
+                          title={t("scheduleAction")}
+                          aria-label={t("scheduleAction")}
+                        >
+                          <CalendarDays className="h-4 w-4" />
+                        </Button>
+                      ) : null}
                       <Button
                         variant="ghost"
-                        className="p-2"
-                        onClick={() => setPendingDeleteReferral(referral)}
-                        title="Excluir"
+                        className="h-9 w-9 p-0"
+                        onClick={() => openEditReferralModal(referral)}
+                        title={common("edit")}
+                        aria-label={common("edit")}
                       >
-                        <Trash2 className="h-4 w-4 text-red-500" />
+                        <Pencil className="h-4 w-4 text-amber-600" />
                       </Button>
-                    ) : null}
-                  </div>
-                </td>
-              </tr>
-            ))
+                      {referral.status !== "Atendido" ? (
+                        <Button
+                          variant="ghost"
+                          className="h-9 w-9 p-0"
+                          onClick={() => setPendingDeleteReferral(referral)}
+                          title={common("delete")}
+                          aria-label={common("delete")}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      ) : null}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })
           )}
         </TableShell>
       </TableCard>
@@ -763,7 +902,7 @@ export default function AdminPage() {
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        title="Editar Encaminhamento"
+        title={t("editReferralTitle")}
         maxWidth="max-w-4xl"
       >
         <form
@@ -978,11 +1117,21 @@ export default function AdminPage() {
               {common("cancel")}
             </Button>
             <Button type="submit" isLoading={isSaving}>
-              Salvar Alterações
+              {common("save")}
             </Button>
           </div>
         </form>
       </Modal>
+
+      <MarkAttendedDialog
+        referral={pendingCompleteReferral}
+        isSaving={isSaving}
+        onClose={() => setPendingCompleteReferral(null)}
+        onConfirm={async () => {
+          if (!pendingCompleteReferral) return;
+          await onMarkAttended(pendingCompleteReferral);
+        }}
+      />
 
       <ConfirmDialog
         isOpen={pendingDeleteReferral !== null}
@@ -992,11 +1141,13 @@ export default function AdminPage() {
           await onDeleteReferral(pendingDeleteReferral.id);
           setPendingDeleteReferral(null);
         }}
-        title="Confirmar Exclusão"
-        message={`Tem certeza que deseja excluir o encaminhamento de ${pendingDeleteReferral?.patientName}?`}
-        hint="Esta ação é irreversível."
-        cancelLabel="Cancelar"
-        confirmLabel="Excluir"
+        title={common("confirmDeleteTitle")}
+        message={t("confirmDeleteReferral", {
+          name: pendingDeleteReferral?.patientName ?? "",
+        })}
+        hint={common("irreversibleAction")}
+        cancelLabel={common("cancel")}
+        confirmLabel={common("delete")}
       />
     </div>
   );
