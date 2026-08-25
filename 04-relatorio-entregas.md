@@ -82,12 +82,12 @@ Não é obrigatório registrar:
 | **Arquivos** | `appointment-calendar*`, `list-query`, `fetch-referrals`, `api/referrals/route.ts`, dashboards admin/médico/profissional, i18n, docs/ai, sidebar/layout                                                                                                                |
 | **Horas**    | 8h                                                                                                                                                                                                                                                                     |
 | **Valor**    | R$ 400,00                                                                                                                                                                                                                                                              |
-| **Status**   | Aguardando commit / deploy                                                                                                                                                                                                                                             |
+| **Status**   | Em produção (`cc232b9`) — alias `https://www.integravisao.com.br` (deploy `dpl_58qRJNDXbqjv3AscRFj6TSU8wF78`)                                                                                                                                                          |
 | **Pauta**    | Gestão `03-pautas-e-parcerias.md` — calendário (aceite 25/08/2026)                                                                                                                                                                                                     |
 
 #### Commits
 
-- Aguardando commit
+- `cc232b9` — feat: calendário de agendamentos com paginação API e selo de atrasados
 
 ---
 
