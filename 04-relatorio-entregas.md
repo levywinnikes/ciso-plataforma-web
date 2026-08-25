@@ -83,12 +83,12 @@ Não é obrigatório registrar:
 | **Arquivos** | `features/financeiro/*`, `api/admin/financeiro`, `admin/financeiro/*`, i18n, docs/ai                                                                                 |
 | **Horas**    | 10h                                                                                                                                                                  |
 | **Valor**    | R$ 500,00                                                                                                                                                            |
-| **Status**   | Commit / deploy em andamento                                                                                                                                         |
+| **Status**   | Em produção (`e346957`) — alias `https://www.integravisao.com.br`                                                                                                    |
 | **Pauta**    | Gestão `03-pautas-e-parcerias.md` — financeiro/comissões (aceite 25/08/2026)                                                                                         |
 
 #### Commits
 
-- (hash após push) — financeiro comissões + loading + notas clínicas no calendário
+- `e346957` — feat: painel de comissões financeiras e notas clínicas no calendário
 
 ---
 
