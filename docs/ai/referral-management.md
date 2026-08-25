@@ -92,6 +92,7 @@ Em `/admin`, o administrador pode concluir `Encaminhado` ou `Agendado` pelo íco
 
 - Por padrão, encaminhamentos `Bloqueado` **não entram** em relatórios/métricas/financeiro (não foram finalizados / não estão no fluxo operacional).
 - Só devem aparecer se existir um **filtro explícito** do tipo “incluir bloqueados”.
+- O painel `/admin/financeiro` controla **comissões pós-médico** (taxa de núcleo + indicação cirúrgica). Totais “a cobrar” usam apenas `Atendido`. Contrato: `docs/ai/financeiro.md`.
 
 ### Auditoria
 

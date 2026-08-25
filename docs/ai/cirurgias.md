@@ -86,6 +86,12 @@ No formulário de conduta médica (`src/features/referrals/components/medical-co
 
 ---
 
+## 5. Relatórios / Financeiro
+
+Indicações cirúrgicas (`surgeryId` / `surgeryPrice`) entram no painel **Comissões** (`/admin/financeiro`) como faixa **"A cobrar — cirurgias"**, apenas para encaminhamentos **Atendido**. Contrato completo: `docs/ai/financeiro.md`.
+
+---
+
 ## 4. Chaves de Tradução (i18n)
 
 ### `pt-BR.json`

@@ -680,7 +680,7 @@ Limite: 200 perguntas por usuário por dia. Fallback só entre modelos Gemini.
 
 O chat envia o **manual** e a **gramática da consulta**. Se a pergunta pedir número, o modelo pede um recorte; o servidor agrega; o modelo responde. Não anexa relatório pronto. Não envia lista de encaminhamentos.
 
-### Consultas do Assistente
+### Assistente administrativo (piloto)
 
 ```
 GET /admin/assistant/queries
@@ -696,6 +696,20 @@ Autorização: `requireAdministrativo`. Só totais — **sem** paciente.
 **Erros:** `errors.invalidAssistantQuery`, `errors.assistantUnavailable`.
 
 O Gemini **não** chama este endereço. O chat usa `runAssistantConsulta` no servidor.
+
+### Financeiro / comissões (administrativo)
+
+```
+GET /api/admin/financeiro
+```
+
+Autorização: `requireAdministrativo`.
+
+**Query:** `startDate`, `endDate` (`YYYY-MM-DD`), `officeId?`, `onlyAttended?`, `onlyWithSurgery?`.
+
+**Resposta:** `period`, `filters`, `offices`, `summary` (contagens + `commissionNucleus` / `commissionSurgery` / `commissionTotal` só de `Atendido`), `byNucleus`, `bySurgery`, `byStatus`, `items` (lista de conferência).
+
+Contrato de negócio: `docs/ai/financeiro.md`. `Bloqueado` excluído.
 
 ### Agendar encaminhamento (administrativo)
 

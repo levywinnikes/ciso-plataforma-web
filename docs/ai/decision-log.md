@@ -4,6 +4,20 @@ Registro canônico de decisões de produto e governança que afetam regras de ne
 
 ---
 
+## 2026-08-25 — Financeiro = acompanhar e cobrar comissões pós-médico
+
+**Decisão vigente:**
+
+- `/admin/financeiro` é painel de **comissões** (taxa de encaminhamento + indicação cirúrgica), não fluxo de caixa bancário
+- Duas faixas rotuladas; “a cobrar” = somente status `Atendido`
+- Período default = mês corrente; atalhos Hoje / Este mês / Mês anterior / Últimos 30 dias
+- Cirurgias entram via `surgeryId`/`surgeryPrice` já existentes no encaminhamento
+- Marcação “já cobrado/pago” fora da Fase A
+
+**Impacto:** `docs/ai/financeiro.md`, `cirurgias.md`, `referral-management.md`, `api-routes.md`, `user-views.md`; feature `src/features/financeiro/*`, `GET /api/admin/financeiro`
+
+---
+
 ## 2026-08-25 — Calendário de agendamentos nos dashboards
 
 **Decisão vigente:**

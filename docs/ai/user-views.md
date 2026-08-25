@@ -139,19 +139,19 @@ Capacidades atuais (comportamento no código):
 
 ## Resumo de rotas vigentes
 
-| Rota                          | Papel                     | Uso atual                            |
-| ----------------------------- | ------------------------- | ------------------------------------ |
-| `/admin`                      | `ADMINISTRATIVO`          | Dashboard global                     |
-| `/admin/novo`                 | `ADMINISTRATIVO`          | Novo encaminhamento administrativo   |
-| `/admin/clinicas`             | `ADMINISTRATIVO`          | Gestão de clínicas                   |
-| `/admin/grupos-profissionais` | `ADMINISTRATIVO`          | Gestão de grupos profissionais       |
-| `/admin/usuarios`             | `ADMINISTRATIVO`          | Gestão administrativa de usuários    |
-| `/admin/convenios`            | `ADMINISTRATIVO`          | Gestão de convênios                  |
-| `/admin/nucleos`              | `ADMINISTRATIVO`          | Gestão de núcleos                    |
-| `/admin/servicos`             | `ADMINISTRATIVO`          | Gestão de serviços                   |
-| `/admin/cirurgias`            | `ADMINISTRATIVO`          | Gestão de cirurgias                  |
-| `/admin/financeiro`           | `ADMINISTRATIVO`          | Indicadores financeiros              |
-| `/medico`                     | `MEDICO`                  | Operação clínica                     |
-| `/profissional`               | `PROFISSIONAL`            | Encaminhamentos do profissional      |
-| `/profissional/novo`          | `PROFISSIONAL`            | Novo encaminhamento                  |
-| `/organizacao/usuarios`       | `MEDICO` / `PROFISSIONAL` | Colaboradores da própria organização |
+| Rota                          | Papel                     | Uso atual                                                   |
+| ----------------------------- | ------------------------- | ----------------------------------------------------------- |
+| `/admin`                      | `ADMINISTRATIVO`          | Dashboard global                                            |
+| `/admin/novo`                 | `ADMINISTRATIVO`          | Novo encaminhamento administrativo                          |
+| `/admin/clinicas`             | `ADMINISTRATIVO`          | Gestão de clínicas                                          |
+| `/admin/grupos-profissionais` | `ADMINISTRATIVO`          | Gestão de grupos profissionais                              |
+| `/admin/usuarios`             | `ADMINISTRATIVO`          | Gestão administrativa de usuários                           |
+| `/admin/convenios`            | `ADMINISTRATIVO`          | Gestão de convênios                                         |
+| `/admin/nucleos`              | `ADMINISTRATIVO`          | Gestão de núcleos                                           |
+| `/admin/servicos`             | `ADMINISTRATIVO`          | Gestão de serviços                                          |
+| `/admin/cirurgias`            | `ADMINISTRATIVO`          | Gestão de cirurgias                                         |
+| `/admin/financeiro`           | `ADMINISTRATIVO`          | Comissões pós-médico (período + a cobrar núcleos/cirurgias) |
+| `/medico`                     | `MEDICO`                  | Operação clínica                                            |
+| `/profissional`               | `PROFISSIONAL`            | Encaminhamentos do profissional                             |
+| `/profissional/novo`          | `PROFISSIONAL`            | Novo encaminhamento                                         |
+| `/organizacao/usuarios`       | `MEDICO` / `PROFISSIONAL` | Colaboradores da própria organização                        |

@@ -435,6 +435,17 @@ export function AppointmentCalendar({
                               {item.doctor}
                             </p>
                           ) : null}
+                          {item.clinicalNotes?.trim() ? (
+                            <p
+                              className="mt-1.5 line-clamp-2 text-xs leading-snug text-gray-600"
+                              title={item.clinicalNotes.trim()}
+                            >
+                              <span className="font-medium text-gray-500">
+                                {t("clinicalNotesLabel")}:{" "}
+                              </span>
+                              {item.clinicalNotes.trim()}
+                            </p>
+                          ) : null}
                         </div>
                       </button>
 

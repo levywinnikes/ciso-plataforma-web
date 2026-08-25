@@ -6,7 +6,7 @@
 | ------------- | --------------------- |
 | Integra Visão | `ciso-plataforma-web` |
 
-**Última atualização:** 25/08/2026 (IV-001 calendário de agendamentos)  
+**Última atualização:** 25/08/2026 (IV-002 financeiro / comissões)  
 **Responsável pelo registro:** assistente de desenvolvimento (sessões Cursor)  
 **Cliente / uso:** controle interno do projeto e base para cobrança  
 **Taxa:** R$ 50,00/h (horas estimadas IA)
@@ -52,24 +52,45 @@ Não é obrigatório registrar:
 
 ## Resumo executivo (ago/2026)
 
-| Data       | Entrega                                                       |   Horas   |     Valor     | Motivo de negócio                                                                            |
-| ---------- | ------------------------------------------------------------- | :-------: | :-----------: | -------------------------------------------------------------------------------------------- |
-| 18/08/2026 | Governança documental e contratos canônicos ENT-001           |    2h     |   R$ 100,00   | Consolidar a fonte de verdade das regras de acesso, views e API antes de expandir o produto  |
-| 18/08/2026 | Refinar regra de gestão de usuários ENT-002                   |   0,5h    |   R$ 25,00    | Fechar contrato: `isAdmin` delimita só usuários; restante do sistema liberado para não-admin |
-| 18/08/2026 | Marcar admin local como questão em aberto ENT-003             |   0,25h   |   R$ 12,50    | Reverter contrato prematuro de `isAdmin`; documentar intenção (admin local) sem enforcement  |
-| 19/08/2026 | Planejar Assistente administrativo (piloto Gemini) ENT-004    |   0,75h   |   R$ 37,50    | Definir chatbot só para administradores, Gemini sem DeepSeek, sem código                     |
-| 19/08/2026 | Fechar decisões do piloto do Assistente ENT-005               |   0,5h    |   R$ 25,00    | Widget, cota, histórico, privacidade admin e contratos futuros por papel                     |
-| 19/08/2026 | Atrasados e marcar como atendido (admin) ENT-006              |   1,5h    |   R$ 75,00    | Facilitar conclusão operacional e evidenciar agendamentos que passaram do dia                |
-| 19/08/2026 | Auditoria de status e limpeza de pendências ENT-007           |    1h     |   R$ 50,00    | Fechar lacuna de auditoria e o roadmap documental de maio/2026                               |
-| 19/08/2026 | Piloto do Assistente administrativo ENT-008                   |   2,5h    |   R$ 125,00   | Widget de orientação para administradores, Gemini com fallback entre modelos                 |
-| 19/08/2026 | Consulta genérica do Assistente ENT-009                       |    2h     |   R$ 100,00   | Números ao vivo sem relatório pronto; o chat monta o recorte da pergunta                     |
-| 19/08/2026 | Ações da lista admin e autonomia A2 a fazer ENT-010           |   0,5h    |   R$ 25,00    | Corrigir layout da coluna de ações; ranking de paciente fica para depois                     |
-| 25/08/2026 | Calendário de agendamentos (admin/médico/profissional) IV-001 |    8h     |   R$ 400,00   | Ver agenda por data de agendamento, com paginação API, ações e selo de atrasados             |
-| **Total**  | **Todas as entregas registradas no projeto**                  | **19,5h** | **R$ 975,00** |                                                                                              |
+| Data       | Entrega                                                       |   Horas   |      Valor      | Motivo de negócio                                                                            |
+| ---------- | ------------------------------------------------------------- | :-------: | :-------------: | -------------------------------------------------------------------------------------------- |
+| 18/08/2026 | Governança documental e contratos canônicos ENT-001           |    2h     |    R$ 100,00    | Consolidar a fonte de verdade das regras de acesso, views e API antes de expandir o produto  |
+| 18/08/2026 | Refinar regra de gestão de usuários ENT-002                   |   0,5h    |    R$ 25,00     | Fechar contrato: `isAdmin` delimita só usuários; restante do sistema liberado para não-admin |
+| 18/08/2026 | Marcar admin local como questão em aberto ENT-003             |   0,25h   |    R$ 12,50     | Reverter contrato prematuro de `isAdmin`; documentar intenção (admin local) sem enforcement  |
+| 19/08/2026 | Planejar Assistente administrativo (piloto Gemini) ENT-004    |   0,75h   |    R$ 37,50     | Definir chatbot só para administradores, Gemini sem DeepSeek, sem código                     |
+| 19/08/2026 | Fechar decisões do piloto do Assistente ENT-005               |   0,5h    |    R$ 25,00     | Widget, cota, histórico, privacidade admin e contratos futuros por papel                     |
+| 19/08/2026 | Atrasados e marcar como atendido (admin) ENT-006              |   1,5h    |    R$ 75,00     | Facilitar conclusão operacional e evidenciar agendamentos que passaram do dia                |
+| 19/08/2026 | Auditoria de status e limpeza de pendências ENT-007           |    1h     |    R$ 50,00     | Fechar lacuna de auditoria e o roadmap documental de maio/2026                               |
+| 19/08/2026 | Piloto do Assistente administrativo ENT-008                   |   2,5h    |    R$ 125,00    | Widget de orientação para administradores, Gemini com fallback entre modelos                 |
+| 19/08/2026 | Consulta genérica do Assistente ENT-009                       |    2h     |    R$ 100,00    | Números ao vivo sem relatório pronto; o chat monta o recorte da pergunta                     |
+| 19/08/2026 | Ações da lista admin e autonomia A2 a fazer ENT-010           |   0,5h    |    R$ 25,00     | Corrigir layout da coluna de ações; ranking de paciente fica para depois                     |
+| 25/08/2026 | Calendário de agendamentos (admin/médico/profissional) IV-001 |    8h     |    R$ 400,00    | Ver agenda por data de agendamento, com paginação API, ações e selo de atrasados             |
+| 25/08/2026 | Financeiro / comissões pós-médico (Fase A) IV-002             |    10h    |    R$ 500,00    | Acompanhar período e cobrar taxa de núcleo + indicação cirúrgica                             |
+| **Total**  | **Todas as entregas registradas no projeto**                  | **29,5h** | **R$ 1.475,00** |                                                                                              |
 
 ---
 
 ## Histórico de entregas
+
+### IV-002 — Financeiro / comissões pós-médico (Fase A)
+
+| Campo        | Valor                                                                                                                                                                |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Data**     | 25/08/2026                                                                                                                                                           |
+| **Motivo**   | Cliente não via cirurgias no financeiro; painel precisava servir para acompanhar e cobrar comissões após o médico                                                    |
+| **Escopo**   | `/admin/financeiro` + `GET /api/admin/financeiro`                                                                                                                    |
+| **Entrega**  | Período default mês atual; atalhos Hoje / Este mês / Mês anterior / Últimos 30 dias; KPIs a cobrar (núcleo + cirurgia); resumos; lista detalhe; docs `financeiro.md` |
+| **Arquivos** | `features/financeiro/*`, `api/admin/financeiro`, `admin/financeiro/*`, i18n, docs/ai                                                                                 |
+| **Horas**    | 10h                                                                                                                                                                  |
+| **Valor**    | R$ 500,00                                                                                                                                                            |
+| **Status**   | Commit / deploy em andamento                                                                                                                                         |
+| **Pauta**    | Gestão `03-pautas-e-parcerias.md` — financeiro/comissões (aceite 25/08/2026)                                                                                         |
+
+#### Commits
+
+- (hash após push) — financeiro comissões + loading + notas clínicas no calendário
+
+---
 
 ### IV-001 — Calendário de agendamentos nos dashboards
 

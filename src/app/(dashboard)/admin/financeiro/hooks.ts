@@ -1,137 +1,144 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import type { CareNucleus, Referral } from "@/features/referrals/types";
+import {
+  defaultPeriodRange,
+  type PeriodPreset,
+  rangeForPreset,
+} from "@/features/financeiro/period";
 
-import type { FinanceiroPageModel, NucleusRevenueRow } from "./schema";
+import type { FinanceiroApiResponse, FinanceiroPageModel } from "./schema";
+
+function buildQuery(params: {
+  startDate: string;
+  endDate: string;
+  officeId: string;
+  onlyAttended: boolean;
+  onlyWithSurgery: boolean;
+}) {
+  const q = new URLSearchParams({
+    startDate: params.startDate,
+    endDate: params.endDate,
+  });
+  if (params.officeId) q.set("officeId", params.officeId);
+  if (params.onlyAttended) q.set("onlyAttended", "true");
+  if (params.onlyWithSurgery) q.set("onlyWithSurgery", "true");
+  return q.toString();
+}
 
 export function useFinanceiroPageModel(): FinanceiroPageModel {
-  const [referrals, setReferrals] = useState<Referral[]>([]);
-  const [nuclei, setNuclei] = useState<CareNucleus[]>([]);
+  const initial = defaultPeriodRange();
+  const [draftStartDate, setDraftStartDate] = useState(initial.startDate);
+  const [draftEndDate, setDraftEndDate] = useState(initial.endDate);
+  const [draftOfficeId, setDraftOfficeId] = useState("");
+  const [draftOnlyAttended, setDraftOnlyAttended] = useState(false);
+  const [draftOnlyWithSurgery, setDraftOnlyWithSurgery] = useState(false);
+  const [activePreset, setActivePreset] = useState<PeriodPreset | "custom">(
+    "thisMonth",
+  );
 
-  const [selectedOfficeId, setSelectedOfficeId] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [availableOffices, setAvailableOffices] = useState<
-    { id: string; name: string }[]
-  >([]);
+  const [applied, setApplied] = useState({
+    startDate: initial.startDate,
+    endDate: initial.endDate,
+    officeId: "",
+    onlyAttended: false,
+    onlyWithSurgery: false,
+  });
 
-  useEffect(() => {
-    let isMounted = true;
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<FinanceiroApiResponse | null>(null);
 
-    async function loadData() {
-      const [referralsRes, nucleiRes, officesRes] = await Promise.all([
-        fetch("/api/referrals", { cache: "no-store" }),
-        fetch("/api/nuclei", { cache: "no-store" }),
-        fetch("/api/organizations?type=PROFISSIONAL_GROUP", {
-          cache: "no-store",
-        }),
-      ]);
-      const referralsData = (await referralsRes.json()) as Referral[];
-      const nucleiData = (await nucleiRes.json()) as CareNucleus[];
-      const officesData = await officesRes.json();
-
-      if (isMounted) {
-        setReferrals(referralsData);
-        setNuclei(nucleiData);
-        if (Array.isArray(officesData)) {
-          setAvailableOffices(
-            officesData.map((o: any) => ({ id: o.id, name: o.name })),
-          );
-        }
+  const load = useCallback(async (params: typeof applied) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/financeiro?${buildQuery(params)}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        setError("errors.loadFailed");
+        setData(null);
+        return;
       }
+      const json = (await res.json()) as FinanceiroApiResponse;
+      setData(json);
+    } catch {
+      setError("errors.loadFailed");
+      setData(null);
+    } finally {
+      setLoading(false);
     }
-
-    void loadData();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
-  const filteredReferrals = useMemo(() => {
-    return referrals.filter((item) => {
-      if (item.status === "Bloqueado") {
-        return false;
-      }
-      let matches = true;
-      if (selectedOfficeId && item.officeId !== selectedOfficeId) {
-        matches = false;
-      }
-      if (startDate && item.createdAt) {
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
-        if (new Date(item.createdAt) < start) {
-          matches = false;
-        }
-      }
-      if (endDate && item.createdAt) {
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        if (new Date(item.createdAt) > end) {
-          matches = false;
-        }
-      }
-      return matches;
+  useEffect(() => {
+    void load(applied);
+  }, [applied, load]);
+
+  function applyPreset(preset: PeriodPreset) {
+    const range = rangeForPreset(preset);
+    setDraftStartDate(range.startDate);
+    setDraftEndDate(range.endDate);
+    setActivePreset(preset);
+    setApplied((prev) => ({
+      ...prev,
+      startDate: range.startDate,
+      endDate: range.endDate,
+    }));
+  }
+
+  function search() {
+    setActivePreset("custom");
+    setApplied({
+      startDate: draftStartDate,
+      endDate: draftEndDate,
+      officeId: draftOfficeId,
+      onlyAttended: draftOnlyAttended,
+      onlyWithSurgery: draftOnlyWithSurgery,
     });
-  }, [referrals, selectedOfficeId, startDate, endDate]);
+  }
 
-  const totalReceita = useMemo(
-    () =>
-      filteredReferrals.reduce((sum, referral) => {
-        const nucleus = nuclei.find((item) => item.id === referral.nucleusId);
-        return sum + (nucleus?.chargedPrice ?? 0);
-      }, 0),
-    [nuclei, filteredReferrals],
-  );
-
-  const encaminhadosCount = useMemo(
-    () =>
-      filteredReferrals.filter((item) => item.status === "Encaminhado").length,
-    [filteredReferrals],
-  );
-
-  const agendadosCount = useMemo(
-    () => filteredReferrals.filter((item) => item.status === "Agendado").length,
-    [filteredReferrals],
-  );
-
-  const atendidosCount = useMemo(
-    () => filteredReferrals.filter((item) => item.status === "Atendido").length,
-    [filteredReferrals],
-  );
-
-  const revenueRows = useMemo<NucleusRevenueRow[]>(
-    () =>
-      nuclei.map((nucleus) => {
-        const count = filteredReferrals.filter(
-          (item) => item.nucleusId === nucleus.id,
-        ).length;
-
-        return {
-          nucleus,
-          count,
-          revenue: count * nucleus.chargedPrice,
-        };
-      }),
-    [nuclei, filteredReferrals],
-  );
+  function clearFilters() {
+    const range = defaultPeriodRange();
+    setDraftStartDate(range.startDate);
+    setDraftEndDate(range.endDate);
+    setDraftOfficeId("");
+    setDraftOnlyAttended(false);
+    setDraftOnlyWithSurgery(false);
+    setActivePreset("thisMonth");
+    setApplied({
+      startDate: range.startDate,
+      endDate: range.endDate,
+      officeId: "",
+      onlyAttended: false,
+      onlyWithSurgery: false,
+    });
+  }
 
   return {
-    referrals,
-    nuclei,
-    totalReceita,
-    encaminhadosCount,
-    agendadosCount,
-    atendidosCount,
-    revenueRows,
-    selectedOfficeId,
-    startDate,
-    endDate,
-    availableOffices,
-    setSelectedOfficeId,
-    setStartDate,
-    setEndDate,
+    loading,
+    error,
+    data,
+    draftStartDate,
+    draftEndDate,
+    draftOfficeId,
+    draftOnlyAttended,
+    draftOnlyWithSurgery,
+    activePreset,
+    setDraftStartDate: (v) => {
+      setDraftStartDate(v);
+      setActivePreset("custom");
+    },
+    setDraftEndDate: (v) => {
+      setDraftEndDate(v);
+      setActivePreset("custom");
+    },
+    setDraftOfficeId,
+    setDraftOnlyAttended,
+    setDraftOnlyWithSurgery,
+    applyPreset,
+    search,
+    clearFilters,
   };
 }
