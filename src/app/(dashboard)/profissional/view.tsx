@@ -1,6 +1,7 @@
 import {
   ChevronLeft,
   ChevronRight,
+  Clock,
   Eye,
   Pencil,
   PlusCircle,
@@ -13,6 +14,7 @@ import { Field } from "@/components/forms/field";
 import {
   Button,
   CardSection,
+  cn,
   FileUploadArea,
   FloatingInput,
   Input,
@@ -24,9 +26,11 @@ import {
   TableShell,
   Textarea,
 } from "@/components/ui";
+import { AppointmentCalendar } from "@/features/referrals/components/appointment-calendar";
 import { BlockStatusFields } from "@/features/referrals/components/block-status-fields";
 import { PriceSummary } from "@/features/referrals/components/price-summary";
 import { ReferralStatusBadge } from "@/features/referrals/components/referral-status-badge";
+import { isReferralOverdue } from "@/features/referrals/overdue";
 import {
   formatCurrency,
   formatDate,
@@ -44,6 +48,7 @@ interface ProfissionalPageViewProps {
 export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
   const t = useTranslations("professional");
   const common = useTranslations("common");
+  const agenda = useTranslations("agenda");
   const tNew = useTranslations("newReferral");
   const tError = useFormError();
 
@@ -54,9 +59,7 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
     ? getNucleusPriceSummary(model.editSelectedNucleus)
     : null;
 
-  const blockedCount = model.referrals.filter(
-    (item) => item.status === "Bloqueado",
-  ).length;
+  const blockedCount = model.blockedCount;
 
   return (
     <div className="space-y-6">
@@ -74,6 +77,17 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
       />
 
       <div className="flex gap-2 border-b border-gray-200">
+        <button
+          type="button"
+          className={`px-4 py-2 text-sm font-medium ${
+            model.listTab === "calendar"
+              ? "border-b-2 border-primary text-primary"
+              : "text-gray-500"
+          }`}
+          onClick={() => model.setListTab("calendar")}
+        >
+          {t("tabCalendar")}
+        </button>
         <button
           type="button"
           className={`px-4 py-2 text-sm font-medium ${
@@ -103,203 +117,244 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
         </button>
       </div>
 
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        {model.listTab === "active" ? (
-          <Select
-            value={model.filters.status}
-            onChange={(e) =>
-              model.setFilters({ ...model.filters, status: e.target.value })
-            }
-            className="w-full md:w-48"
-          >
-            <option value="ALL">Todos os Status</option>
-            <option value="Encaminhado">Encaminhado</option>
-            <option value="Agendado">Agendado</option>
-            <option value="Atendido">Atendido</option>
-          </Select>
-        ) : null}
-
-        <Input
-          type="date"
-          value={model.filters.date}
-          onChange={(e) =>
-            model.setFilters({ ...model.filters, date: e.target.value })
-          }
-          className="w-full md:w-48"
-        />
-
-        {/* Adicionando filtros extras (Núcleo e Médico) caso a clínica cresça muito */}
-        <Input
-          placeholder="Buscar Médico..."
-          value={model.filters.doctor === "ALL" ? "" : model.filters.doctor}
-          onChange={(e) =>
-            model.setFilters({
-              ...model.filters,
-              doctor: e.target.value || "ALL",
-            })
-          }
-          className="w-full md:w-48"
-        />
-      </div>
-
-      <TableCard title={t("referrals")}>
-        <TableShell
-          columns={
-            <tr>
-              <th className="px-6 py-3">{common("patient")}</th>
-              <th className="px-6 py-3">{t("nucleus")}</th>
-              <th className="px-6 py-3">{t("date")}</th>
-              <th className="px-6 py-3">{common("doctor")}</th>
-              <th className="px-6 py-3">{common("status")}</th>
-              <th className="px-6 py-3 text-right">Ações</th>
-            </tr>
-          }
-        >
-          {model.isLoading ? (
-            Array.from({ length: 5 }).map((_, idx) => (
-              <tr key={`skel-${idx}`} className="ui-table-row">
-                <td className="ui-table-cell">
-                  <Skeleton className="h-4 w-32" />
-                </td>
-                <td className="ui-table-cell">
-                  <Skeleton className="h-4 w-24" />
-                </td>
-                <td className="ui-table-cell">
-                  <Skeleton className="h-4 w-24" />
-                </td>
-                <td className="ui-table-cell">
-                  <Skeleton className="h-4 w-24" />
-                </td>
-                <td className="ui-table-cell">
-                  <Skeleton className="h-6 w-20 rounded-full" />
-                </td>
-                <td className="ui-table-cell"></td>
-              </tr>
-            ))
-          ) : model.filteredReferrals.length === 0 ? (
-            <tr className="ui-table-row">
-              <td
-                colSpan={6}
-                className="ui-table-cell py-8 text-center text-gray-500"
-              >
-                Nenhum encaminhamento encontrado.
-              </td>
-            </tr>
-          ) : (
-            model.filteredReferrals.map((referral) => (
-              <tr key={referral.id} className="ui-table-row">
-                <td className="ui-table-cell whitespace-nowrap font-medium text-gray-900">
-                  {referral.patientName}
-                </td>
-                <td className="ui-table-cell">{referral.nucleusName}</td>
-                <td className="ui-table-cell whitespace-nowrap">
-                  {formatDate(referral.createdAt)}
-                </td>
-                <td className="ui-table-cell whitespace-nowrap">
-                  {referral.doctor ?? common("toDefine")}
-                </td>
-                <td className="ui-table-cell">
-                  <ReferralStatusBadge
-                    status={referral.status}
-                    justificativaBloqueio={referral.justificativaBloqueio}
-                  />
-                </td>
-                <td className="ui-table-cell space-x-1 text-right">
-                  <Button
-                    variant="ghost"
-                    className="p-2"
-                    onClick={() => model.openModal(referral)}
-                    title="Visualizar"
-                  >
-                    <Eye className="h-4 w-4 text-emerald-700" />
-                  </Button>
-                  {referral.status === "Encaminhado" ||
-                  referral.status === "Bloqueado" ? (
-                    <>
-                      <Button
-                        variant="ghost"
-                        className="p-2"
-                        onClick={() => model.openEditModal(referral)}
-                        title="Editar"
-                      >
-                        <Pencil className="h-4 w-4 text-amber-600" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="p-2"
-                        onClick={() => {
-                          if (
-                            window.confirm(
-                              "Tem certeza que deseja excluir este encaminhamento?",
-                            )
-                          ) {
-                            model.deleteReferral(referral.id);
-                          }
-                        }}
-                        title="Excluir"
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </>
-                  ) : (
-                    <div className="group relative inline-block">
-                      <Button
-                        variant="ghost"
-                        className="cursor-not-allowed p-2 opacity-50"
-                        disabled
-                      >
-                        <Pencil className="h-4 w-4 text-gray-400" />
-                      </Button>
-                      <div className="pointer-events-none absolute bottom-full right-0 z-50 mb-2 hidden whitespace-nowrap rounded bg-gray-900 px-2.5 py-1.5 text-xs text-white shadow-md group-hover:block">
-                        Só é possível editar encaminhamentos com status
-                        &quot;Encaminhado&quot; ou &quot;Bloqueado&quot;
-                      </div>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))
-          )}
-        </TableShell>
-
-        {/* Pagination Controls */}
-        <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 px-6 py-3">
-          <p className="text-sm text-gray-500">
-            Página{" "}
-            <span className="font-medium text-gray-900">
-              {model.currentPage}
-            </span>{" "}
-            de{" "}
-            <span className="font-medium text-gray-900">
-              {model.totalPages}
-            </span>
-          </p>
-          <div className="flex space-x-2">
-            <Button
-              variant="outline"
-              className="px-2 py-1"
-              onClick={() =>
-                model.setCurrentPage(Math.max(1, model.currentPage - 1))
-              }
-              disabled={model.currentPage === 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              className="px-2 py-1"
-              onClick={() =>
-                model.setCurrentPage(
-                  Math.min(model.totalPages, model.currentPage + 1),
+      {model.listTab === "calendar" ? (
+        <AppointmentCalendar
+          onSelectReferral={model.openModal}
+          refreshKey={model.calendarRefreshKey}
+          actions={{
+            policy: "professional",
+            onView: model.openModal,
+            onEdit: model.openEditModal,
+            onDelete: (referral) => {
+              if (
+                window.confirm(
+                  "Tem certeza que deseja excluir este encaminhamento?",
                 )
+              ) {
+                void model.deleteReferral(referral.id);
               }
-              disabled={model.currentPage === model.totalPages}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+            },
+          }}
+        />
+      ) : (
+        <>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center">
+            {model.listTab === "active" ? (
+              <Select
+                value={model.filters.status}
+                onChange={(e) =>
+                  model.setFilters({ ...model.filters, status: e.target.value })
+                }
+                className="w-full md:w-48"
+              >
+                <option value="ALL">Todos os Status</option>
+                <option value="Encaminhado">Encaminhado</option>
+                <option value="Agendado">Agendado</option>
+                <option value="Atendido">Atendido</option>
+              </Select>
+            ) : null}
+
+            <Input
+              type="date"
+              value={model.filters.date}
+              onChange={(e) =>
+                model.setFilters({ ...model.filters, date: e.target.value })
+              }
+              className="w-full md:w-48"
+            />
+
+            {/* Adicionando filtros extras (Núcleo e Médico) caso a clínica cresça muito */}
+            <Input
+              placeholder="Buscar Médico..."
+              value={model.filters.doctor === "ALL" ? "" : model.filters.doctor}
+              onChange={(e) =>
+                model.setFilters({
+                  ...model.filters,
+                  doctor: e.target.value || "ALL",
+                })
+              }
+              className="w-full md:w-48"
+            />
           </div>
-        </div>
-      </TableCard>
+
+          <TableCard title={t("referrals")}>
+            <TableShell
+              columns={
+                <tr>
+                  <th className="px-6 py-3">{common("patient")}</th>
+                  <th className="px-6 py-3">{t("nucleus")}</th>
+                  <th className="px-6 py-3">{t("date")}</th>
+                  <th className="px-6 py-3">{common("doctor")}</th>
+                  <th className="px-6 py-3">{common("status")}</th>
+                  <th className="px-6 py-3 text-right">Ações</th>
+                </tr>
+              }
+            >
+              {model.isLoading ? (
+                Array.from({ length: 5 }).map((_, idx) => (
+                  <tr key={`skel-${idx}`} className="ui-table-row">
+                    <td className="ui-table-cell">
+                      <Skeleton className="h-4 w-32" />
+                    </td>
+                    <td className="ui-table-cell">
+                      <Skeleton className="h-4 w-24" />
+                    </td>
+                    <td className="ui-table-cell">
+                      <Skeleton className="h-4 w-24" />
+                    </td>
+                    <td className="ui-table-cell">
+                      <Skeleton className="h-4 w-24" />
+                    </td>
+                    <td className="ui-table-cell">
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </td>
+                    <td className="ui-table-cell"></td>
+                  </tr>
+                ))
+              ) : model.filteredReferrals.length === 0 ? (
+                <tr className="ui-table-row">
+                  <td
+                    colSpan={6}
+                    className="ui-table-cell py-8 text-center text-gray-500"
+                  >
+                    Nenhum encaminhamento encontrado.
+                  </td>
+                </tr>
+              ) : (
+                model.filteredReferrals.map((referral) => {
+                  const overdue = isReferralOverdue(referral);
+                  return (
+                    <tr
+                      key={referral.id}
+                      className={cn(
+                        "ui-table-row",
+                        overdue &&
+                          "!bg-rose-50 shadow-[inset_4px_0_0_0_rgb(225,29,72)] hover:!bg-rose-100/80",
+                      )}
+                    >
+                      <td className="ui-table-cell whitespace-nowrap font-medium text-gray-900">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span>{referral.patientName}</span>
+                          {overdue ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-rose-800">
+                              <Clock className="h-3 w-3" />
+                              {agenda("overdueSeal")}
+                            </span>
+                          ) : null}
+                        </div>
+                      </td>
+                      <td className="ui-table-cell">{referral.nucleusName}</td>
+                      <td className="ui-table-cell whitespace-nowrap">
+                        {formatDate(referral.createdAt)}
+                      </td>
+                      <td className="ui-table-cell whitespace-nowrap">
+                        {referral.doctor ?? common("toDefine")}
+                      </td>
+                      <td className="ui-table-cell">
+                        <ReferralStatusBadge
+                          status={referral.status}
+                          justificativaBloqueio={referral.justificativaBloqueio}
+                        />
+                      </td>
+                      <td className="ui-table-cell space-x-1 text-right">
+                        <Button
+                          variant="ghost"
+                          className="p-2"
+                          onClick={() => model.openModal(referral)}
+                          title="Visualizar"
+                        >
+                          <Eye className="h-4 w-4 text-emerald-700" />
+                        </Button>
+                        {referral.status === "Encaminhado" ||
+                        referral.status === "Bloqueado" ? (
+                          <>
+                            <Button
+                              variant="ghost"
+                              className="p-2"
+                              onClick={() => model.openEditModal(referral)}
+                              title="Editar"
+                            >
+                              <Pencil className="h-4 w-4 text-amber-600" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              className="p-2"
+                              onClick={() => {
+                                if (
+                                  window.confirm(
+                                    "Tem certeza que deseja excluir este encaminhamento?",
+                                  )
+                                ) {
+                                  model.deleteReferral(referral.id);
+                                }
+                              }}
+                              title="Excluir"
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </>
+                        ) : (
+                          <div className="group relative inline-block">
+                            <Button
+                              variant="ghost"
+                              className="cursor-not-allowed p-2 opacity-50"
+                              disabled
+                            >
+                              <Pencil className="h-4 w-4 text-gray-400" />
+                            </Button>
+                            <div className="pointer-events-none absolute bottom-full right-0 z-50 mb-2 hidden whitespace-nowrap rounded bg-gray-900 px-2.5 py-1.5 text-xs text-white shadow-md group-hover:block">
+                              Só é possível editar encaminhamentos com status
+                              &quot;Encaminhado&quot; ou &quot;Bloqueado&quot;
+                            </div>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </TableShell>
+
+            {/* Pagination Controls */}
+            <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 px-6 py-3">
+              <p className="text-sm text-gray-500">
+                Página{" "}
+                <span className="font-medium text-gray-900">
+                  {model.currentPage}
+                </span>{" "}
+                de{" "}
+                <span className="font-medium text-gray-900">
+                  {model.totalPages}
+                </span>
+              </p>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  className="px-2 py-1"
+                  onClick={() =>
+                    model.setCurrentPage(Math.max(1, model.currentPage - 1))
+                  }
+                  disabled={model.currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="px-2 py-1"
+                  onClick={() =>
+                    model.setCurrentPage(
+                      Math.min(model.totalPages, model.currentPage + 1),
+                    )
+                  }
+                  disabled={model.currentPage === model.totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </TableCard>
+        </>
+      )}
 
       <Modal
         isOpen={model.isModalOpen}

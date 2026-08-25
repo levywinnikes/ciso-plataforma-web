@@ -2,7 +2,16 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 
 import { resolveCreateStatus } from "@/features/referrals/block-status";
+import {
+  applyAppointmentRange,
+  applyStatusFilter,
+  applyTabFilter,
+  emptyCounts,
+  parsePageParams,
+  referralListInclude,
+} from "@/features/referrals/list-query";
 import { mapReferralResponse } from "@/features/referrals/map-referral";
+import { startOfLocalDay } from "@/features/referrals/overdue";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -15,63 +24,160 @@ function parseBirthDate(value: string): Date {
   return new Date(value);
 }
 
-export async function GET() {
+function buildRoleWhere(session: {
+  user: {
+    role: string;
+    organizationId?: string | null;
+    id: string;
+    isAdmin?: boolean;
+  };
+}):
+  | { ok: true; where: Record<string, unknown> }
+  | { ok: false; response: NextResponse } {
+  const { role, organizationId, id, isAdmin } = session.user;
+  let where: Record<string, unknown> = {};
+
+  if (role === "MEDICO") {
+    if (!organizationId) {
+      return {
+        ok: false,
+        response: NextResponse.json(
+          { message: "Usuário médico sem organização vinculada" },
+          { status: 403 },
+        ),
+      };
+    }
+    where = {
+      clinicId: organizationId,
+      status: { in: ["Agendado", "Atendido"] },
+    };
+  }
+
+  if (role === "PROFISSIONAL") {
+    if (!organizationId) {
+      return {
+        ok: false,
+        response: NextResponse.json(
+          { message: "Usuário profissional sem organização vinculada" },
+          { status: 403 },
+        ),
+      };
+    }
+    where = isAdmin
+      ? { createdByUser: { organizationId } }
+      : { createdByUserId: id };
+  }
+
+  return { ok: true, where };
+}
+
+async function computeCounts(baseWhere: Record<string, unknown>) {
+  const counts = emptyCounts();
+  const now = new Date();
+  const dayStart = startOfLocalDay(now);
+
+  const [byStatus, overdue, active] = await Promise.all([
+    prisma.referral.groupBy({
+      by: ["status"],
+      where: baseWhere,
+      _count: { _all: true },
+    }),
+    prisma.referral.count({
+      where: {
+        ...baseWhere,
+        status: { not: "Atendido" },
+        appointmentDate: { not: null, lt: dayStart },
+      },
+    }),
+    prisma.referral.count({
+      where: {
+        ...baseWhere,
+        status: { not: "Bloqueado" },
+      },
+    }),
+  ]);
+
+  for (const row of byStatus) {
+    const n = row._count._all;
+    if (row.status === "Encaminhado") counts.encaminhado = n;
+    if (row.status === "Agendado") counts.agendado = n;
+    if (row.status === "Atendido") counts.atendido = n;
+    if (row.status === "Bloqueado") counts.bloqueado = n;
+  }
+  counts.overdue = overdue;
+  counts.active = active;
+  return counts;
+}
+
+export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
     return NextResponse.json({ message: "Não autenticado" }, { status: 401 });
   }
 
-  const { role, organizationId, id, isAdmin } = session.user;
-  let where = {};
+  const { searchParams } = new URL(request.url);
+  const roleWhere = buildRoleWhere(session);
+  if (!roleWhere.ok) return roleWhere.response;
 
-  if (role === "MEDICO") {
-    if (!organizationId) {
-      return NextResponse.json(
-        { message: "Usuário médico sem organização vinculada" },
-        { status: 403 },
-      );
-    }
+  const appointmentFrom = searchParams.get("appointmentFrom");
+  const appointmentTo = searchParams.get("appointmentTo");
+  const tab = searchParams.get("tab");
+  const status = searchParams.get("status");
+  const includeCounts = searchParams.get("includeCounts") === "1";
+  const { page, pageSize } = parsePageParams(searchParams);
 
-    where = {
-      clinicId: organizationId,
-      status: {
-        in: ["Agendado", "Atendido"],
-      },
-    };
-  }
-
-  if (role === "PROFISSIONAL") {
-    if (!organizationId) {
-      return NextResponse.json(
-        { message: "Usuário profissional sem organização vinculada" },
-        { status: 403 },
-      );
-    }
-
-    where = isAdmin
-      ? { createdByUser: { organizationId } }
-      : { createdByUserId: id };
-  }
-
-  const referrals = await prisma.referral.findMany({
-    where,
-    include: {
-      nucleus: { select: { name: true } },
-      clinic: { select: { name: true } },
-      office: { select: { name: true } },
-      createdByUser: { select: { name: true, email: true } },
-      documents: true,
-      specialistFiles: true,
-      agreement: { select: { name: true } },
-      surgery: { select: { name: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return NextResponse.json(
-    await Promise.all(referrals.map((item) => mapReferralResponse(item))),
+  let where = applyAppointmentRange(
+    roleWhere.where,
+    appointmentFrom,
+    appointmentTo,
   );
+  where = applyTabFilter(where, tab);
+  where = applyStatusFilter(where, status);
+
+  const include = referralListInclude();
+  const orderBy =
+    tab === "overdue"
+      ? [{ appointmentDate: "asc" as const }, { createdAt: "desc" as const }]
+      : [{ appointmentDate: "asc" as const }, { createdAt: "desc" as const }];
+
+  if (page === null) {
+    const referrals = await prisma.referral.findMany({
+      where,
+      include,
+      orderBy,
+    });
+    return NextResponse.json(
+      await Promise.all(referrals.map((item) => mapReferralResponse(item))),
+    );
+  }
+
+  const skip = (page - 1) * pageSize;
+  const [total, referrals, counts] = await Promise.all([
+    prisma.referral.count({ where }),
+    prisma.referral.findMany({
+      where,
+      include,
+      orderBy,
+      skip,
+      take: pageSize,
+    }),
+    includeCounts ? computeCounts(roleWhere.where) : Promise.resolve(undefined),
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const items = await Promise.all(
+    referrals.map((item) => mapReferralResponse(item)),
+  );
+
+  return NextResponse.json({
+    items,
+    page,
+    pageSize,
+    total,
+    totalPages,
+    ...(counts ? { counts } : {}),
+  });
 }
 
 export async function POST(request: Request) {
@@ -203,16 +309,7 @@ export async function POST(request: Request) {
             ) ?? [],
         },
       },
-      include: {
-        nucleus: { select: { name: true } },
-        clinic: { select: { name: true } },
-        office: { select: { name: true } },
-        createdByUser: { select: { name: true, email: true } },
-        documents: true,
-        specialistFiles: true,
-        agreement: { select: { name: true } },
-        surgery: { select: { name: true } },
-      },
+      include: referralListInclude(),
     });
 
     if (statusResult.status === "Bloqueado") {

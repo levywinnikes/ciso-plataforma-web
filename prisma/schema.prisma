@@ -37,6 +37,7 @@ model User {
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   isAdmin        Boolean       @default(false)
   createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
   accounts       Account[]
   sessions       Session[]
   createdReferrals Referral[]  @relation("CreatedBy")
@@ -92,6 +93,7 @@ model Organization {
   professionalAccessesIncoming ProfessionalAccess[] @relation("Clinic")
   agreements       OrganizationAgreement[]
   createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 }
 
 model ProfessionalAccess {
@@ -101,6 +103,7 @@ model ProfessionalAccess {
   clinicId             String
   clinic               Organization @relation("Clinic", fields: [clinicId], references: [id], onDelete: Cascade)
   createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
 
   @@unique([professionalGroupId, clinicId])
 }
@@ -113,6 +116,7 @@ model CareNucleus {
   services    CareNucleusService[]
   referrals   Referral[]
   createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
 }
 
 model CareService {
@@ -121,6 +125,7 @@ model CareService {
   basePrice   Decimal              @db.Decimal(10, 2)
   nuclei      CareNucleusService[]
   createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
 }
 
 model CareNucleusService {
@@ -129,6 +134,8 @@ model CareNucleusService {
   serviceId String
   nucleus   CareNucleus @relation(fields: [nucleusId], references: [id], onDelete: Cascade)
   service   CareService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   @@unique([nucleusId, serviceId])
 }
@@ -169,6 +176,8 @@ model Referral {
   statusAudits        ReferralStatusAudit[]
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
+
+  @@index([appointmentDate])
 }
 
 model ReferralStatusAudit {
@@ -191,6 +200,7 @@ model ReferralDocument {
   fileName   String
   url        String?
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   referral   Referral @relation(fields: [referralId], references: [id], onDelete: Cascade)
 }
 
@@ -200,6 +210,7 @@ model ReferralAttachment {
   fileName   String
   url        String?
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   referral   Referral @relation(fields: [referralId], references: [id], onDelete: Cascade)
 }
 
@@ -220,6 +231,7 @@ model OrganizationAgreement {
   agreementId String
   agreement   Agreement    @relation(fields: [agreementId], references: [id], onDelete: Cascade)
   createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   @@unique([clinicId, agreementId])
 }

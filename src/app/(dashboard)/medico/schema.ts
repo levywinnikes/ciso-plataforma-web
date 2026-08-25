@@ -1,3 +1,5 @@
+import type { Dispatch, SetStateAction } from "react";
+
 import type { Referral } from "@/features/referrals/types";
 
 export interface MedicoUploadedFile {
@@ -14,6 +16,11 @@ export interface MedicoPageModel {
   conduct: string;
   files: MedicoUploadedFile[];
   items: Referral[];
+  viewTab: "calendar" | "list";
+  setViewTab: Dispatch<SetStateAction<"calendar" | "list">>;
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
+  totalPages: number;
   isLoading: boolean;
   isSaving: boolean;
   isUploading: boolean;

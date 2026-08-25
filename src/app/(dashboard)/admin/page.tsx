@@ -4,6 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   CalendarDays,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Pencil,
   Trash2,
@@ -11,7 +13,7 @@ import {
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -31,8 +33,11 @@ import {
   Textarea,
 } from "@/components/ui";
 import { withBlockJustification } from "@/features/referrals/block-status-schema";
+import { AppointmentCalendar } from "@/features/referrals/components/appointment-calendar";
 import { MarkAttendedDialog } from "@/features/referrals/components/mark-attended-dialog";
 import { ReferralStatusBadge } from "@/features/referrals/components/referral-status-badge";
+import { fetchReferralsPage } from "@/features/referrals/fetch-referrals";
+import type { ReferralCounts } from "@/features/referrals/list-query";
 import {
   canAdminMarkAsAttended,
   isReferralOverdue,
@@ -41,6 +46,8 @@ import type { Referral } from "@/features/referrals/types";
 import { formatDate, formatDateTime } from "@/features/referrals/utils";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useFormError } from "@/i18n/use-form-error";
+
+const ITEMS_PER_PAGE = 10;
 
 const scheduleSchema = z.object({
   clinicId: z.string().min(1, "errors.required"),
@@ -92,9 +99,20 @@ export default function AdminPage() {
   const searchParams = useSearchParams();
 
   const [referrals, setReferrals] = useState<Referral[]>([]);
-  const [listTab, setListTab] = useState<"active" | "blocked" | "overdue">(
-    "active",
-  );
+  const [listTab, setListTab] = useState<
+    "active" | "blocked" | "overdue" | "calendar"
+  >("calendar");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
+  const [counts, setCounts] = useState<ReferralCounts>({
+    encaminhado: 0,
+    agendado: 0,
+    atendido: 0,
+    bloqueado: 0,
+    overdue: 0,
+    active: 0,
+  });
   const [clinics, setClinics] = useState<ClinicOption[]>([]);
   const [doctors, setDoctors] = useState<DoctorOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -224,50 +242,77 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    async function loadData() {
-      setIsLoading(true);
+    async function loadLookups() {
       try {
-        const [
-          referralsRes,
-          clinicsRes,
-          nucleiRes,
-          surgeriesRes,
-          agreementsRes,
-        ] = await Promise.all([
-          fetch("/api/referrals", { cache: "no-store" }),
-          fetch("/api/organizations?type=CLINICA", { cache: "no-store" }),
-          fetch("/api/nuclei", { cache: "no-store" }),
-          fetch("/api/surgeries?active=true", { cache: "no-store" }),
-          fetch("/api/agreements?active=true", { cache: "no-store" }),
-        ]);
+        const [clinicsRes, nucleiRes, surgeriesRes, agreementsRes] =
+          await Promise.all([
+            fetch("/api/organizations?type=CLINICA", { cache: "no-store" }),
+            fetch("/api/nuclei", { cache: "no-store" }),
+            fetch("/api/surgeries?active=true", { cache: "no-store" }),
+            fetch("/api/agreements?active=true", { cache: "no-store" }),
+          ]);
 
-        if (!referralsRes.ok || !clinicsRes.ok) {
+        if (!clinicsRes.ok) {
           toast.error(tError("errors.genericRequestFailed") ?? "");
           return;
         }
 
-        const referralsData = (await referralsRes.json()) as Referral[];
-        const clinicsData = (await clinicsRes.json()) as ClinicOption[];
-        const nucleiData = nucleiRes.ok ? await nucleiRes.json() : [];
-        const surgeriesData = surgeriesRes.ok ? await surgeriesRes.json() : [];
-        const agreementsData = agreementsRes.ok
-          ? await agreementsRes.json()
-          : [];
-
-        setReferrals(referralsData);
-        setClinics(clinicsData);
-        setNuclei(nucleiData);
-        setSurgeries(surgeriesData);
-        setAgreements(agreementsData);
+        setClinics((await clinicsRes.json()) as ClinicOption[]);
+        setNuclei(nucleiRes.ok ? await nucleiRes.json() : []);
+        setSurgeries(surgeriesRes.ok ? await surgeriesRes.json() : []);
+        setAgreements(agreementsRes.ok ? await agreementsRes.json() : []);
       } catch {
         toast.error(tError("errors.genericRequestFailed") ?? "");
-      } finally {
-        setIsLoading(false);
       }
     }
 
-    void loadData();
+    void loadLookups();
   }, []);
+
+  const bumpCalendar = useCallback(() => {
+    setCalendarRefreshKey((key) => key + 1);
+  }, []);
+
+  const reloadReferrals = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      if (listTab === "calendar") {
+        const result = await fetchReferralsPage({
+          page: 1,
+          pageSize: 1,
+          includeCounts: true,
+        });
+        if (result.counts) setCounts(result.counts);
+        setReferrals([]);
+        setTotalPages(1);
+        return;
+      }
+
+      const result = await fetchReferralsPage({
+        page: currentPage,
+        pageSize: ITEMS_PER_PAGE,
+        tab: listTab,
+        includeCounts: true,
+      });
+      setReferrals(result.items);
+      setTotalPages(result.totalPages);
+      if (result.counts) setCounts(result.counts);
+    } catch {
+      toast.error(tError("errors.genericRequestFailed") ?? "");
+      setReferrals([]);
+    } finally {
+      setIsLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- toast/tError instáveis a cada render
+  }, [listTab, currentPage]);
+
+  useEffect(() => {
+    void reloadReferrals();
+  }, [reloadReferrals]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [listTab]);
 
   useEffect(() => {
     if (!isEditModalOpen || !editClinicId) {
@@ -310,67 +355,12 @@ export default function AdminPage() {
     void loadDoctors(selectedClinicId);
   }, [selectedClinicId, isModalOpen]);
 
-  const sortedReferrals = useMemo(() => {
-    const priority: Record<string, number> = {
-      Bloqueado: 0,
-      Encaminhado: 1,
-      Agendado: 2,
-      Atendido: 3,
-    };
-
-    const scoped =
-      listTab === "blocked"
-        ? referrals.filter((item) => item.status === "Bloqueado")
-        : listTab === "overdue"
-          ? referrals.filter((item) => isReferralOverdue(item))
-          : referrals.filter((item) => item.status !== "Bloqueado");
-
-    return [...scoped].sort((a, b) => {
-      if (listTab === "overdue") {
-        const aTime = a.appointmentDate
-          ? new Date(a.appointmentDate).getTime()
-          : 0;
-        const bTime = b.appointmentDate
-          ? new Date(b.appointmentDate).getTime()
-          : 0;
-        return aTime - bTime;
-      }
-
-      const aOverdue = isReferralOverdue(a) ? 0 : 1;
-      const bOverdue = isReferralOverdue(b) ? 0 : 1;
-      if (aOverdue !== bOverdue) return aOverdue - bOverdue;
-
-      const priorityDiff =
-        (priority[a.status] ?? 99) - (priority[b.status] ?? 99);
-      if (priorityDiff !== 0) return priorityDiff;
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-  }, [referrals, listTab]);
-
-  const encaminhadosCount = useMemo(
-    () => referrals.filter((item) => item.status === "Encaminhado").length,
-    [referrals],
-  );
-
-  const agendadosCount = useMemo(
-    () => referrals.filter((item) => item.status === "Agendado").length,
-    [referrals],
-  );
-
-  const concluidosCount = useMemo(
-    () => referrals.filter((item) => item.status === "Atendido").length,
-    [referrals],
-  );
-
-  const bloqueadosCount = useMemo(
-    () => referrals.filter((item) => item.status === "Bloqueado").length,
-    [referrals],
-  );
-
-  const atrasadosCount = useMemo(
-    () => referrals.filter((item) => isReferralOverdue(item)).length,
-    [referrals],
-  );
+  const sortedReferrals = referrals;
+  const encaminhadosCount = counts.encaminhado;
+  const agendadosCount = counts.agendado;
+  const concluidosCount = counts.atendido;
+  const bloqueadosCount = counts.bloqueado;
+  const atrasadosCount = counts.overdue;
 
   function openScheduleModal(referral: Referral) {
     setSelectedReferral(referral);
@@ -408,31 +398,11 @@ export default function AdminPage() {
         return;
       }
 
-      const selectedClinic = clinics.find(
-        (clinic) => clinic.id === data.clinicId,
-      );
-      const selectedDoctor = doctors.find(
-        (doctor) => doctor.id === data.doctorUserId,
-      );
-
-      setReferrals((current) =>
-        current.map((item) =>
-          item.id === selectedReferral.id
-            ? {
-                ...item,
-                clinicId: data.clinicId,
-                clinicName: selectedClinic?.name,
-                doctor: selectedDoctor?.name,
-                appointmentDate: new Date(data.appointmentDate).toISOString(),
-                status: "Agendado",
-              }
-            : item,
-        ),
-      );
-
       toast.success(t("scheduleSuccess"));
       setIsModalOpen(false);
       setSelectedReferral(null);
+      bumpCalendar();
+      await reloadReferrals();
     } catch {
       toast.error(tError("errors.genericRequestFailed") ?? "");
     } finally {
@@ -500,17 +470,11 @@ export default function AdminPage() {
         return;
       }
 
-      const updated = await response.json();
-
-      setReferrals((current) =>
-        current.map((item) =>
-          item.id === editingReferral.id ? updated : item,
-        ),
-      );
-
       toast.success(t("updateSuccess"));
       setIsEditModalOpen(false);
       setEditingReferral(null);
+      bumpCalendar();
+      await reloadReferrals();
     } catch {
       toast.error(tError("errors.genericRequestFailed") ?? "");
     } finally {
@@ -532,8 +496,9 @@ export default function AdminPage() {
         return;
       }
 
-      setReferrals((current) => current.filter((item) => item.id !== id));
       toast.success(t("deleteSuccess"));
+      bumpCalendar();
+      await reloadReferrals();
     } catch {
       toast.error(tError("errors.genericRequestFailed") ?? "");
     }
@@ -552,13 +517,10 @@ export default function AdminPage() {
         return;
       }
 
-      setReferrals((current) =>
-        current.map((item) =>
-          item.id === referral.id ? { ...item, status: "Atendido" } : item,
-        ),
-      );
       toast.success(t("markAttendedSuccess"));
       setPendingCompleteReferral(null);
+      bumpCalendar();
+      await reloadReferrals();
     } catch {
       toast.error(tError("errors.genericRequestFailed") ?? "");
     } finally {
@@ -604,6 +566,17 @@ export default function AdminPage() {
         <button
           type="button"
           className={`px-4 py-2 text-sm font-medium ${
+            listTab === "calendar"
+              ? "border-b-2 border-primary text-primary"
+              : "text-gray-500"
+          }`}
+          onClick={() => setListTab("calendar")}
+        >
+          {t("tabCalendar")}
+        </button>
+        <button
+          type="button"
+          className={`px-4 py-2 text-sm font-medium ${
             listTab === "active"
               ? "border-b-2 border-primary text-primary"
               : "text-gray-500"
@@ -646,177 +619,218 @@ export default function AdminPage() {
         </button>
       </div>
 
-      <TableCard
-        title={
-          listTab === "overdue"
-            ? t("overdueReferralsTitle")
-            : t("referralsTitle")
-        }
-      >
-        <TableShell
-          columns={
-            <tr>
-              <th className="px-6 py-3">{common("patient")}</th>
-              <th className="px-6 py-3">{common("status")}</th>
-              <th className="px-6 py-3">{t("officeColumn")}</th>
-              <th className="px-6 py-3">{t("createdByColumn")}</th>
-              <th className="px-6 py-3">{t("clinicColumn")}</th>
-              <th className="px-6 py-3">{common("doctor")}</th>
-              <th className="px-6 py-3">{t("appointmentColumn")}</th>
-              <th className="px-6 py-3">{t("createdColumn")}</th>
-              <th className="px-6 py-3 text-right">{t("actionsColumn")}</th>
-            </tr>
+      {listTab === "calendar" ? (
+        <AppointmentCalendar
+          onSelectReferral={openEditReferralModal}
+          refreshKey={calendarRefreshKey}
+          actions={{
+            policy: "admin",
+            onEdit: openEditReferralModal,
+            onDelete: (referral) => setPendingDeleteReferral(referral),
+            onMarkAttended: (referral) => setPendingCompleteReferral(referral),
+            onSchedule: openScheduleModal,
+          }}
+        />
+      ) : (
+        <TableCard
+          title={
+            listTab === "overdue"
+              ? t("overdueReferralsTitle")
+              : t("referralsTitle")
           }
         >
-          {isLoading ? (
-            Array.from({ length: 5 }).map((_, index) => (
-              <tr key={index} className="ui-table-row">
-                <td className="ui-table-cell">
-                  <Skeleton className="h-4 w-40" />
-                </td>
-                <td className="ui-table-cell">
-                  <Skeleton className="h-4 w-20" />
-                </td>
-                <td className="ui-table-cell">
-                  <Skeleton className="h-4 w-36" />
-                </td>
-                <td className="ui-table-cell">
-                  <Skeleton className="h-4 w-32" />
-                </td>
-                <td className="ui-table-cell">
-                  <Skeleton className="h-4 w-36" />
-                </td>
-                <td className="ui-table-cell">
-                  <Skeleton className="h-4 w-32" />
-                </td>
-                <td className="ui-table-cell">
-                  <Skeleton className="h-4 w-36" />
-                </td>
-                <td className="ui-table-cell">
-                  <Skeleton className="h-4 w-24" />
-                </td>
-                <td className="ui-table-cell">
-                  <Skeleton className="ml-auto h-8 w-24" />
+          <TableShell
+            columns={
+              <tr>
+                <th className="px-6 py-3">{common("patient")}</th>
+                <th className="px-6 py-3">{common("status")}</th>
+                <th className="px-6 py-3">{t("officeColumn")}</th>
+                <th className="px-6 py-3">{t("createdByColumn")}</th>
+                <th className="px-6 py-3">{t("clinicColumn")}</th>
+                <th className="px-6 py-3">{common("doctor")}</th>
+                <th className="px-6 py-3">{t("appointmentColumn")}</th>
+                <th className="px-6 py-3">{t("createdColumn")}</th>
+                <th className="px-6 py-3 text-right">{t("actionsColumn")}</th>
+              </tr>
+            }
+          >
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, index) => (
+                <tr key={index} className="ui-table-row">
+                  <td className="ui-table-cell">
+                    <Skeleton className="h-4 w-40" />
+                  </td>
+                  <td className="ui-table-cell">
+                    <Skeleton className="h-4 w-20" />
+                  </td>
+                  <td className="ui-table-cell">
+                    <Skeleton className="h-4 w-36" />
+                  </td>
+                  <td className="ui-table-cell">
+                    <Skeleton className="h-4 w-32" />
+                  </td>
+                  <td className="ui-table-cell">
+                    <Skeleton className="h-4 w-36" />
+                  </td>
+                  <td className="ui-table-cell">
+                    <Skeleton className="h-4 w-32" />
+                  </td>
+                  <td className="ui-table-cell">
+                    <Skeleton className="h-4 w-36" />
+                  </td>
+                  <td className="ui-table-cell">
+                    <Skeleton className="h-4 w-24" />
+                  </td>
+                  <td className="ui-table-cell">
+                    <Skeleton className="ml-auto h-8 w-24" />
+                  </td>
+                </tr>
+              ))
+            ) : sortedReferrals.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={9}
+                  className="ui-table-cell py-8 text-center text-gray-500"
+                >
+                  {listTab === "overdue"
+                    ? t("emptyOverdueReferrals")
+                    : t("emptyReferrals")}
                 </td>
               </tr>
-            ))
-          ) : sortedReferrals.length === 0 ? (
-            <tr>
-              <td
-                colSpan={9}
-                className="ui-table-cell py-8 text-center text-gray-500"
-              >
-                {listTab === "overdue"
-                  ? t("emptyOverdueReferrals")
-                  : t("emptyReferrals")}
-              </td>
-            </tr>
-          ) : (
-            sortedReferrals.map((referral) => {
-              const overdue = isReferralOverdue(referral);
-              return (
-                <tr
-                  key={referral.id}
-                  className={cn(
-                    "ui-table-row",
-                    overdue &&
-                      "!bg-rose-50 shadow-[inset_4px_0_0_0_rgb(225,29,72)] hover:!bg-rose-100/80",
-                  )}
-                >
-                  <td className="ui-table-cell font-medium text-gray-900">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span>{referral.patientName}</span>
-                      {overdue ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-rose-800">
-                          <Clock className="h-3 w-3" />
-                          {t("overdueBadge")}
-                        </span>
-                      ) : null}
-                    </div>
-                  </td>
-                  <td className="ui-table-cell">
-                    <ReferralStatusBadge
-                      status={referral.status}
-                      justificativaBloqueio={referral.justificativaBloqueio}
-                    />
-                  </td>
-                  <td className="ui-table-cell">
-                    {referral.officeName ?? common("notAvailable")}
-                  </td>
-                  <td className="ui-table-cell">
-                    {referral.createdByUserName ?? common("notAvailable")}
-                  </td>
-                  <td className="ui-table-cell">
-                    {referral.clinicName ?? common("notAvailable")}
-                  </td>
-                  <td className="ui-table-cell">
-                    {referral.doctor ?? common("notAvailable")}
-                  </td>
-                  <td
+            ) : (
+              sortedReferrals.map((referral) => {
+                const overdue = isReferralOverdue(referral);
+                return (
+                  <tr
+                    key={referral.id}
                     className={cn(
-                      "ui-table-cell",
-                      overdue && "font-medium text-rose-800",
+                      "ui-table-row",
+                      overdue &&
+                        "!bg-rose-50 shadow-[inset_4px_0_0_0_rgb(225,29,72)] hover:!bg-rose-100/80",
                     )}
                   >
-                    {referral.appointmentDate
-                      ? formatDateTime(referral.appointmentDate)
-                      : common("notAvailable")}
-                  </td>
-                  <td className="ui-table-cell">
-                    {formatDate(referral.createdAt)}
-                  </td>
-                  <td className="ui-table-cell whitespace-nowrap text-right">
-                    <div className="inline-flex items-center justify-end gap-0.5">
-                      {canAdminMarkAsAttended(referral.status) ? (
-                        <Button
-                          variant="ghost"
-                          className="h-9 w-9 p-0 text-emerald-700 hover:bg-emerald-50"
-                          onClick={() => setPendingCompleteReferral(referral)}
-                          title={t("markAttendedAction")}
-                          aria-label={t("markAttendedAction")}
-                        >
-                          <CheckCircle2 className="h-4 w-4" />
-                        </Button>
-                      ) : null}
-                      {referral.status === "Encaminhado" ? (
-                        <Button
-                          variant="ghost"
-                          className="h-9 w-9 p-0 text-primary hover:bg-primary/5"
-                          onClick={() => openScheduleModal(referral)}
-                          title={t("scheduleAction")}
-                          aria-label={t("scheduleAction")}
-                        >
-                          <CalendarDays className="h-4 w-4" />
-                        </Button>
-                      ) : null}
-                      <Button
-                        variant="ghost"
-                        className="h-9 w-9 p-0"
-                        onClick={() => openEditReferralModal(referral)}
-                        title={common("edit")}
-                        aria-label={common("edit")}
-                      >
-                        <Pencil className="h-4 w-4 text-amber-600" />
-                      </Button>
-                      {referral.status !== "Atendido" ? (
+                    <td className="ui-table-cell font-medium text-gray-900">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span>{referral.patientName}</span>
+                        {overdue ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-rose-800">
+                            <Clock className="h-3 w-3" />
+                            {t("overdueBadge")}
+                          </span>
+                        ) : null}
+                      </div>
+                    </td>
+                    <td className="ui-table-cell">
+                      <ReferralStatusBadge
+                        status={referral.status}
+                        justificativaBloqueio={referral.justificativaBloqueio}
+                      />
+                    </td>
+                    <td className="ui-table-cell">
+                      {referral.officeName ?? common("notAvailable")}
+                    </td>
+                    <td className="ui-table-cell">
+                      {referral.createdByUserName ?? common("notAvailable")}
+                    </td>
+                    <td className="ui-table-cell">
+                      {referral.clinicName ?? common("notAvailable")}
+                    </td>
+                    <td className="ui-table-cell">
+                      {referral.doctor ?? common("notAvailable")}
+                    </td>
+                    <td
+                      className={cn(
+                        "ui-table-cell",
+                        overdue && "font-medium text-rose-800",
+                      )}
+                    >
+                      {referral.appointmentDate
+                        ? formatDateTime(referral.appointmentDate)
+                        : common("notAvailable")}
+                    </td>
+                    <td className="ui-table-cell">
+                      {formatDate(referral.createdAt)}
+                    </td>
+                    <td className="ui-table-cell whitespace-nowrap text-right">
+                      <div className="inline-flex items-center justify-end gap-0.5">
+                        {canAdminMarkAsAttended(referral.status) ? (
+                          <Button
+                            variant="ghost"
+                            className="h-9 w-9 p-0 text-emerald-700 hover:bg-emerald-50"
+                            onClick={() => setPendingCompleteReferral(referral)}
+                            title={t("markAttendedAction")}
+                            aria-label={t("markAttendedAction")}
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                          </Button>
+                        ) : null}
+                        {referral.status === "Encaminhado" ? (
+                          <Button
+                            variant="ghost"
+                            className="h-9 w-9 p-0 text-primary hover:bg-primary/5"
+                            onClick={() => openScheduleModal(referral)}
+                            title={t("scheduleAction")}
+                            aria-label={t("scheduleAction")}
+                          >
+                            <CalendarDays className="h-4 w-4" />
+                          </Button>
+                        ) : null}
                         <Button
                           variant="ghost"
                           className="h-9 w-9 p-0"
-                          onClick={() => setPendingDeleteReferral(referral)}
-                          title={common("delete")}
-                          aria-label={common("delete")}
+                          onClick={() => openEditReferralModal(referral)}
+                          title={common("edit")}
+                          aria-label={common("edit")}
                         >
-                          <Trash2 className="h-4 w-4 text-red-500" />
+                          <Pencil className="h-4 w-4 text-amber-600" />
                         </Button>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })
-          )}
-        </TableShell>
-      </TableCard>
+                        {referral.status !== "Atendido" ? (
+                          <Button
+                            variant="ghost"
+                            className="h-9 w-9 p-0"
+                            onClick={() => setPendingDeleteReferral(referral)}
+                            title={common("delete")}
+                            aria-label={common("delete")}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </TableShell>
+          <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 px-6 py-3">
+            <p className="text-sm text-gray-500">
+              Página{" "}
+              <span className="font-medium text-gray-900">{currentPage}</span>{" "}
+              de <span className="font-medium text-gray-900">{totalPages}</span>
+            </p>
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                className="px-2 py-1"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="px-2 py-1"
+                onClick={() =>
+                  setCurrentPage(Math.min(totalPages, currentPage + 1))
+                }
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </TableCard>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {cards.map((card) => (

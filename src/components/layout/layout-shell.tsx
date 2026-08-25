@@ -24,9 +24,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const userRole = isGlobalAdmin ? "Gestor Global" : orgName || "Usuário";
 
   return (
-    <div className="flex min-h-screen overflow-x-hidden bg-surface">
+    <div className="flex min-h-screen bg-surface">
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden lg:pl-64">
         <header className="flex h-20 shrink-0 items-center justify-between border-b bg-white px-4 md:px-8">
           <div className="flex items-center space-x-4">
             <button

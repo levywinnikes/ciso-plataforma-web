@@ -77,6 +77,13 @@ Um encaminhamento é **atrasado** quando:
 
 Atrasados **continuam na aba Ativos**. Há uma aba extra só com atrasados. O destaque visual (faixa à esquerda, fundo rosado, selo) aparece em qualquer lista onde o item esteja atrasado.
 
+### Calendário de agendamentos (dashboards)
+
+- Só entram encaminhamentos com **`appointmentDate` preenchido**
+- Agrupamento por **dia civil** local (mesma base do atraso)
+- Somente leitura no v1; remarcar/agendar continua pelo fluxo administrativo existente
+- Presente em `/admin`, `/medico` e `/profissional`
+
 ### Marcar como atendido (administrativo)
 
 Em `/admin`, o administrador pode concluir `Encaminhado` ou `Agendado` pelo ícone de concluir na coluna de ações (rótulo **Marcar como atendido** ao passar o mouse), com modal de confirmação dos dados. A API é `PATCH /api/referrals/:id/complete` (`requireAdministrativo`), com auditoria de status. Não vale para `Bloqueado` nem para quem já está `Atendido`.

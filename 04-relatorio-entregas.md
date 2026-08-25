@@ -6,7 +6,7 @@
 | ------------- | --------------------- |
 | Integra Visão | `ciso-plataforma-web` |
 
-**Última atualização:** 19/08/2026 (ENT-010 layout da lista admin)  
+**Última atualização:** 25/08/2026 (IV-001 calendário de agendamentos)  
 **Responsável pelo registro:** assistente de desenvolvimento (sessões Cursor)  
 **Cliente / uso:** controle interno do projeto e base para cobrança  
 **Taxa:** R$ 50,00/h (horas estimadas IA)
@@ -42,7 +42,7 @@ Não é obrigatório registrar:
 
 ## Como usar este documento
 
-1. Cada entrega ganha um bloco `ENT-XXX` no histórico.
+1. Cada entrega ganha um bloco `ENT-XXX` / `IV-XXX` no histórico.
 2. O resumo executivo do mês deve ser atualizado no topo.
 3. Quando houver commit, registrar hash e mensagem.
 4. Se ainda não houver commit, marcar `Aguardando commit`.
@@ -52,23 +52,44 @@ Não é obrigatório registrar:
 
 ## Resumo executivo (ago/2026)
 
-| Data       | Entrega                                                    |   Horas   |      Valor      | Motivo de negócio                                                                            |
-| ---------- | ---------------------------------------------------------- | :-------: | :-------------: | -------------------------------------------------------------------------------------------- |
-| 18/08/2026 | Governança documental e contratos canônicos ENT-001        |    2h     |    R$ 100,00    | Consolidar a fonte de verdade das regras de acesso, views e API antes de expandir o produto  |
-| 18/08/2026 | Refinar regra de gestão de usuários ENT-002                |   0,5h    |    R$ 25,00     | Fechar contrato: `isAdmin` delimita só usuários; restante do sistema liberado para não-admin |
-| 18/08/2026 | Marcar admin local como questão em aberto ENT-003          |   0,25h   |    R$ 12,50     | Reverter contrato prematuro de `isAdmin`; documentar intenção (admin local) sem enforcement  |
-| 19/08/2026 | Planejar Assistente administrativo (piloto Gemini) ENT-004 |   0,75h   |    R$ 37,50     | Definir chatbot só para administradores, Gemini sem DeepSeek, sem código                     |
-| 19/08/2026 | Fechar decisões do piloto do Assistente ENT-005            |   0,5h    |    R$ 25,00     | Widget, cota, histórico, privacidade admin e contratos futuros por papel                     |
-| 19/08/2026 | Atrasados e marcar como atendido (admin) ENT-006           |   1,5h    |    R$ 75,00    | Facilitar conclusão operacional e evidenciar agendamentos que passaram do dia                |
-| 19/08/2026 | Auditoria de status e limpeza de pendências ENT-007        |    1h     |    R$ 50,00    | Fechar lacuna de auditoria e o roadmap documental de maio/2026                               |
-| 19/08/2026 | Piloto do Assistente administrativo ENT-008                |   2,5h    |    R$ 125,00    | Widget de orientação para administradores, Gemini com fallback entre modelos                 |
-| 19/08/2026 | Consulta genérica do Assistente ENT-009                    |    2h     |    R$ 100,00    | Números ao vivo sem relatório pronto; o chat monta o recorte da pergunta                     |
-| 19/08/2026 | Ações da lista admin e autonomia A2 a fazer ENT-010        |   0,5h    |    R$ 25,00     | Corrigir layout da coluna de ações; ranking de paciente fica para depois                     |
-| **Total**  | **Todas as entregas registradas no projeto**               | **11,5h** | **R$ 575,00** |                                                                                              |
+| Data       | Entrega                                                       |   Horas   |     Valor     | Motivo de negócio                                                                            |
+| ---------- | ------------------------------------------------------------- | :-------: | :-----------: | -------------------------------------------------------------------------------------------- |
+| 18/08/2026 | Governança documental e contratos canônicos ENT-001           |    2h     |   R$ 100,00   | Consolidar a fonte de verdade das regras de acesso, views e API antes de expandir o produto  |
+| 18/08/2026 | Refinar regra de gestão de usuários ENT-002                   |   0,5h    |   R$ 25,00    | Fechar contrato: `isAdmin` delimita só usuários; restante do sistema liberado para não-admin |
+| 18/08/2026 | Marcar admin local como questão em aberto ENT-003             |   0,25h   |   R$ 12,50    | Reverter contrato prematuro de `isAdmin`; documentar intenção (admin local) sem enforcement  |
+| 19/08/2026 | Planejar Assistente administrativo (piloto Gemini) ENT-004    |   0,75h   |   R$ 37,50    | Definir chatbot só para administradores, Gemini sem DeepSeek, sem código                     |
+| 19/08/2026 | Fechar decisões do piloto do Assistente ENT-005               |   0,5h    |   R$ 25,00    | Widget, cota, histórico, privacidade admin e contratos futuros por papel                     |
+| 19/08/2026 | Atrasados e marcar como atendido (admin) ENT-006              |   1,5h    |   R$ 75,00    | Facilitar conclusão operacional e evidenciar agendamentos que passaram do dia                |
+| 19/08/2026 | Auditoria de status e limpeza de pendências ENT-007           |    1h     |   R$ 50,00    | Fechar lacuna de auditoria e o roadmap documental de maio/2026                               |
+| 19/08/2026 | Piloto do Assistente administrativo ENT-008                   |   2,5h    |   R$ 125,00   | Widget de orientação para administradores, Gemini com fallback entre modelos                 |
+| 19/08/2026 | Consulta genérica do Assistente ENT-009                       |    2h     |   R$ 100,00   | Números ao vivo sem relatório pronto; o chat monta o recorte da pergunta                     |
+| 19/08/2026 | Ações da lista admin e autonomia A2 a fazer ENT-010           |   0,5h    |   R$ 25,00    | Corrigir layout da coluna de ações; ranking de paciente fica para depois                     |
+| 25/08/2026 | Calendário de agendamentos (admin/médico/profissional) IV-001 |    8h     |   R$ 400,00   | Ver agenda por data de agendamento, com paginação API, ações e selo de atrasados             |
+| **Total**  | **Todas as entregas registradas no projeto**                  | **19,5h** | **R$ 975,00** |                                                                                              |
 
 ---
 
 ## Histórico de entregas
+
+### IV-001 — Calendário de agendamentos nos dashboards
+
+| Campo        | Valor                                                                                                                                                                                                                                                                  |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Data**     | 25/08/2026                                                                                                                                                                                                                                                             |
+| **Motivo**   | Operação precisava ver encaminhamentos pela data de agendamento, sem misturar com a lista paginada                                                                                                                                                                     |
+| **Escopo**   | Encaminhamentos / dashboards admin, médico e profissional                                                                                                                                                                                                              |
+| **Entrega**  | Aba Calendário (default) nos três papéis; grade mensal + painel do dia; `GET /api/referrals` com `appointmentFrom/To`, `page`/`tab`/`includeCounts`; ações alinhadas à lista; selo **Atrasado** e legenda de situação também no médico/profissional; menu lateral fixo |
+| **Arquivos** | `appointment-calendar*`, `list-query`, `fetch-referrals`, `api/referrals/route.ts`, dashboards admin/médico/profissional, i18n, docs/ai, sidebar/layout                                                                                                                |
+| **Horas**    | 8h                                                                                                                                                                                                                                                                     |
+| **Valor**    | R$ 400,00                                                                                                                                                                                                                                                              |
+| **Status**   | Aguardando commit / deploy                                                                                                                                                                                                                                             |
+| **Pauta**    | Gestão `03-pautas-e-parcerias.md` — calendário (aceite 25/08/2026)                                                                                                                                                                                                     |
+
+#### Commits
+
+- Aguardando commit
+
+---
 
 ### ENT-001 — Alinhar governança documental do Integra Visão
 
@@ -145,7 +166,7 @@ Não é obrigatório registrar:
 | **Entrega**  | Botão Marcar como atendido com modal de confirmação; aba Atrasados (Ativos segue mostrando todos, inclusive atrasados); destaque visual (faixa, fundo e selo); rota `PATCH /api/referrals/:id/complete` com auditoria                                                       |
 | **Arquivos** | `src/app/(dashboard)/admin/page.tsx`, `src/app/api/referrals/[id]/complete/route.ts`, `src/features/referrals/overdue.ts`, `src/features/referrals/components/mark-attended-dialog.tsx`, `docs/ai/referral-management.md`, `docs/ai/user-views.md`, `docs/ai/api-routes.md` |
 | **Horas**    | 1,5h                                                                                                                                                                                                                                                                        |
-| **Valor**    | R$ 75,00                                                                                                                                                                                                                                                                   |
+| **Valor**    | R$ 75,00                                                                                                                                                                                                                                                                    |
 | **Status**   | Commitado em `b194886`                                                                                                                                                                                                                                                      |
 
 ### ENT-007 — Auditoria de status e limpeza de pendências
@@ -158,7 +179,7 @@ Não é obrigatório registrar:
 | **Entrega**  | `ReferralStatusAudit` em schedule e specialist; i18n da casca da listagem admin; `documentation-roadmap.md` atualizado para 19/08/2026                                     |
 | **Arquivos** | `src/app/api/referrals/[id]/schedule/route.ts`, `src/app/api/referrals/[id]/specialist/route.ts`, `src/app/(dashboard)/admin/page.tsx`, `docs/ai/documentation-roadmap.md` |
 | **Horas**    | 1h                                                                                                                                                                         |
-| **Valor**    | R$ 50,00                                                                                                                                                                  |
+| **Valor**    | R$ 50,00                                                                                                                                                                   |
 | **Status**   | Commitado em `b194886`                                                                                                                                                     |
 
 ### ENT-008 — Piloto do Assistente administrativo

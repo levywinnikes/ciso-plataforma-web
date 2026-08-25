@@ -100,6 +100,7 @@
     "tabActive": "Ativos",
     "tabBlocked": "Bloqueados",
     "tabOverdue": "Atrasados",
+    "tabCalendar": "Calendário",
     "overdueStatus": "Atrasados",
     "overdueBadge": "Atrasado",
     "overdueReferralsTitle": "Encaminhamentos atrasados",
@@ -363,7 +364,9 @@
     "nucleus": "Núcleo de Atendimento",
     "date": "Data",
     "tabActive": "Ativos",
-    "tabBlocked": "Bloqueados"
+    "tabBlocked": "Bloqueados",
+    "tabCalendar": "Calendário",
+    "tabList": "Lista"
   },
   "newReferral": {
     "title": "Novo Encaminhamento",
@@ -411,7 +414,9 @@
   "doctor": {
     "title": "Painel do Médico Especialista",
     "subtitle": "Visualize os encaminhamentos agendados, registre condutas e conclua atendimentos.",
-    "agendaToday": "Agenda de Atendimentos",
+    "agendaToday": "Lista de atendimentos",
+    "tabCalendar": "Calendário",
+    "tabList": "Lista",
     "dateAndTime": "Data e Hora",
     "nucleus": "Núcleo de Atendimento",
     "responsibleDoctor": "Médico Responsável",
@@ -426,6 +431,34 @@
     "confirmCompleteTitle": "Concluir Atendimento",
     "confirmCompleteMessage": "Tem certeza de que deseja concluir este atendimento?",
     "confirmCompleteHint": "Esta ação salvará a conduta médica e mudará o status para 'Atendido'. Após a conclusão, todos os campos ficarão bloqueados para edição."
+  },
+  "agenda": {
+    "title": "Calendário de agendamentos",
+    "subtitle": "Encaminhamentos pela data de agendamento",
+    "today": "Hoje",
+    "prevMonth": "Mês anterior",
+    "nextMonth": "Próximo mês",
+    "dayPanel": "Dia selecionado",
+    "pickDay": "Selecione um dia",
+    "emptyDay": "Nenhum agendamento neste dia.",
+    "overdueSeal": "Atrasado",
+    "filterStatus": "Filtrar por situação",
+    "filterAll": "Todos com data",
+    "filterScheduled": "Agendado",
+    "filterAttended": "Atendido",
+    "filterOverdue": "Atrasados",
+    "dayScheduleHint": "Horários do dia selecionado",
+    "timeLabel": "hora",
+    "tabCalendar": "Calendário",
+    "loading": "Carregando agenda...",
+    "legendActions": "Ações",
+    "legendMarkAttended": "Marcar como atendido",
+    "legendSchedule": "Agendar",
+    "legendView": "Visualizar",
+    "legendEdit": "Editar",
+    "legendDelete": "Excluir",
+    "legendEditLocked": "Só é possível editar Encaminhado ou Bloqueado",
+    "legendStatus": "Situação"
   },
   "login": {
     "brandPrimary": "Integra",
@@ -482,7 +515,12 @@
     "placeholder": "Pergunte sobre encaminhamentos, cadastros, atrasados...",
     "send": "Perguntar",
     "emptyTitle": "Olá. Como posso orientar?",
-    "emptyBody": "Pergunte como marcar um atendimento, o que é Bloqueado ou onde fica o financeiro. Eu oriento; as telas continuam fazendo o cadastro."
+    "emptyBody": "Pergunte como marcar um atendimento, o que é Bloqueado ou onde fica o financeiro. Eu oriento; as telas continuam fazendo o cadastro.",
+    "conversations": "Conversas",
+    "newConversation": "Nova conversa",
+    "deleteConversation": "Apagar conversa",
+    "noConversations": "Nenhuma conversa ainda.",
+    "chartLabel": "Gráfico da consulta"
   },
   "errors": {
     "required": "Campo obrigatório",

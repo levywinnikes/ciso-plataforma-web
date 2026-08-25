@@ -4,6 +4,20 @@ Registro canônico de decisões de produto e governança que afetam regras de ne
 
 ---
 
+## 2026-08-25 — Calendário de agendamentos nos dashboards
+
+**Decisão vigente:**
+
+- Calendário **somente leitura** nos dashboards `/admin`, `/medico` e `/profissional` (aba própria, default)
+- Eventos = encaminhamentos com `appointmentDate`; grade carrega **por mês** via `appointmentFrom`/`appointmentTo`
+- Listas paginam no servidor (`page`/`pageSize`/`tab`/`includeCounts`); sem `page` permanece array legado
+- Clique no item abre o fluxo já existente do papel
+- Não usar `/clinica` órfão; médico = `/medico`
+
+**Impacto:** `user-views.md`, `api-routes.md`; feature `appointment-calendar*`, `list-query`, `fetch-referrals`
+
+---
+
 ## 2026-08-18 — Nome oficial do produto
 
 **Decisão:** o nome oficial do produto passa a ser **Integra Visão**.
@@ -139,18 +153,105 @@ Itens futuros, opcionais, experimentais ou ainda não fechados devem ir para:
 
 ---
 
-## 2026-08-19 — Autonomia de consulta do Assistente (planejamento)
+## 2026-08-19 — Autonomia de consulta do Assistente (planejamento inicial)
 
-**Contexto:** “Qual é o paciente mais recorrente?” foi recusado. O admin já vê os nomes na lista; a recusa veio da regra “totais sem pessoa”, não de uma lei de produto de mascarar administrador.
+**Contexto:** o chat recusou perguntas operacionais criativas; o piloto ainda era estreito demais.
 
-**Direção (ainda não no código):**
+**Direção inicial (depois corrigida em 21/08/2026):** falava em camadas A2/A3 centradas em ranking/localizar. Isso **não** é o plano vigente.
 
-- autonomia = o modelo escolhe orientar, agregar, **destacar (ranking)** ou depois **localizar um caso**
-- não é relatório novo nem SQL livre nem alterar dados
-- próximo ciclo sugerido: **A2** (top 5, inclusive paciente por quantidade de encaminhamentos)
-- **A3** localizar depois; **A4** agir pelo chat continua fora
+---
 
-**Impacto:** `docs/ai/assistant-autonomy.md`
+## 2026-08-21 — Autonomia = relatórios criativos + cruzamento (direção vigente)
+
+**Contexto:** “paciente mais recorrente” era só **exemplo**. O produto precisa de autonomia para o usuário pedir recortes criativos e o chat cruzar dados no banco — sem prever cada relatório.
+
+**Direção vigente (ainda sem código novo):**
+
+- não implementar “ranking de paciente” como marco
+- primeiro passo: **API / motor de consulta mais genérico** (medidas, dimensões, filtros, ordenação, limite, cruzamento)
+- o modelo monta o pedido; o servidor valida e agrega; sem SQL livre; sem alterar cadastro
+- ampliar = novas dimensões/medidas no motor, não um relatório por frase
+
+**Impacto:** `docs/ai/assistant-autonomy.md` (reescrito), `assistant-contract.md`, `documentation-roadmap.md`
+
+---
+
+## 2026-08-21 — Plano técnico do motor de consulta do Assistente
+
+**Contexto:** alinhamento para implementar autonomia com boas práticas (allowlist, Zod, agregação no servidor, sem SQL livre).
+
+**Plano documentado (ainda sem código):**
+
+- pedido estruturado v2 (dimensões nomeadas, ordenação, limite, período por campo)
+- catálogo expansível de medidas/dimensões; falha fechada se pedir o que não existe
+- preferir agregação no Prisma; teto de linhas; sem PII por padrão
+- fases 0→2: plano → motor+schema → chat só no v2
+  **Defaults sugeridos:** até 3 dimensões, limite 20/50, período omitido = tudo, rota `/api/admin/assistant/queries` mantida.
+
+**Linguagem:** pedido/resultado/resposta alinhados à UI — ver `docs/ai/assistant-language.md`.
+
+**Visualização:** se o usuário pedir gráfico, o modelo só escolhe o tipo; o widget renderiza template pronto com os dados da consulta (sem gerar imagem no Gemini). Detalhe: `assistant-query-engine.md` §9.1.
+
+**Freshness / cache:** se `MAX(updatedAt)` do assunto for mais novo que `dadosAte`, **ou** mudou o **dia civil** (`diaReferencia`) → **nova busca completa** do mesmo pedido. Fingerprint por assunto. §9.3.
+
+**Histórico de conversas:** vários fios **no navegador**. Sem histórico compartilhado entre usuários. Servidor só se o mesmo admin pedir outro dispositivo.
+
+**Timestamps:** padrão de projeto — tabelas de domínio com `createdAt` + `updatedAt` (`docs/ai/patterns.md` §12). Migration `20260821180000_domain_timestamps`. Exceções: Auth/NextAuth e tabelas só-append. Opcional: `deletedAt` só onde houver soft delete.
+
+**Impacto:** `docs/ai/assistant-query-engine.md`, `docs/ai/assistant-language.md`
+
+---
+
+## 2026-08-21 — Fase 3b/3c: gráficos + histórico local
+
+**Decisão / entrega:**
+
+- Fase **3** (médias/taxas): **adiada** até o produto pedir medidas fechadas
+- **3b:** chat devolve `dados.linhas` + `visualizacao` (barras|linhas|pizza); widget renderiza Recharts; JSON de visualização não aparece no texto
+- **3c:** vários fios no `localStorage` (nova / listar / apagar); migra sessão antiga do `sessionStorage`
+
+**Impacto:** `chat/route.ts`, `assistant-widget.tsx`, `visualizacao.ts`, `threads.ts`, `assistant-chart.tsx`, i18n
+
+---
+
+## 2026-08-21 — Fase 2: chat só na gramática v2
+
+**Decisão / entrega:**
+
+- Removida normalização da gramática v1 (`quebrarPor`, `inicio`/`fim` soltos, `clinica` sem `Contem`)
+- Chat usa `buildConsultaInstructions()` (instruções + catálogo JSON)
+- Resultado formatado para o modelo com dimensões nomeadas (texto + JSON)
+- Teste de aceitação: padrão “atrasados + clínica + núcleo” sem relatório nomeado
+
+**Impacto:** `consulta-schema.ts`, `consulta-engine.ts`, `chat/route.ts`, `assistant-contract.md`, `api-routes.md`
+
+---
+
+## 2026-08-21 — Fase 1 do motor de consulta (v2) no código
+
+**Decisão / entrega:**
+
+- Schema Zod v2: `dimensoes` (até 3), `periodo.campo`, `limite` 20/50, `ordenarPor`, `convenio` / `mesAgendamento` / `mesCriacao`
+- Entrada legada (`quebrarPor`, `inicio`/`fim`, nomes curtos) normalizada via `parseAssistantConsulta`
+- Resultado com dimensões nomeadas + `meta`; GET `/api/admin/assistant/queries` devolve catálogo versionado
+- Push-down parcial no Prisma (`where` de status/período/nome); atraso ainda em memória
+- Chat já consome o mesmo motor; instruções do modelo atualizadas para v2
+
+**Impacto:** `consulta-schema.ts`, `consulta-engine.ts`, `queries/route.ts`, `assistant-contract.md`, `assistant-query-engine.md`
+
+---
+
+## 2026-08-21 — Timestamps obrigatórios em tabelas de domínio
+
+**Decisão vigente:**
+
+- Toda tabela de **domínio** no Prisma deve ter `createdAt` + `updatedAt` (`@updatedAt`).
+- Exceções: modelos Auth/NextAuth; tabelas só-append (ex. `ReferralStatusAudit` só com `createdAt`).
+- Coluna opcional recomendada: `deletedAt` **somente** quando o negócio pedir soft delete (não em toda tabela).
+- Documentado em `docs/ai/patterns.md` §12.
+- Alinhamento do schema legado: migration `20260821180000_domain_timestamps`.
+
+**Impacto:** `prisma/schema.prisma`, `docs/ai/patterns.md`, `docs/ai/assistant-query-engine.md`
 
 ---
 

@@ -100,6 +100,7 @@
     "tabActive": "Active",
     "tabBlocked": "Blocked",
     "tabOverdue": "Overdue",
+    "tabCalendar": "Calendar",
     "overdueStatus": "Overdue",
     "overdueBadge": "Overdue",
     "overdueReferralsTitle": "Overdue referrals",
@@ -357,7 +358,9 @@
     "nucleus": "Care Nucleus",
     "date": "Date",
     "tabActive": "Active",
-    "tabBlocked": "Blocked"
+    "tabBlocked": "Blocked",
+    "tabCalendar": "Calendar",
+    "tabList": "List"
   },
   "newReferral": {
     "title": "New Referral",
@@ -405,7 +408,9 @@
   "doctor": {
     "title": "Specialist Doctor Panel",
     "subtitle": "Review scheduled referrals, register conduct and complete care.",
-    "agendaToday": "Care agenda",
+    "agendaToday": "Care list",
+    "tabCalendar": "Calendar",
+    "tabList": "List",
     "dateAndTime": "Date & Time",
     "nucleus": "Care Nucleus",
     "responsibleDoctor": "Responsible Doctor",
@@ -420,6 +425,34 @@
     "confirmCompleteTitle": "Complete Care",
     "confirmCompleteMessage": "Are you sure you want to complete this care?",
     "confirmCompleteHint": "This action will save the medical conduct and change the status to 'Attended'. After completion, all fields will be locked for editing."
+  },
+  "agenda": {
+    "title": "Appointment calendar",
+    "subtitle": "Referrals by appointment date",
+    "today": "Today",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "dayPanel": "Selected day",
+    "pickDay": "Select a day",
+    "emptyDay": "No appointments on this day.",
+    "overdueSeal": "Overdue",
+    "filterStatus": "Filter by status",
+    "filterAll": "All with a date",
+    "filterScheduled": "Scheduled",
+    "filterAttended": "Attended",
+    "filterOverdue": "Overdue",
+    "dayScheduleHint": "Times for the selected day",
+    "timeLabel": "time",
+    "tabCalendar": "Calendar",
+    "loading": "Loading schedule...",
+    "legendActions": "Actions",
+    "legendMarkAttended": "Mark as attended",
+    "legendSchedule": "Schedule",
+    "legendView": "View",
+    "legendEdit": "Edit",
+    "legendDelete": "Delete",
+    "legendEditLocked": "Only Pending or Blocked referrals can be edited",
+    "legendStatus": "Status"
   },
   "login": {
     "brandPrimary": "Integra",
@@ -476,7 +509,12 @@
     "placeholder": "Ask about referrals, records, overdue items...",
     "send": "Ask",
     "emptyTitle": "Hello. How can I help?",
-    "emptyBody": "Ask how to mark a visit as attended, what Blocked means, or where finance lives. I guide; the screens still handle the records."
+    "emptyBody": "Ask how to mark a visit as attended, what Blocked means, or where finance lives. I guide; the screens still handle the records.",
+    "conversations": "Conversations",
+    "newConversation": "New conversation",
+    "deleteConversation": "Delete conversation",
+    "noConversations": "No conversations yet.",
+    "chartLabel": "Query chart"
   },
   "errors": {
     "required": "Required field",

@@ -168,13 +168,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         key={item.href}
         href={item.href}
         onClick={onClose}
-        className={`group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+        className={`group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
           active
-            ? "bg-accent text-accent-foreground"
-            : "text-white hover:bg-accent hover:text-accent-foreground"
+            ? "bg-white/15 text-white shadow-[inset_3px_0_0_0_#c4a47c]"
+            : "text-white/80 hover:bg-white/10 hover:text-white"
         }`}
       >
-        <item.icon className="mr-3 h-5 w-5" aria-hidden="true" />
+        <item.icon
+          className={`h-5 w-5 shrink-0 ${active ? "text-accent" : "text-white/70 group-hover:text-white"}`}
+          aria-hidden="true"
+        />
         {item.name}
       </Link>
     );
@@ -219,8 +222,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       />
 
       <div
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-primary text-white transition-transform duration-300 lg:static lg:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-primary text-white transition-transform duration-300 ${
+          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         <div className="flex h-20 items-center justify-between border-b border-primary-foreground/10 px-6">

@@ -1,14 +1,17 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+import { fetchReferralsPage } from "@/features/referrals/fetch-referrals";
 import type { Referral } from "@/features/referrals/types";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useFormError } from "@/i18n/use-form-error";
 import { uploadFilesToStorage } from "@/lib/upload-client";
 
 import type { MedicoPageModel, MedicoUploadedFile } from "./schema";
+
+const ITEMS_PER_PAGE = 10;
 
 export function useMedicoPageModel(): MedicoPageModel {
   const toast = useAppToast();
@@ -18,57 +21,50 @@ export function useMedicoPageModel(): MedicoPageModel {
   const [selectedReferral, setSelectedReferral] = useState<Referral | null>(
     null,
   );
-  const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [items, setItems] = useState<Referral[]>([]);
+  const [viewTab, setViewTab] = useState<"calendar" | "list">("calendar");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [notes, setNotes] = useState("");
   const [conduct, setConduct] = useState("");
   const [files, setFiles] = useState<MedicoUploadedFile[]>([]);
   const [surgeryId, setSurgeryId] = useState("");
   const [surgeryPrice, setSurgeryPrice] = useState<number | "">("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadData() {
-      setIsLoading(true);
-      try {
-        const refResponse = await fetch("/api/referrals", {
-          cache: "no-store",
-        });
-
-        const refData = (await refResponse.json()) as Referral[];
-
-        if (isMounted) {
-          setReferrals(refData);
-        }
-      } catch (e) {
-        console.error(e);
-        toast.error(tError("errors.genericRequestFailed") ?? "");
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
+  const reloadList = useCallback(async () => {
+    if (viewTab !== "list") {
+      setIsLoading(false);
+      return;
     }
+    setIsLoading(true);
+    try {
+      const result = await fetchReferralsPage({
+        page: currentPage,
+        pageSize: ITEMS_PER_PAGE,
+      });
+      setItems(result.items);
+      setTotalPages(result.totalPages);
+    } catch (e) {
+      console.error(e);
+      toast.error(tError("errors.genericRequestFailed") ?? "");
+      setItems([]);
+    } finally {
+      setIsLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- toast/tError instáveis a cada render
+  }, [viewTab, currentPage]);
 
-    void loadData();
+  useEffect(() => {
+    void reloadList();
+  }, [reloadList]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const items = useMemo(
-    () =>
-      referrals.filter(
-        (referral) =>
-          referral.status === "Agendado" || referral.status === "Atendido",
-      ),
-    [referrals],
-  );
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [viewTab]);
 
   const handleOpenAtendimento = (referral: Referral) => {
     setSelectedReferral(referral);
@@ -138,28 +134,9 @@ export function useMedicoPageModel(): MedicoPageModel {
       );
 
       if (response.ok) {
-        setReferrals((current) =>
-          current.map((item) =>
-            item.id === selectedReferral.id
-              ? {
-                  ...item,
-                  specialistNotes: notes,
-                  specialistConduct: conduct,
-                  surgeryId: surgeryId || undefined,
-                  surgeryPrice: surgeryPrice !== "" ? surgeryPrice : undefined,
-                  specialistAttachments: files.map((file) => ({
-                    id: file.id,
-                    name: file.name,
-                    url: file.url,
-                    uploadedAt: file.uploadedAt ?? new Date().toISOString(),
-                  })),
-                  status: complete ? "Atendido" : item.status,
-                }
-              : item,
-          ),
-        );
         toast.success(complete ? t("completeSuccess") : t("saveSuccess"));
         setSelectedReferral(null);
+        await reloadList();
       } else {
         toast.error(tError("errors.genericRequestFailed") ?? "");
       }
@@ -186,6 +163,11 @@ export function useMedicoPageModel(): MedicoPageModel {
     conduct,
     files,
     items,
+    viewTab,
+    setViewTab,
+    currentPage,
+    setCurrentPage,
+    totalPages,
     isLoading,
     isSaving,
     isUploading,

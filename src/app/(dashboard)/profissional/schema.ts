@@ -16,13 +16,14 @@ export interface ReferralFilters {
   date: string;
 }
 
-export type ReferralListTab = "active" | "blocked";
+export type ReferralListTab = "active" | "blocked" | "calendar";
 
 export interface ProfissionalPageModel {
   // Data
   isLoading: boolean;
   referrals: Referral[];
   filteredReferrals: Referral[];
+  blockedCount: number;
 
   // Pagination
   currentPage: number;
@@ -60,4 +61,5 @@ export interface ProfissionalPageModel {
 
   // Actions
   deleteReferral: (id: string) => Promise<void>;
+  calendarRefreshKey: number;
 }

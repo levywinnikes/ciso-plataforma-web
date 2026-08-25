@@ -508,29 +508,49 @@ Authorization: Bearer <token>
 - **ADMINISTRATIVO:** Todos os referrals; inclui `Bloqueado`
 - **MEDICO:** Referrals da clínica (`organizationId = sua org`) nos status `Agendado` e `Atendido` apenas — **nunca** retorna `Bloqueado` (nem `Encaminhado` no filtro atual da clínica)
 
-**Response (200):**
+**Response (200) — modo legado (sem `page`):**
 
 ```json
 [
   {
     "id": "ref_1",
     "patientName": "João Silva",
-    "patientPhone": "(11) 98765-4321",
-    "status": "Encaminhado",
-    "justificativaBloqueio": null,
-    "nucleusId": "nucleus_1",
-    "nucleusName": "Consulta Simples",
-    "organizationId": "org_123",
-    "createdByUserId": "user_10",
-    "createdAt": "2025-01-03T10:00:00Z"
+    "status": "Encaminhado"
   }
 ]
 ```
 
+**Response (200) — modo paginado (`?page=1`):**
+
+```json
+{
+  "items": [
+    { "id": "ref_1", "patientName": "João Silva", "status": "Encaminhado" }
+  ],
+  "page": 1,
+  "pageSize": 10,
+  "total": 42,
+  "totalPages": 5,
+  "counts": {
+    "encaminhado": 10,
+    "agendado": 7,
+    "atendido": 15,
+    "bloqueado": 6,
+    "overdue": 5,
+    "active": 32
+  }
+}
+```
+
+`counts` só aparece com `includeCounts=1` (calculado no escopo do papel, sem o filtro `tab` da página).
+
 **Query params:**
 
-- `?status=Bloqueado` ou `?status=Encaminhado` ou `?status=Agendado` ou `?status=Atendido`
-- `?page=1&limit=10` (paginação)
+- `?page=1&pageSize=10` — paginação server-side (sem `page` = lista completa, legado)
+- `?tab=active|blocked|overdue` — abas da lista
+- `?status=Bloqueado|Encaminhado|Agendado|Atendido` — filtro de situação
+- `?includeCounts=1` — inclui totais para cards/badges
+- `?appointmentFrom=AAAA-MM-DD` e/ou `?appointmentTo=AAAA-MM-DD` — restringe a encaminhamentos **com** `appointmentDate` no intervalo (calendário de agendamentos)
 - Relatórios/financeiro: por padrão excluir `Bloqueado`; só incluir com flag/filtro explícito (ex.: `?includeBlocked=true`)
 
 ### Criar referral
@@ -650,7 +670,9 @@ POST /admin/assistant/chat
 
 Autorização: `requireAdministrativo`. Corpo: `{ "message": "...", "locale": "pt-BR", "history": [] }`.
 
-**Resposta (200):** `{ "reply": "...", "remaining": 199 }`
+**Resposta (200):** `{ "reply": "...", "remaining": 199, "dados?": { "linhas": [...] }, "visualizacao?": { "tipo", "titulo?" } }`
+
+Quando houver consulta numérica, `dados.linhas` alimenta o gráfico no widget. `visualizacao` só aparece se o modelo pedir gráfico (`barras` | `linhas` | `pizza`); o JSON não é mostrado ao usuário.
 
 **Erros:** `errors.invalidAssistantData`, `errors.assistantDailyLimit` (429), `errors.assistantUnavailable`, `errors.assistantNotConfigured`.
 
@@ -667,9 +689,9 @@ POST /admin/assistant/queries
 
 Autorização: `requireAdministrativo`. Só totais — **sem** paciente.
 
-**GET:** dimensões possíveis (não números).
+**GET:** catálogo versionado (`versao`, `dimensoes` por assunto, limites).
 
-**POST:** `{ "consulta": { "assunto", "medir", "quebrarPor", "filtros" } }` (Zod). Financeiro exclui `Bloqueado` salvo `incluirBloqueados`.
+**POST:** `{ "consulta": { "versao": 2, "assunto", "medir", "dimensoes", "filtros", "limite?" } }` (Zod estrito). Financeiro exclui `Bloqueado` salvo `incluirBloqueados`. Gramática v1 (`quebrarPor`, etc.) é rejeitada.
 
 **Erros:** `errors.invalidAssistantQuery`, `errors.assistantUnavailable`.
 

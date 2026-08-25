@@ -1,9 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { fetchReferralsPage } from "@/features/referrals/fetch-referrals";
 import type { CareNucleus, Referral } from "@/features/referrals/types";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useFormError } from "@/i18n/use-form-error";
@@ -28,26 +29,24 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
   const tError = useFormError();
   const [isLoading, setIsLoading] = useState(true);
   const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [blockedCount, setBlockedCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
 
-  // Filtering
-  const [listTab, setListTab] = useState<ReferralListTab>("active");
+  const [listTab, setListTab] = useState<ReferralListTab>("calendar");
   const [filters, setFilters] = useState<ReferralFilters>({
     status: "ALL",
     doctor: "ALL",
     nucleus: "ALL",
     date: "",
   });
-
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Modal (View Only)
   const [selectedReferral, setSelectedReferral] = useState<Referral | null>(
     null,
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Edit Modal & Form
   const [selectedReferralForEdit, setSelectedReferralForEdit] =
     useState<Referral | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -74,42 +73,95 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
     },
   });
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadReferrals() {
+  const reloadList = useCallback(async () => {
+    if (listTab === "calendar") {
+      setIsLoading(true);
       try {
-        const response = await fetch("/api/referrals", { cache: "no-store" });
-        const data = (await response.json()) as Referral[];
-
-        if (isMounted) {
-          setReferrals(data);
-        }
+        const result = await fetchReferralsPage({
+          page: 1,
+          pageSize: 1,
+          includeCounts: true,
+        });
+        setBlockedCount(result.counts?.bloqueado ?? 0);
+        setReferrals([]);
+        setTotalPages(1);
+      } catch {
+        toast.error(tError("errors.genericRequestFailed") ?? "");
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
+      return;
     }
 
-    void loadReferrals();
+    setIsLoading(true);
+    try {
+      const result = await fetchReferralsPage({
+        page: currentPage,
+        pageSize: ITEMS_PER_PAGE,
+        tab: listTab === "blocked" ? "blocked" : "active",
+        status: listTab === "active" ? filters.status : undefined,
+        includeCounts: true,
+      });
 
-    // Fetch clinics and nuclei options for the edit form
+      let items = result.items;
+      if (filters.doctor !== "ALL") {
+        items = items.filter((referral) => {
+          if (filters.doctor === "A definir") return !referral.doctor;
+          return referral.doctor === filters.doctor;
+        });
+      }
+      if (filters.nucleus !== "ALL") {
+        items = items.filter(
+          (referral) => referral.nucleusName === filters.nucleus,
+        );
+      }
+      if (filters.date) {
+        items = items.filter((referral) =>
+          referral.createdAt.startsWith(filters.date),
+        );
+      }
+
+      setReferrals(items);
+      setTotalPages(result.totalPages);
+      setBlockedCount(result.counts?.bloqueado ?? 0);
+    } catch {
+      toast.error(tError("errors.genericRequestFailed") ?? "");
+      setReferrals([]);
+    } finally {
+      setIsLoading(false);
+    }
+    // toast/tError mudam a cada render — não incluir nas deps (evita loop infinito)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- toast/tError instáveis
+  }, [
+    listTab,
+    currentPage,
+    filters.status,
+    filters.doctor,
+    filters.nucleus,
+    filters.date,
+  ]);
+
+  useEffect(() => {
+    void reloadList();
+  }, [reloadList]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [listTab, filters.status, filters.doctor, filters.nucleus, filters.date]);
+
+  useEffect(() => {
+    let isMounted = true;
     fetch("/api/referrals/clinics")
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data) && isMounted) {
-          setEditClinics(data);
-        }
+        if (Array.isArray(data) && isMounted) setEditClinics(data);
       })
       .catch((err) => console.error("Failed to fetch clinics", err));
 
     fetch("/api/nuclei")
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data) && isMounted) {
-          setEditNuclei(data);
-        }
+        if (Array.isArray(data) && isMounted) setEditNuclei(data);
       })
       .catch((err) => console.error("Failed to fetch nuclei", err));
 
@@ -145,60 +197,6 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
   const handleRemoveDocumentEdit = (id: string) => {
     setEditDocuments((current) => current.filter((item) => item.id !== id));
   };
-
-  // Filtering Logic
-  const filteredReferrals = referrals.filter((referral) => {
-    let match = true;
-
-    if (listTab === "blocked") {
-      if (referral.status !== "Bloqueado") match = false;
-    } else if (referral.status === "Bloqueado") {
-      match = false;
-    }
-
-    if (
-      listTab === "active" &&
-      filters.status !== "ALL" &&
-      referral.status !== filters.status
-    ) {
-      match = false;
-    }
-
-    if (filters.doctor !== "ALL") {
-      // Logic for doctor filter: If referral.doctor exists and matches, or if we filter by "A definir"
-      if (filters.doctor === "A definir" && referral.doctor) match = false;
-      else if (
-        filters.doctor !== "A definir" &&
-        referral.doctor !== filters.doctor
-      )
-        match = false;
-    }
-
-    if (filters.nucleus !== "ALL" && referral.nucleusName !== filters.nucleus) {
-      match = false;
-    }
-
-    if (filters.date) {
-      // simple date match: format is YYYY-MM-DD from input date
-      if (referral.createdAt !== filters.date) {
-        match = false;
-      }
-    }
-
-    return match;
-  });
-
-  // Reset page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filters, listTab]);
-
-  // Pagination Logic
-  const totalPages = Math.ceil(filteredReferrals.length / ITEMS_PER_PAGE) || 1;
-  const paginatedReferrals = filteredReferrals.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
 
   const openModal = (referral: Referral) => {
     setSelectedReferral(referral);
@@ -287,16 +285,16 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
         return;
       }
 
-      const updated = (await response.json()) as Referral;
       toast.success("Encaminhamento editado com sucesso!");
-
-      setReferrals((prev) =>
-        prev.map((r) => (r.id === selectedReferralForEdit.id ? updated : r)),
-      );
-
       closeEditModal();
-    } catch (error: any) {
-      toast.error(error.message || "Erro ao salvar as alterações.");
+      setCalendarRefreshKey((key) => key + 1);
+      await reloadList();
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Erro ao salvar as alterações.";
+      toast.error(message);
       console.error(error);
     } finally {
       setIsSavingEdit(false);
@@ -315,17 +313,20 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
       }
 
       toast.success("Encaminhamento excluído.");
-
-      setReferrals((prev) => prev.filter((r) => r.id !== id));
-    } catch (error: any) {
-      toast.error(error.message || "Não foi possível excluir.");
+      setCalendarRefreshKey((key) => key + 1);
+      await reloadList();
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Não foi possível excluir.";
+      toast.error(message);
     }
   };
 
   return {
     isLoading,
     referrals,
-    filteredReferrals: paginatedReferrals, // We return the paginated list as the final list to render
+    filteredReferrals: referrals,
+    blockedCount,
     currentPage,
     totalPages,
     itemsPerPage: ITEMS_PER_PAGE,
@@ -353,5 +354,6 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
     handleRemoveDocumentEdit,
     isUploadingEdit,
     deleteReferral,
+    calendarRefreshKey,
   };
 }
