@@ -84,7 +84,7 @@ Não é obrigatório registrar:
 | **Arquivos** | `admin/page.tsx`, `list-query.ts`, `fetch-referrals.ts`, `api/referrals/route.ts`, `admin/financeiro/view.tsx`, i18n, `docs/ai`                                                                                                  |
 | **Horas**    | 4h                                                                                                                                                                                                                               |
 | **Valor**    | R$ 200,00                                                                                                                                                                                                                        |
-| **Status**   | Em produção (`fcd96fa` + `4084184`) — alias `https://www.integravisao.com.br`                                                                                                                                                    |
+| **Status**   | Em produção (`fcd96fa` + `4084184`) — alias `https://www.integravisao.com.br` (deploy `dpl_2pdy449Rbuyg4RVg6k4296UBC2EJ`)                                                                                                        |
 | **Pauta**    | Melhoria operacional da listagem (extensão do fluxo de encaminhamentos); sem pauta formal de feature nova                                                                                                                        |
 
 #### Commits
