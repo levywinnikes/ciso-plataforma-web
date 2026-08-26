@@ -75,21 +75,22 @@ Não é obrigatório registrar:
 
 ### IV-003 — Abas por situação + filtros e ordenação na lista admin
 
-| Campo        | Valor                                                                                                                                                                                         |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Data**     | 26/08/2026                                                                                                                                                                                    |
-| **Motivo**   | Com paginação, ficou difícil achar Encaminhado / Agendado / Atendido; faltavam filtros e ordenação server-side nas colunas                                                                    |
-| **Escopo**   | Dashboard `/admin` + `GET /api/referrals`                                                                                                                                                     |
-| **Entrega**  | Abas Encaminhados, Agendados e Atendidos (além de Ativos/Bloqueados/Atrasados); cards abrem a aba; filtros de coluna; ordenação por cabeçalho; padrão data de envio (mais novo → mais antigo) |
-| **Arquivos** | `admin/page.tsx`, `list-query.ts`, `fetch-referrals.ts`, `api/referrals/route.ts`, i18n, `docs/ai` (api-routes, user-views, decision-log)                                                     |
-| **Horas**    | 4h                                                                                                                                                                                            |
-| **Valor**    | R$ 200,00                                                                                                                                                                                     |
-| **Status**   | Aguardando commit / deploy                                                                                                                                                                    |
-| **Pauta**    | Melhoria operacional da listagem (extensão do fluxo de encaminhamentos); sem pauta formal de feature nova                                                                                     |
+| Campo        | Valor                                                                                                                                                                                                                            |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Data**     | 26/08/2026                                                                                                                                                                                                                       |
+| **Motivo**   | Com paginação, ficou difícil achar Encaminhado / Agendado / Atendido; faltavam filtros e ordenação server-side nas colunas                                                                                                       |
+| **Escopo**   | Dashboard `/admin` + `GET /api/referrals`                                                                                                                                                                                        |
+| **Entrega**  | Abas Encaminhados, Agendados e Atendidos (além de Ativos/Bloqueados/Atrasados); cards abrem a aba; filtros de coluna; ordenação por cabeçalho; padrão data de envio (mais novo → mais antigo); datas do financeiro em DD/MM/AAAA |
+| **Arquivos** | `admin/page.tsx`, `list-query.ts`, `fetch-referrals.ts`, `api/referrals/route.ts`, `admin/financeiro/view.tsx`, i18n, `docs/ai`                                                                                                  |
+| **Horas**    | 4h                                                                                                                                                                                                                               |
+| **Valor**    | R$ 200,00                                                                                                                                                                                                                        |
+| **Status**   | Em produção (`fcd96fa` + `4084184`) — alias `https://www.integravisao.com.br`                                                                                                                                                    |
+| **Pauta**    | Melhoria operacional da listagem (extensão do fluxo de encaminhamentos); sem pauta formal de feature nova                                                                                                                        |
 
 #### Commits
 
-- (preencher após commit)
+- `fcd96fa` — feat: abas por situação e filtros/ordenação na lista admin
+- `4084184` — fix: exibe datas do financeiro em DD/MM/AAAA
 
 ---
 
