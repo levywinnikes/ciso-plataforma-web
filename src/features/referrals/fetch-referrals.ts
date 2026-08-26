@@ -1,4 +1,8 @@
-import type { ReferralCounts } from "./list-query";
+import type {
+  ReferralCounts,
+  ReferralSortDir,
+  ReferralSortField,
+} from "./list-query";
 import type { Referral } from "./types";
 
 export type ReferralsPageResult = {
@@ -13,11 +17,18 @@ export type ReferralsPageResult = {
 export type FetchReferralsParams = {
   page?: number;
   pageSize?: number;
-  tab?: "active" | "blocked" | "overdue";
+  tab?: "active" | "blocked" | "overdue" | "pending" | "scheduled" | "attended";
   status?: string;
   appointmentFrom?: string;
   appointmentTo?: string;
   includeCounts?: boolean;
+  patient?: string;
+  office?: string;
+  clinic?: string;
+  doctor?: string;
+  createdBy?: string;
+  sortBy?: ReferralSortField;
+  sortDir?: ReferralSortDir;
 };
 
 function buildQuery(params: FetchReferralsParams): string {
@@ -29,6 +40,13 @@ function buildQuery(params: FetchReferralsParams): string {
   if (params.appointmentFrom) qs.set("appointmentFrom", params.appointmentFrom);
   if (params.appointmentTo) qs.set("appointmentTo", params.appointmentTo);
   if (params.includeCounts) qs.set("includeCounts", "1");
+  if (params.patient) qs.set("patient", params.patient);
+  if (params.office) qs.set("office", params.office);
+  if (params.clinic) qs.set("clinic", params.clinic);
+  if (params.doctor) qs.set("doctor", params.doctor);
+  if (params.createdBy) qs.set("createdBy", params.createdBy);
+  if (params.sortBy) qs.set("sortBy", params.sortBy);
+  if (params.sortDir) qs.set("sortDir", params.sortDir);
   const encoded = qs.toString();
   return encoded ? `?${encoded}` : "";
 }

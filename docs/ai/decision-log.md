@@ -18,6 +18,18 @@ Registro canônico de decisões de produto e governança que afetam regras de ne
 
 ---
 
+## 2026-08-26 — Abas Agendados/Atendidos + filtros/ordenação na lista admin
+
+**Decisão vigente:**
+
+- Em `/admin`, abas dedicadas `pending` (`Encaminhado`), `scheduled` (`Agendado`) e `attended` (`Atendido`) além de Ativos/Bloqueados/Atrasados
+- Filtros de coluna e ordenação são server-side (`patient`/`office`/`clinic`/`doctor`/`createdBy` + `sortBy`/`sortDir`) para não depender da página atual
+- Cards de totais navegam para a aba correspondente
+
+**Impacto:** `user-views.md`, `api-routes.md`; `list-query.ts`, `GET /api/referrals`, dashboard `/admin`
+
+---
+
 ## 2026-08-25 — Calendário de agendamentos nos dashboards
 
 **Decisão vigente:**

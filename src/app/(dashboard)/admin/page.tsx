@@ -2,6 +2,9 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
   CalendarDays,
   CheckCircle2,
   ChevronLeft,
@@ -37,7 +40,11 @@ import { AppointmentCalendar } from "@/features/referrals/components/appointment
 import { MarkAttendedDialog } from "@/features/referrals/components/mark-attended-dialog";
 import { ReferralStatusBadge } from "@/features/referrals/components/referral-status-badge";
 import { fetchReferralsPage } from "@/features/referrals/fetch-referrals";
-import type { ReferralCounts } from "@/features/referrals/list-query";
+import type {
+  ReferralCounts,
+  ReferralSortDir,
+  ReferralSortField,
+} from "@/features/referrals/list-query";
 import {
   canAdminMarkAsAttended,
   isReferralOverdue,
@@ -48,6 +55,33 @@ import { useAppToast } from "@/hooks/use-app-toast";
 import { useFormError } from "@/i18n/use-form-error";
 
 const ITEMS_PER_PAGE = 10;
+
+type AdminListTab =
+  | "active"
+  | "blocked"
+  | "overdue"
+  | "calendar"
+  | "pending"
+  | "scheduled"
+  | "attended";
+
+type ListFilters = {
+  patient: string;
+  office: string;
+  clinic: string;
+  doctor: string;
+  createdBy: string;
+  status: string;
+};
+
+const EMPTY_FILTERS: ListFilters = {
+  patient: "",
+  office: "",
+  clinic: "",
+  doctor: "",
+  createdBy: "",
+  status: "",
+};
 
 const scheduleSchema = z.object({
   clinicId: z.string().min(1, "errors.required"),
@@ -99,12 +133,15 @@ export default function AdminPage() {
   const searchParams = useSearchParams();
 
   const [referrals, setReferrals] = useState<Referral[]>([]);
-  const [listTab, setListTab] = useState<
-    "active" | "blocked" | "overdue" | "calendar"
-  >("calendar");
+  const [listTab, setListTab] = useState<AdminListTab>("calendar");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
+  const [draftFilters, setDraftFilters] = useState<ListFilters>(EMPTY_FILTERS);
+  const [appliedFilters, setAppliedFilters] =
+    useState<ListFilters>(EMPTY_FILTERS);
+  const [sortBy, setSortBy] = useState<ReferralSortField>("createdAt");
+  const [sortDir, setSortDir] = useState<ReferralSortDir>("desc");
   const [counts, setCounts] = useState<ReferralCounts>({
     encaminhado: 0,
     agendado: 0,
@@ -175,6 +212,9 @@ export default function AdminPage() {
     if (aba === "atrasados") setListTab("overdue");
     if (aba === "bloqueados") setListTab("blocked");
     if (aba === "ativos") setListTab("active");
+    if (aba === "encaminhados") setListTab("pending");
+    if (aba === "agendados") setListTab("scheduled");
+    if (aba === "atendidos") setListTab("attended");
   }, [searchParams]);
 
   const cards = [
@@ -293,6 +333,17 @@ export default function AdminPage() {
         pageSize: ITEMS_PER_PAGE,
         tab: listTab,
         includeCounts: true,
+        patient: appliedFilters.patient || undefined,
+        office: appliedFilters.office || undefined,
+        clinic: appliedFilters.clinic || undefined,
+        doctor: appliedFilters.doctor || undefined,
+        createdBy: appliedFilters.createdBy || undefined,
+        status:
+          listTab === "active" && appliedFilters.status
+            ? appliedFilters.status
+            : undefined,
+        sortBy,
+        sortDir,
       });
       setReferrals(result.items);
       setTotalPages(result.totalPages);
@@ -304,7 +355,7 @@ export default function AdminPage() {
       setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- toast/tError instáveis a cada render
-  }, [listTab, currentPage]);
+  }, [listTab, currentPage, appliedFilters, sortBy, sortDir]);
 
   useEffect(() => {
     void reloadReferrals();
@@ -312,7 +363,55 @@ export default function AdminPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [listTab]);
+  }, [listTab, appliedFilters, sortBy, sortDir]);
+
+  function applyListFilters() {
+    setAppliedFilters(draftFilters);
+    setCurrentPage(1);
+  }
+
+  function clearListFilters() {
+    setDraftFilters(EMPTY_FILTERS);
+    setAppliedFilters(EMPTY_FILTERS);
+    setCurrentPage(1);
+  }
+
+  function toggleSort(field: ReferralSortField) {
+    if (sortBy === field) {
+      setSortDir((dir) => (dir === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(field);
+      setSortDir(
+        field === "appointmentDate" || field === "createdAt" ? "desc" : "asc",
+      );
+    }
+    setCurrentPage(1);
+  }
+
+  function SortHeader({
+    field,
+    label,
+  }: {
+    field: ReferralSortField;
+    label: string;
+  }) {
+    const active = sortBy === field;
+    const Icon = !active
+      ? ArrowUpDown
+      : sortDir === "asc"
+        ? ArrowUp
+        : ArrowDown;
+    return (
+      <button
+        type="button"
+        className="inline-flex items-center gap-1 font-semibold uppercase tracking-wide text-gray-600 hover:text-primary"
+        onClick={() => toggleSort(field)}
+      >
+        {label}
+        <Icon className="h-3.5 w-3.5" />
+      </button>
+    );
+  }
 
   useEffect(() => {
     if (!isEditModalOpen || !editClinicId) {
@@ -541,28 +640,60 @@ export default function AdminPage() {
       />
 
       <div className="grid gap-4 md:grid-cols-5">
-        <CardSection title={t("pendingStatus")}>
-          <p className="text-3xl font-bold text-amber-700">
-            {encaminhadosCount}
-          </p>
-        </CardSection>
-        <CardSection title={t("scheduledStatus")}>
-          <p className="text-3xl font-bold text-blue-700">{agendadosCount}</p>
-        </CardSection>
-        <CardSection title={t("completedStatus")}>
-          <p className="text-3xl font-bold text-green-700">{concluidosCount}</p>
-        </CardSection>
-        <CardSection title={t("blockedStatus")}>
-          <p className="text-3xl font-bold text-orange-700">
-            {bloqueadosCount}
-          </p>
-        </CardSection>
-        <CardSection title={t("overdueStatus")}>
-          <p className="text-3xl font-bold text-rose-700">{atrasadosCount}</p>
-        </CardSection>
+        <button
+          type="button"
+          className="text-left"
+          onClick={() => setListTab("pending")}
+        >
+          <CardSection title={t("pendingStatus")}>
+            <p className="text-3xl font-bold text-amber-700">
+              {encaminhadosCount}
+            </p>
+          </CardSection>
+        </button>
+        <button
+          type="button"
+          className="text-left"
+          onClick={() => setListTab("scheduled")}
+        >
+          <CardSection title={t("scheduledStatus")}>
+            <p className="text-3xl font-bold text-blue-700">{agendadosCount}</p>
+          </CardSection>
+        </button>
+        <button
+          type="button"
+          className="text-left"
+          onClick={() => setListTab("attended")}
+        >
+          <CardSection title={t("completedStatus")}>
+            <p className="text-3xl font-bold text-green-700">
+              {concluidosCount}
+            </p>
+          </CardSection>
+        </button>
+        <button
+          type="button"
+          className="text-left"
+          onClick={() => setListTab("blocked")}
+        >
+          <CardSection title={t("blockedStatus")}>
+            <p className="text-3xl font-bold text-orange-700">
+              {bloqueadosCount}
+            </p>
+          </CardSection>
+        </button>
+        <button
+          type="button"
+          className="text-left"
+          onClick={() => setListTab("overdue")}
+        >
+          <CardSection title={t("overdueStatus")}>
+            <p className="text-3xl font-bold text-rose-700">{atrasadosCount}</p>
+          </CardSection>
+        </button>
       </div>
 
-      <div className="flex gap-2 border-b border-gray-200">
+      <div className="flex flex-wrap gap-2 border-b border-gray-200">
         <button
           type="button"
           className={`px-4 py-2 text-sm font-medium ${
@@ -584,6 +715,54 @@ export default function AdminPage() {
           onClick={() => setListTab("active")}
         >
           {t("tabActive")}
+        </button>
+        <button
+          type="button"
+          className={`px-4 py-2 text-sm font-medium ${
+            listTab === "pending"
+              ? "border-b-2 border-amber-600 text-amber-700"
+              : "text-gray-500"
+          }`}
+          onClick={() => setListTab("pending")}
+        >
+          {t("tabPending")}
+          {encaminhadosCount > 0 ? (
+            <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">
+              {encaminhadosCount}
+            </span>
+          ) : null}
+        </button>
+        <button
+          type="button"
+          className={`px-4 py-2 text-sm font-medium ${
+            listTab === "scheduled"
+              ? "border-b-2 border-blue-600 text-blue-700"
+              : "text-gray-500"
+          }`}
+          onClick={() => setListTab("scheduled")}
+        >
+          {t("tabScheduled")}
+          {agendadosCount > 0 ? (
+            <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">
+              {agendadosCount}
+            </span>
+          ) : null}
+        </button>
+        <button
+          type="button"
+          className={`px-4 py-2 text-sm font-medium ${
+            listTab === "attended"
+              ? "border-b-2 border-emerald-600 text-emerald-700"
+              : "text-gray-500"
+          }`}
+          onClick={() => setListTab("attended")}
+        >
+          {t("tabAttended")}
+          {concluidosCount > 0 ? (
+            <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800">
+              {concluidosCount}
+            </span>
+          ) : null}
         </button>
         <button
           type="button"
@@ -636,20 +815,139 @@ export default function AdminPage() {
           title={
             listTab === "overdue"
               ? t("overdueReferralsTitle")
-              : t("referralsTitle")
+              : listTab === "pending"
+                ? t("pendingReferralsTitle")
+                : listTab === "scheduled"
+                  ? t("scheduledReferralsTitle")
+                  : listTab === "attended"
+                    ? t("attendedReferralsTitle")
+                    : t("referralsTitle")
           }
         >
+          <div className="mb-4 space-y-3 rounded-lg border border-gray-100 bg-gray-50/80 p-3">
+            <form
+              className="space-y-3"
+              onSubmit={(event) => {
+                event.preventDefault();
+                applyListFilters();
+              }}
+            >
+              <div className="grid gap-2 md:grid-cols-3 lg:grid-cols-6">
+                <input
+                  className="ui-field"
+                  placeholder={t("filterPatient")}
+                  value={draftFilters.patient}
+                  onChange={(e) =>
+                    setDraftFilters((prev) => ({
+                      ...prev,
+                      patient: e.target.value,
+                    }))
+                  }
+                />
+                {listTab === "active" ? (
+                  <select
+                    className="ui-field"
+                    value={draftFilters.status}
+                    onChange={(e) =>
+                      setDraftFilters((prev) => ({
+                        ...prev,
+                        status: e.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">{t("filterStatusAll")}</option>
+                    <option value="Encaminhado">{t("pendingStatus")}</option>
+                    <option value="Agendado">{t("scheduledStatus")}</option>
+                    <option value="Atendido">{t("completedStatus")}</option>
+                  </select>
+                ) : null}
+                <input
+                  className="ui-field"
+                  placeholder={t("filterOffice")}
+                  value={draftFilters.office}
+                  onChange={(e) =>
+                    setDraftFilters((prev) => ({
+                      ...prev,
+                      office: e.target.value,
+                    }))
+                  }
+                />
+                <input
+                  className="ui-field"
+                  placeholder={t("filterCreatedBy")}
+                  value={draftFilters.createdBy}
+                  onChange={(e) =>
+                    setDraftFilters((prev) => ({
+                      ...prev,
+                      createdBy: e.target.value,
+                    }))
+                  }
+                />
+                <input
+                  className="ui-field"
+                  placeholder={t("filterClinic")}
+                  value={draftFilters.clinic}
+                  onChange={(e) =>
+                    setDraftFilters((prev) => ({
+                      ...prev,
+                      clinic: e.target.value,
+                    }))
+                  }
+                />
+                <input
+                  className="ui-field"
+                  placeholder={t("filterDoctor")}
+                  value={draftFilters.doctor}
+                  onChange={(e) =>
+                    setDraftFilters((prev) => ({
+                      ...prev,
+                      doctor: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button type="submit">{t("filterSearch")}</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={clearListFilters}
+                >
+                  {t("filterClear")}
+                </Button>
+              </div>
+            </form>
+          </div>
           <TableShell
             columns={
               <tr>
-                <th className="px-6 py-3">{common("patient")}</th>
-                <th className="px-6 py-3">{common("status")}</th>
-                <th className="px-6 py-3">{t("officeColumn")}</th>
-                <th className="px-6 py-3">{t("createdByColumn")}</th>
-                <th className="px-6 py-3">{t("clinicColumn")}</th>
-                <th className="px-6 py-3">{common("doctor")}</th>
-                <th className="px-6 py-3">{t("appointmentColumn")}</th>
-                <th className="px-6 py-3">{t("createdColumn")}</th>
+                <th className="px-6 py-3">
+                  <SortHeader field="patientName" label={common("patient")} />
+                </th>
+                <th className="px-6 py-3">
+                  <SortHeader field="status" label={common("status")} />
+                </th>
+                <th className="px-6 py-3">
+                  <SortHeader field="office" label={t("officeColumn")} />
+                </th>
+                <th className="px-6 py-3">
+                  <SortHeader field="createdBy" label={t("createdByColumn")} />
+                </th>
+                <th className="px-6 py-3">
+                  <SortHeader field="clinic" label={t("clinicColumn")} />
+                </th>
+                <th className="px-6 py-3">
+                  <SortHeader field="doctor" label={common("doctor")} />
+                </th>
+                <th className="px-6 py-3">
+                  <SortHeader
+                    field="appointmentDate"
+                    label={t("appointmentColumn")}
+                  />
+                </th>
+                <th className="px-6 py-3">
+                  <SortHeader field="createdAt" label={t("createdColumn")} />
+                </th>
                 <th className="px-6 py-3 text-right">{t("actionsColumn")}</th>
               </tr>
             }

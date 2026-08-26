@@ -1,7 +1,25 @@
 import { startOfLocalDay } from "./overdue";
 import type { ReferralStatus } from "./types";
 
-export type ReferralListTabFilter = "active" | "blocked" | "overdue";
+export type ReferralListTabFilter =
+  | "active"
+  | "blocked"
+  | "overdue"
+  | "pending"
+  | "scheduled"
+  | "attended";
+
+export type ReferralSortField =
+  | "patientName"
+  | "status"
+  | "office"
+  | "createdBy"
+  | "clinic"
+  | "doctor"
+  | "appointmentDate"
+  | "createdAt";
+
+export type ReferralSortDir = "asc" | "desc";
 
 export type ReferralCounts = {
   encaminhado: number;
@@ -10,6 +28,14 @@ export type ReferralCounts = {
   bloqueado: number;
   overdue: number;
   active: number;
+};
+
+export type ReferralColumnFilters = {
+  patient?: string;
+  office?: string;
+  clinic?: string;
+  doctor?: string;
+  createdBy?: string;
 };
 
 const REFERRAL_INCLUDE = {
@@ -22,6 +48,17 @@ const REFERRAL_INCLUDE = {
   agreement: { select: { name: true } },
   surgery: { select: { name: true } },
 } as const;
+
+const SORT_FIELDS: ReferralSortField[] = [
+  "patientName",
+  "status",
+  "office",
+  "createdBy",
+  "clinic",
+  "doctor",
+  "appointmentDate",
+  "createdAt",
+];
 
 export function referralListInclude() {
   return REFERRAL_INCLUDE;
@@ -44,6 +81,38 @@ export function parsePageParams(searchParams: URLSearchParams): {
   return { page, pageSize };
 }
 
+export function parseSortParams(searchParams: URLSearchParams): {
+  sortBy: ReferralSortField;
+  sortDir: ReferralSortDir;
+} {
+  const raw = searchParams.get("sortBy") as ReferralSortField | null;
+  const sortBy = raw && SORT_FIELDS.includes(raw) ? raw : "createdAt";
+  const rawDir = searchParams.get("sortDir");
+  const sortDir: ReferralSortDir =
+    rawDir === "asc" || rawDir === "desc"
+      ? rawDir
+      : sortBy === "createdAt"
+        ? "desc"
+        : "asc";
+  return { sortBy, sortDir };
+}
+
+export function parseColumnFilters(
+  searchParams: URLSearchParams,
+): ReferralColumnFilters {
+  const pick = (key: string) => {
+    const value = searchParams.get(key)?.trim();
+    return value ? value : undefined;
+  };
+  return {
+    patient: pick("patient"),
+    office: pick("office"),
+    clinic: pick("clinic"),
+    doctor: pick("doctor"),
+    createdBy: pick("createdBy"),
+  };
+}
+
 export function applyTabFilter(
   where: Record<string, unknown>,
   tab: string | null,
@@ -51,6 +120,15 @@ export function applyTabFilter(
 ): Record<string, unknown> {
   if (tab === "blocked") {
     return { ...where, status: "Bloqueado" };
+  }
+  if (tab === "pending") {
+    return { ...where, status: "Encaminhado" };
+  }
+  if (tab === "scheduled") {
+    return { ...where, status: "Agendado" };
+  }
+  if (tab === "attended") {
+    return { ...where, status: "Atendido" };
   }
   if (tab === "overdue") {
     return {
@@ -86,6 +164,47 @@ export function applyStatusFilter(
   return { ...where, status };
 }
 
+export function applyColumnFilters(
+  where: Record<string, unknown>,
+  filters: ReferralColumnFilters,
+): Record<string, unknown> {
+  const next = { ...where };
+  const and: Record<string, unknown>[] = Array.isArray(next.AND)
+    ? [...(next.AND as Record<string, unknown>[])]
+    : [];
+
+  if (filters.patient) {
+    and.push({
+      patientName: { contains: filters.patient, mode: "insensitive" },
+    });
+  }
+  if (filters.office) {
+    and.push({
+      office: { name: { contains: filters.office, mode: "insensitive" } },
+    });
+  }
+  if (filters.clinic) {
+    and.push({
+      clinic: { name: { contains: filters.clinic, mode: "insensitive" } },
+    });
+  }
+  if (filters.doctor) {
+    and.push({
+      doctor: { contains: filters.doctor, mode: "insensitive" },
+    });
+  }
+  if (filters.createdBy) {
+    and.push({
+      createdByUser: {
+        name: { contains: filters.createdBy, mode: "insensitive" },
+      },
+    });
+  }
+
+  if (and.length === 0) return next;
+  return { ...next, AND: and };
+}
+
 export function applyAppointmentRange(
   where: Record<string, unknown>,
   appointmentFrom: string | null,
@@ -100,6 +219,32 @@ export function applyAppointmentRange(
     appointmentDate.lte = new Date(`${appointmentTo}T23:59:59.999`);
   }
   return { ...where, appointmentDate };
+}
+
+export function buildReferralOrderBy(
+  sortBy: ReferralSortField,
+  sortDir: ReferralSortDir,
+): Record<string, unknown>[] {
+  const dir = sortDir;
+  switch (sortBy) {
+    case "patientName":
+      return [{ patientName: dir }, { createdAt: "desc" }];
+    case "status":
+      return [{ status: dir }, { appointmentDate: "asc" }];
+    case "office":
+      return [{ office: { name: dir } }, { createdAt: "desc" }];
+    case "createdBy":
+      return [{ createdByUser: { name: dir } }, { createdAt: "desc" }];
+    case "clinic":
+      return [{ clinic: { name: dir } }, { createdAt: "desc" }];
+    case "doctor":
+      return [{ doctor: dir }, { createdAt: "desc" }];
+    case "createdAt":
+      return [{ createdAt: dir }];
+    case "appointmentDate":
+    default:
+      return [{ appointmentDate: dir }, { createdAt: "desc" }];
+  }
 }
 
 export function emptyCounts(): ReferralCounts {

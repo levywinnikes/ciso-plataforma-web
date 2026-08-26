@@ -547,8 +547,11 @@ Authorization: Bearer <token>
 **Query params:**
 
 - `?page=1&pageSize=10` — paginação server-side (sem `page` = lista completa, legado)
-- `?tab=active|blocked|overdue` — abas da lista
-- `?status=Bloqueado|Encaminhado|Agendado|Atendido` — filtro de situação
+- `?tab=active|blocked|overdue|pending|scheduled|attended` — abas da lista (`pending` = `Encaminhado`, `scheduled` = `Agendado`, `attended` = `Atendido`)
+- `?status=Bloqueado|Encaminhado|Agendado|Atendido` — filtro de situação (útil na aba `active`)
+- `?patient=`, `?office=`, `?clinic=`, `?doctor=`, `?createdBy=` — filtros de coluna (contains, case-insensitive)
+- `?sortBy=patientName|status|office|createdBy|clinic|doctor|appointmentDate|createdAt` — ordenação server-side (padrão `createdAt`)
+- `?sortDir=asc|desc` — direção da ordenação (padrão `desc` para `createdAt`, senão `asc`)
 - `?includeCounts=1` — inclui totais para cards/badges
 - `?appointmentFrom=AAAA-MM-DD` e/ou `?appointmentTo=AAAA-MM-DD` — restringe a encaminhamentos **com** `appointmentDate` no intervalo (calendário de agendamentos)
 - Relatórios/financeiro: por padrão excluir `Bloqueado`; só incluir com flag/filtro explícito (ex.: `?includeBlocked=true`)

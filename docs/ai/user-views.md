@@ -15,8 +15,11 @@ Itens planejados, experimentais ou ainda não adotados como regra de produto dev
 Capacidades:
 
 - visão geral do sistema
-- listagem de encaminhamentos
-- aba/filtro de `Bloqueado`
+- listagem de encaminhamentos paginada no servidor
+- abas **Calendário** | **Ativos** | **Encaminhados** | **Agendados** | **Atendidos** | **Bloqueados** | **Atrasados**
+- cards de totais (Encaminhados / Agendados / Concluídos / Bloqueados / Atrasados) também abrem a aba correspondente
+- filtros de coluna (paciente, situação na aba Ativos, consultório, criado por, clínica, médico) + ordenação por cabeçalho via API (`sortBy`/`sortDir`)
+- aba **Encaminhados** = somente status `Encaminhado`; **Agendados** = `Agendado`; **Atendidos** = `Atendido`
 - aba **Atrasados** (agendamento em dia anterior ao atual, ainda não `Atendido`); a aba Ativos continua mostrando todos os não bloqueados, inclusive atrasados
 - destaque visual de atrasados (faixa, fundo suave e selo **Atrasado**)
 - atalho **Marcar como atendido** com confirmação dos dados (status `Encaminhado` ou `Agendado`)

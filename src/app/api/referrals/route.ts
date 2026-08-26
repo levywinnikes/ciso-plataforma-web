@@ -4,10 +4,14 @@ import { getServerSession } from "next-auth/next";
 import { resolveCreateStatus } from "@/features/referrals/block-status";
 import {
   applyAppointmentRange,
+  applyColumnFilters,
   applyStatusFilter,
   applyTabFilter,
+  buildReferralOrderBy,
   emptyCounts,
+  parseColumnFilters,
   parsePageParams,
+  parseSortParams,
   referralListInclude,
 } from "@/features/referrals/list-query";
 import { mapReferralResponse } from "@/features/referrals/map-referral";
@@ -134,12 +138,11 @@ export async function GET(request: Request) {
   );
   where = applyTabFilter(where, tab);
   where = applyStatusFilter(where, status);
+  where = applyColumnFilters(where, parseColumnFilters(searchParams));
 
   const include = referralListInclude();
-  const orderBy =
-    tab === "overdue"
-      ? [{ appointmentDate: "asc" as const }, { createdAt: "desc" as const }]
-      : [{ appointmentDate: "asc" as const }, { createdAt: "desc" as const }];
+  const { sortBy, sortDir } = parseSortParams(searchParams);
+  const orderBy = buildReferralOrderBy(sortBy, sortDir);
 
   if (page === null) {
     const referrals = await prisma.referral.findMany({
