@@ -11,7 +11,7 @@ import {
   TableCard,
   TableShell,
 } from "@/components/ui";
-import { formatCurrency } from "@/features/referrals/utils";
+import { formatCurrency, formatDate } from "@/features/referrals/utils";
 
 import type { FinanceiroPageModel, PeriodPreset } from "./schema";
 
@@ -323,7 +323,7 @@ export function FinanceiroPageView({ model }: FinanceiroPageViewProps) {
                     model.data?.items.map((item) => (
                       <tr key={item.id} className="ui-table-row">
                         <td className="ui-table-cell whitespace-nowrap">
-                          {item.referenceDate}
+                          {formatDate(item.referenceDate)}
                         </td>
                         <td className="ui-table-cell font-medium">
                           {item.patientName}

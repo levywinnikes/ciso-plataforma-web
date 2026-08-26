@@ -122,6 +122,8 @@ export default function MyPage() {
 **Atualização Proativa:** É OBRIGAÇÃO DA IA atualizar AUTOMATICAMENTE os arquivos `src/i18n/messages/pt-BR.json` e `src/i18n/messages/en-US.json` sempre que introduzir novas chaves de tradução (seja em views, erros de Zod ou retornos da API). O usuário NÃO deve precisar pedir ou lembrar de atualizar as traduções.
 **Linguagem Focada no Cliente (Anti-Jargão):** É ESTRITAMENTE PROIBIDO escrever termos técnicos na interface ou nos arquivos de tradução (ex: "CRUD", "JSON", "Endpoint", "Payload"). Use SEMPRE termos de negócio: "Gestão", "Cadastro", "Gerenciamento", "Sistema", etc. A interface não é para programadores.
 
+**Datas na interface (Brasil):** NUNCA exiba data em formato ISO (`YYYY-MM-DD`) ou americano na UI. Sempre use `DD/MM/YYYY` (e hora quando fizer sentido) via `formatDate` / `formatDateTime` (`pt-BR`). ISO pode existir só em API, `type="date"` e banco — nunca como texto visível ao usuário.
+
 ### Adicionar nova chave
 
 1. Abrir `src/i18n/messages/pt-BR.json` e `src/i18n/messages/en-US.json`.
