@@ -6,7 +6,7 @@
 | ------------- | --------------------- |
 | Integra Visão | `ciso-plataforma-web` |
 
-**Última atualização:** 26/08/2026 (IV-003 abas/filtros admin)  
+**Última atualização:** 27/08/2026 (IV-004 calendário mobile + limpeza dashboard)  
 **Responsável pelo registro:** assistente de desenvolvimento (sessões Cursor)  
 **Cliente / uso:** controle interno do projeto e base para cobrança  
 **Taxa:** R$ 50,00/h (horas estimadas IA)
@@ -52,26 +52,47 @@ Não é obrigatório registrar:
 
 ## Resumo executivo (ago/2026)
 
-| Data       | Entrega                                                          |   Horas   |      Valor      | Motivo de negócio                                                                            |
-| ---------- | ---------------------------------------------------------------- | :-------: | :-------------: | -------------------------------------------------------------------------------------------- |
-| 18/08/2026 | Governança documental e contratos canônicos ENT-001              |    2h     |    R$ 100,00    | Consolidar a fonte de verdade das regras de acesso, views e API antes de expandir o produto  |
-| 18/08/2026 | Refinar regra de gestão de usuários ENT-002                      |   0,5h    |    R$ 25,00     | Fechar contrato: `isAdmin` delimita só usuários; restante do sistema liberado para não-admin |
-| 18/08/2026 | Marcar admin local como questão em aberto ENT-003                |   0,25h   |    R$ 12,50     | Reverter contrato prematuro de `isAdmin`; documentar intenção (admin local) sem enforcement  |
-| 19/08/2026 | Planejar Assistente administrativo (piloto Gemini) ENT-004       |   0,75h   |    R$ 37,50     | Definir chatbot só para administradores, Gemini sem DeepSeek, sem código                     |
-| 19/08/2026 | Fechar decisões do piloto do Assistente ENT-005                  |   0,5h    |    R$ 25,00     | Widget, cota, histórico, privacidade admin e contratos futuros por papel                     |
-| 19/08/2026 | Atrasados e marcar como atendido (admin) ENT-006                 |   1,5h    |    R$ 75,00     | Facilitar conclusão operacional e evidenciar agendamentos que passaram do dia                |
-| 19/08/2026 | Auditoria de status e limpeza de pendências ENT-007              |    1h     |    R$ 50,00     | Fechar lacuna de auditoria e o roadmap documental de maio/2026                               |
-| 19/08/2026 | Piloto do Assistente administrativo ENT-008                      |   2,5h    |    R$ 125,00    | Widget de orientação para administradores, Gemini com fallback entre modelos                 |
-| 19/08/2026 | Consulta genérica do Assistente ENT-009                          |    2h     |    R$ 100,00    | Números ao vivo sem relatório pronto; o chat monta o recorte da pergunta                     |
-| 19/08/2026 | Ações da lista admin e autonomia A2 a fazer ENT-010              |   0,5h    |    R$ 25,00     | Corrigir layout da coluna de ações; ranking de paciente fica para depois                     |
-| 25/08/2026 | Calendário de agendamentos (admin/médico/profissional) IV-001    |    8h     |    R$ 400,00    | Ver agenda por data de agendamento, com paginação API, ações e selo de atrasados             |
-| 25/08/2026 | Financeiro / comissões pós-médico (Fase A) IV-002                |    10h    |    R$ 500,00    | Acompanhar período e cobrar taxa de núcleo + indicação cirúrgica                             |
-| 26/08/2026 | Abas Encaminhados/Agendados/Atendidos + filtros/ordenação IV-003 |    4h     |    R$ 200,00    | Achar registros na lista paginada por situação e por coluna, sem varrer páginas              |
-| **Total**  | **Todas as entregas registradas no projeto**                     | **33,5h** | **R$ 1.675,00** |                                                                                              |
+| Data       | Entrega                                                          |  Horas  |      Valor      | Motivo de negócio                                                                            |
+| ---------- | ---------------------------------------------------------------- | :-----: | :-------------: | -------------------------------------------------------------------------------------------- |
+| 18/08/2026 | Governança documental e contratos canônicos ENT-001              |   2h    |    R$ 100,00    | Consolidar a fonte de verdade das regras de acesso, views e API antes de expandir o produto  |
+| 18/08/2026 | Refinar regra de gestão de usuários ENT-002                      |  0,5h   |    R$ 25,00     | Fechar contrato: `isAdmin` delimita só usuários; restante do sistema liberado para não-admin |
+| 18/08/2026 | Marcar admin local como questão em aberto ENT-003                |  0,25h  |    R$ 12,50     | Reverter contrato prematuro de `isAdmin`; documentar intenção (admin local) sem enforcement  |
+| 19/08/2026 | Planejar Assistente administrativo (piloto Gemini) ENT-004       |  0,75h  |    R$ 37,50     | Definir chatbot só para administradores, Gemini sem DeepSeek, sem código                     |
+| 19/08/2026 | Fechar decisões do piloto do Assistente ENT-005                  |  0,5h   |    R$ 25,00     | Widget, cota, histórico, privacidade admin e contratos futuros por papel                     |
+| 19/08/2026 | Atrasados e marcar como atendido (admin) ENT-006                 |  1,5h   |    R$ 75,00     | Facilitar conclusão operacional e evidenciar agendamentos que passaram do dia                |
+| 19/08/2026 | Auditoria de status e limpeza de pendências ENT-007              |   1h    |    R$ 50,00     | Fechar lacuna de auditoria e o roadmap documental de maio/2026                               |
+| 19/08/2026 | Piloto do Assistente administrativo ENT-008                      |  2,5h   |    R$ 125,00    | Widget de orientação para administradores, Gemini com fallback entre modelos                 |
+| 19/08/2026 | Consulta genérica do Assistente ENT-009                          |   2h    |    R$ 100,00    | Números ao vivo sem relatório pronto; o chat monta o recorte da pergunta                     |
+| 19/08/2026 | Ações da lista admin e autonomia A2 a fazer ENT-010              |  0,5h   |    R$ 25,00     | Corrigir layout da coluna de ações; ranking de paciente fica para depois                     |
+| 25/08/2026 | Calendário de agendamentos (admin/médico/profissional) IV-001    |   8h    |    R$ 400,00    | Ver agenda por data de agendamento, com paginação API, ações e selo de atrasados             |
+| 25/08/2026 | Financeiro / comissões pós-médico (Fase A) IV-002                |   10h   |    R$ 500,00    | Acompanhar período e cobrar taxa de núcleo + indicação cirúrgica                             |
+| 26/08/2026 | Abas Encaminhados/Agendados/Atendidos + filtros/ordenação IV-003 |   4h    |    R$ 200,00    | Achar registros na lista paginada por situação e por coluna, sem varrer páginas              |
+| 27/08/2026 | Calendário mobile + limpeza dashboard admin IV-004               |  2,5h   |    R$ 125,00    | Dias cinza corretos, grade responsiva, modal no mobile; remover cards duplicados do menu     |
+| **Total**  | **Todas as entregas registradas no projeto**                     | **36h** | **R$ 1.800,00** |                                                                                              |
 
 ---
 
 ## Histórico de entregas
+
+### IV-004 — Calendário mobile + limpeza do dashboard admin
+
+| Campo        | Valor                                                                                                                                                                                  |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Data**     | 27/08/2026                                                                                                                                                                             |
+| **Motivo**   | Dia 31 do mês anterior sumia na grade; mobile apertava o painel do dia; cards de atalho duplicavam o menu lateral                                                                      |
+| **Escopo**   | Calendário de agendamentos + dashboard `/admin`                                                                                                                                        |
+| **Entrega**  | Fetch do intervalo visível da grade; células quadradas (3/4/7 cols); detalhes do dia em modal no mobile; remoção dos cards de atalho; cards de totais com estado ativo ao filtrar abas |
+| **Arquivos** | `appointment-calendar.tsx`, `appointment-calendar-utils.ts`, `admin/page.tsx`, docs/ai                                                                                                 |
+| **Horas**    | 2,5h                                                                                                                                                                                   |
+| **Valor**    | R$ 125,00                                                                                                                                                                              |
+| **Status**   | Aguardando commit / deploy                                                                                                                                                             |
+| **Pauta**    | Correção/UX do calendário (extensão IV-001); sem pauta formal de feature nova                                                                                                          |
+
+#### Commits
+
+- (preencher após commit)
+
+---
 
 ### IV-003 — Abas por situação + filtros e ordenação na lista admin
 

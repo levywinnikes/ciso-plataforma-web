@@ -60,8 +60,9 @@ export function monthBoundsIso(month: Date): {
   appointmentFrom: string;
   appointmentTo: string;
 } {
-  const from = startOfMonth(month);
-  const to = endOfMonth(month);
+  // Mesmo intervalo da grade (inclui dias cinza do mês anterior/próximo).
+  const from = startOfWeek(startOfMonth(month), { weekStartsOn: 0 });
+  const to = endOfWeek(endOfMonth(month), { weekStartsOn: 0 });
   return {
     appointmentFrom: civilDayKey(from),
     appointmentTo: civilDayKey(to),

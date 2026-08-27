@@ -24,8 +24,7 @@ Capacidades:
 - destaque visual de atrasados (faixa, fundo suave e selo **Atrasado**)
 - atalho **Marcar como atendido** com confirmação dos dados (status `Encaminhado` ou `Agendado`)
 - edição administrativa de encaminhamentos
-- atalhos para os módulos administrativos
-- **Calendário de agendamentos** (aba própria, default, somente leitura na grade): carrega o mês via API; no painel do dia oferece as mesmas ações da lista (admin: atender/agendar/editar/excluir; profissional: ver/editar/excluir conforme status)
+- **Calendário de agendamentos** (aba própria, default, somente leitura na grade): carrega o intervalo visível da grade via API (inclui dias do mês anterior/próximo); células quadradas com colunas responsivas (3 → 4 → 7); no mobile o dia abre em modal; no desktop o painel lateral mantém as ações da lista
 
 ### Cadastros e operação administrativa
 
@@ -63,7 +62,7 @@ Capacidades vigentes:
 
 - listar encaminhamentos da clínica
 - visualizar apenas o fluxo clínico (`Agendado` e `Atendido`)
-- **Calendário de agendamentos** (aba própria, default, somente leitura): carrega o mês via API (`appointmentFrom`/`appointmentTo`); lista pagina via `page`/`pageSize`
+- **Calendário de agendamentos** (aba própria, default, somente leitura): carrega o intervalo visível da grade via API (`appointmentFrom`/`appointmentTo`); mobile com células quadradas e detalhes do dia em modal; lista pagina via `page`/`pageSize`
 - abas **Calendário** | **Lista**
 - calendário por `appointmentDate` (clique abre a ficha)
 - preencher notas, conduta e anexos do especialista
@@ -95,7 +94,7 @@ Capacidades atuais (comportamento no código):
 
 Capacidades vigentes:
 
-- **Calendário de agendamentos** (aba própria, default, somente leitura): mês via API; sem data ficam só na lista paginada
+- **Calendário de agendamentos** (aba própria, default, somente leitura): intervalo visível da grade via API; mobile com modal do dia; sem data ficam só na lista paginada
 - listar e paginar encaminhamentos próprios via API (`page`/`pageSize`/`tab`)
 - se `isAdmin=true`, acompanhar encaminhamentos de todo o consultório (comportamento já no código)
 - usar aba/filtro `Bloqueado`

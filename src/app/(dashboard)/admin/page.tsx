@@ -217,44 +217,6 @@ export default function AdminPage() {
     if (aba === "atendidos") setListTab("attended");
   }, [searchParams]);
 
-  const cards = [
-    {
-      title: t("professionalGroupsTitle"),
-      description: t("professionalGroupsDescription"),
-      href: "/admin/grupos-profissionais",
-    },
-    {
-      title: t("clinicsTitle"),
-      description: t("clinicsDescription"),
-      href: "/admin/clinicas",
-    },
-    {
-      title: t("agreementsTitle"),
-      description: t("agreementsDescription"),
-      href: "/admin/convenios",
-    },
-    {
-      title: t("usersTitle"),
-      description: t("usersDescription"),
-      href: "/admin/usuarios",
-    },
-    {
-      title: t("servicesTitle"),
-      description: t("servicesDescription"),
-      href: "/admin/servicos",
-    },
-    {
-      title: t("nucleiTitle"),
-      description: t("nucleiDescription"),
-      href: "/admin/nucleos",
-    },
-    {
-      title: t("financialTitle"),
-      description: t("financialDescription"),
-      href: "/admin/financeiro",
-    },
-  ];
-
   async function loadDoctors(clinicId: string) {
     if (!clinicId) {
       setDoctors([]);
@@ -640,57 +602,68 @@ export default function AdminPage() {
       />
 
       <div className="grid gap-4 md:grid-cols-5">
-        <button
-          type="button"
-          className="text-left"
-          onClick={() => setListTab("pending")}
-        >
-          <CardSection title={t("pendingStatus")}>
-            <p className="text-3xl font-bold text-amber-700">
-              {encaminhadosCount}
-            </p>
-          </CardSection>
-        </button>
-        <button
-          type="button"
-          className="text-left"
-          onClick={() => setListTab("scheduled")}
-        >
-          <CardSection title={t("scheduledStatus")}>
-            <p className="text-3xl font-bold text-blue-700">{agendadosCount}</p>
-          </CardSection>
-        </button>
-        <button
-          type="button"
-          className="text-left"
-          onClick={() => setListTab("attended")}
-        >
-          <CardSection title={t("completedStatus")}>
-            <p className="text-3xl font-bold text-green-700">
-              {concluidosCount}
-            </p>
-          </CardSection>
-        </button>
-        <button
-          type="button"
-          className="text-left"
-          onClick={() => setListTab("blocked")}
-        >
-          <CardSection title={t("blockedStatus")}>
-            <p className="text-3xl font-bold text-orange-700">
-              {bloqueadosCount}
-            </p>
-          </CardSection>
-        </button>
-        <button
-          type="button"
-          className="text-left"
-          onClick={() => setListTab("overdue")}
-        >
-          <CardSection title={t("overdueStatus")}>
-            <p className="text-3xl font-bold text-rose-700">{atrasadosCount}</p>
-          </CardSection>
-        </button>
+        {(
+          [
+            {
+              tab: "pending" as const,
+              title: t("pendingStatus"),
+              value: encaminhadosCount,
+              valueClass: "text-amber-700",
+              activeClass: "ring-2 ring-amber-500 border-amber-300",
+            },
+            {
+              tab: "scheduled" as const,
+              title: t("scheduledStatus"),
+              value: agendadosCount,
+              valueClass: "text-blue-700",
+              activeClass: "ring-2 ring-blue-500 border-blue-300",
+            },
+            {
+              tab: "attended" as const,
+              title: t("completedStatus"),
+              value: concluidosCount,
+              valueClass: "text-green-700",
+              activeClass: "ring-2 ring-emerald-500 border-emerald-300",
+            },
+            {
+              tab: "blocked" as const,
+              title: t("blockedStatus"),
+              value: bloqueadosCount,
+              valueClass: "text-orange-700",
+              activeClass: "ring-2 ring-orange-500 border-orange-300",
+            },
+            {
+              tab: "overdue" as const,
+              title: t("overdueStatus"),
+              value: atrasadosCount,
+              valueClass: "text-rose-700",
+              activeClass: "ring-2 ring-rose-500 border-rose-300",
+            },
+          ] as const
+        ).map((card) => {
+          const active = listTab === card.tab;
+          return (
+            <button
+              key={card.tab}
+              type="button"
+              className="text-left"
+              aria-pressed={active}
+              onClick={() => setListTab(card.tab)}
+            >
+              <CardSection
+                title={card.title}
+                className={cn(
+                  "h-full cursor-pointer transition hover:shadow-md",
+                  active ? card.activeClass : "hover:border-gray-300",
+                )}
+              >
+                <p className={cn("text-3xl font-bold", card.valueClass)}>
+                  {card.value}
+                </p>
+              </CardSection>
+            </button>
+          );
+        })}
       </div>
 
       <div className="flex flex-wrap gap-2 border-b border-gray-200">
@@ -1129,19 +1102,6 @@ export default function AdminPage() {
           </div>
         </TableCard>
       )}
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {cards.map((card) => (
-          <Link key={card.href} href={card.href}>
-            <CardSection
-              title={card.title}
-              className="h-full transition hover:shadow-md"
-            >
-              <p className="text-sm text-gray-600">{card.description}</p>
-            </CardSection>
-          </Link>
-        ))}
-      </div>
 
       <Modal
         isOpen={isModalOpen}

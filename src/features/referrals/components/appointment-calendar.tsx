@@ -1,6 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
+import { enUS, ptBR } from "date-fns/locale";
 import {
   CalendarDays,
   CheckCircle2,
@@ -14,7 +15,7 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { Button, cn } from "@/components/ui";
+import { Button, cn, Modal } from "@/components/ui";
 import {
   buildMonthGridDays,
   type CalendarStatusFilter,
@@ -35,7 +36,7 @@ import {
 } from "@/features/referrals/overdue";
 import type { Referral, ReferralStatus } from "@/features/referrals/types";
 
-const MAX_CHIPS = 4;
+const MAX_CHIPS_DESKTOP = 3;
 
 const STATUS_PILL: Record<ReferralStatus, string> = {
   Bloqueado: "bg-orange-50 text-orange-800 ring-1 ring-inset ring-orange-200",
@@ -45,19 +46,11 @@ const STATUS_PILL: Record<ReferralStatus, string> = {
 };
 
 export type CalendarActionHandlers = {
-  /** admin: sempre; profissional: Encaminhado/Bloqueado */
   onEdit?: (referral: Referral) => void;
   onDelete?: (referral: Referral) => void;
-  /** admin: Encaminhado ou Agendado */
   onMarkAttended?: (referral: Referral) => void;
-  /** admin: Encaminhado */
   onSchedule?: (referral: Referral) => void;
-  /** profissional: visualizar */
   onView?: (referral: Referral) => void;
-  /**
-   * `admin` — mesmas regras da lista administrativa
-   * `professional` — mesmas regras da lista do consultório
-   */
   policy: "admin" | "professional";
 };
 
@@ -78,16 +71,33 @@ function formatDayHeading(dayKey: string, locale: string): string {
   });
 }
 
+function formatDayAbbrev(day: Date, locale: string): string {
+  const loc = locale.startsWith("en") ? enUS : ptBR;
+  return format(day, "EEE", { locale: loc });
+}
+
 function canProfessionalEdit(status: ReferralStatus): boolean {
   return status === "Encaminhado" || status === "Bloqueado";
+}
+
+function useIsDesktopCalendar() {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const sync = () => setIsDesktop(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
+
+  return isDesktop;
 }
 
 type Props = {
   onSelectReferral: (referral: Referral) => void;
   className?: string;
-  /** Optional seed for tests; production loads via API by month. */
   initialReferrals?: Referral[];
-  /** Bump to reload the visible month after mutations. */
   refreshKey?: number;
   actions?: CalendarActionHandlers;
 };
@@ -102,11 +112,13 @@ export function AppointmentCalendar({
   const t = useTranslations("agenda");
   const common = useTranslations("common");
   const locale = useLocale();
+  const isDesktop = useIsDesktopCalendar();
   const [month, setMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
   const [selectedDay, setSelectedDay] = useState(() => civilDayKey(new Date()));
+  const [dayModalOpen, setDayModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<CalendarStatusFilter>("all");
   const [referrals, setReferrals] = useState<Referral[]>(
     initialReferrals ?? [],
@@ -134,6 +146,10 @@ export function AppointmentCalendar({
     void loadMonth(month);
   }, [month, loadMonth, initialReferrals, refreshKey]);
 
+  useEffect(() => {
+    if (isDesktop) setDayModalOpen(false);
+  }, [isDesktop]);
+
   const filtered = useMemo(
     () => filterCalendarReferrals(referrals, statusFilter),
     [referrals, statusFilter],
@@ -142,8 +158,199 @@ export function AppointmentCalendar({
   const days = useMemo(() => buildMonthGridDays(month), [month]);
   const weekdays = useMemo(() => weekdayLabels(locale), [locale]);
   const dayItems = byDay.get(selectedDay) ?? [];
-
   const showActionLegend = Boolean(actions);
+
+  function selectDay(key: string) {
+    setSelectedDay(key);
+    if (!isDesktop) setDayModalOpen(true);
+  }
+
+  function renderDayPanel() {
+    return (
+      <>
+        <p className="text-base font-medium capitalize text-gray-800">
+          {selectedDay ? formatDayHeading(selectedDay, locale) : t("pickDay")}
+        </p>
+        <p className="text-xs text-gray-500">{t("dayScheduleHint")}</p>
+
+        <ul className="mt-4 flex-1 space-y-2 overflow-y-auto pr-1">
+          {dayItems.length === 0 ? (
+            <li className="rounded-xl border border-dashed border-primary/20 bg-white px-3 py-8 text-center text-sm text-gray-500">
+              {t("emptyDay")}
+            </li>
+          ) : (
+            dayItems.map((item) => {
+              const professionalEditable = canProfessionalEdit(item.status);
+              return (
+                <li key={item.id}>
+                  <div
+                    className={cn(
+                      "overflow-hidden rounded-xl border border-primary/10 bg-white shadow-sm",
+                      isReferralOverdue(item) &&
+                        "border-rose-200 bg-rose-50/40",
+                    )}
+                  >
+                    <button
+                      type="button"
+                      className="flex w-full gap-3 p-3 text-left transition hover:bg-primary/[0.02]"
+                      onClick={() => {
+                        setDayModalOpen(false);
+                        onSelectReferral(item);
+                      }}
+                    >
+                      <div className="flex w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-primary/5 px-1 py-2">
+                        <span className="text-base font-bold tabular-nums text-primary">
+                          {item.appointmentDate
+                            ? formatTime(item.appointmentDate)
+                            : "—"}
+                        </span>
+                        <span className="text-[10px] uppercase text-gray-500">
+                          {t("timeLabel")}
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="truncate text-sm font-semibold text-gray-900">
+                            {item.patientName}
+                          </p>
+                          <div className="flex shrink-0 flex-col items-end gap-1">
+                            <span
+                              className={cn(
+                                "whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                                STATUS_PILL[item.status],
+                              )}
+                            >
+                              {item.status}
+                            </span>
+                            {isReferralOverdue(item) ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-rose-800">
+                                <Clock className="h-3 w-3" />
+                                {t("overdueSeal")}
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                        <p className="mt-0.5 truncate text-xs text-gray-600">
+                          {item.nucleusName}
+                        </p>
+                        {item.doctor ? (
+                          <p className="truncate text-xs text-gray-500">
+                            {item.doctor}
+                          </p>
+                        ) : null}
+                        {item.clinicalNotes?.trim() ? (
+                          <p
+                            className="mt-1.5 line-clamp-2 text-xs leading-snug text-gray-600"
+                            title={item.clinicalNotes.trim()}
+                          >
+                            <span className="font-medium text-gray-500">
+                              {t("clinicalNotesLabel")}:{" "}
+                            </span>
+                            {item.clinicalNotes.trim()}
+                          </p>
+                        ) : null}
+                      </div>
+                    </button>
+
+                    {actions ? (
+                      <div className="flex items-center justify-end gap-0.5 border-t border-primary/5 px-2 py-1.5">
+                        {actions.policy === "admin" &&
+                        actions.onMarkAttended &&
+                        canAdminMarkAsAttended(item.status) ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 text-emerald-700 hover:bg-emerald-50"
+                            title={t("legendMarkAttended")}
+                            aria-label={t("legendMarkAttended")}
+                            onClick={() => actions.onMarkAttended?.(item)}
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                          </Button>
+                        ) : null}
+
+                        {actions.policy === "admin" &&
+                        actions.onSchedule &&
+                        item.status === "Encaminhado" ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 text-primary hover:bg-primary/5"
+                            title={t("legendSchedule")}
+                            aria-label={t("legendSchedule")}
+                            onClick={() => actions.onSchedule?.(item)}
+                          >
+                            <CalendarDays className="h-4 w-4" />
+                          </Button>
+                        ) : null}
+
+                        {actions.onView ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                            title={t("legendView")}
+                            aria-label={t("legendView")}
+                            onClick={() => actions.onView?.(item)}
+                          >
+                            <Eye className="h-4 w-4 text-emerald-700" />
+                          </Button>
+                        ) : null}
+
+                        {actions.onEdit ? (
+                          actions.policy === "professional" &&
+                          !professionalEditable ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="h-8 w-8 cursor-not-allowed p-0 opacity-50"
+                              disabled
+                              title={t("legendEditLocked")}
+                              aria-label={t("legendEditLocked")}
+                            >
+                              <Pencil className="h-4 w-4 text-gray-400" />
+                            </Button>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                              title={common("edit")}
+                              aria-label={common("edit")}
+                              onClick={() => actions.onEdit?.(item)}
+                            >
+                              <Pencil className="h-4 w-4 text-amber-600" />
+                            </Button>
+                          )
+                        ) : null}
+
+                        {actions.onDelete ? (
+                          actions.policy === "admin" &&
+                          item.status === "Atendido" ? null : actions.policy ===
+                              "professional" && !professionalEditable ? null : (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                              title={common("delete")}
+                              aria-label={common("delete")}
+                              onClick={() => actions.onDelete?.(item)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          )
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+                </li>
+              );
+            })
+          )}
+        </ul>
+      </>
+    );
+  }
 
   return (
     <section
@@ -152,7 +359,7 @@ export function AppointmentCalendar({
         className,
       )}
     >
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/10 bg-gradient-to-r from-primary/5 to-transparent px-5 py-4">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/10 bg-gradient-to-r from-primary/5 to-transparent px-4 py-4 sm:px-5">
         <div>
           <h2 className="text-base font-semibold text-primary">{t("title")}</h2>
           <p className="text-sm text-gray-500">{t("subtitle")}</p>
@@ -179,6 +386,7 @@ export function AppointmentCalendar({
               const now = new Date();
               setMonth(new Date(now.getFullYear(), now.getMonth(), 1));
               setSelectedDay(civilDayKey(now));
+              if (!isDesktop) setDayModalOpen(true);
             }}
           >
             {t("today")}
@@ -198,7 +406,7 @@ export function AppointmentCalendar({
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <span className="min-w-[11rem] text-center text-base font-medium capitalize text-gray-800">
+            <span className="min-w-[9rem] text-center text-sm font-medium capitalize text-gray-800 sm:min-w-[11rem] sm:text-base">
               {formatMonthTitle(month, locale)}
             </span>
             <button
@@ -219,7 +427,7 @@ export function AppointmentCalendar({
         </div>
       </header>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-primary/10 bg-white px-5 py-2.5 text-[11px] text-gray-600">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-primary/10 bg-white px-4 py-2.5 text-[11px] text-gray-600 sm:px-5">
         {showActionLegend ? (
           <>
             <span className="font-semibold uppercase tracking-wide text-gray-400">
@@ -276,7 +484,7 @@ export function AppointmentCalendar({
       </div>
 
       <div className="grid gap-0 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,1fr)]">
-        <div className="relative p-4 sm:p-5">
+        <div className="relative p-3 sm:p-5">
           {isLoading ? (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/70 backdrop-blur-[1px]">
               <p className="rounded-full border border-primary/10 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm">
@@ -284,7 +492,9 @@ export function AppointmentCalendar({
               </p>
             </div>
           ) : null}
-          <div className="mb-2 grid grid-cols-7 gap-1.5">
+
+          {/* Cabeçalhos DOM–SAB só quando a grade tem 7 colunas */}
+          <div className="mb-2 hidden grid-cols-7 gap-1.5 md:grid">
             {weekdays.map((label) => (
               <div
                 key={label}
@@ -294,7 +504,12 @@ export function AppointmentCalendar({
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-7 gap-1.5">
+
+          {/*
+            Mobile: 3 cols · sm: 4 · md+: 7 (semana).
+            Células sempre quadradas (aspect-square).
+          */}
+          <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 md:grid-cols-7">
             {days.map((day) => {
               const key = civilDayKey(day);
               const items = byDay.get(key) ?? [];
@@ -305,9 +520,9 @@ export function AppointmentCalendar({
                 <button
                   key={key}
                   type="button"
-                  onClick={() => setSelectedDay(key)}
+                  onClick={() => selectDay(key)}
                   className={cn(
-                    "flex min-h-[6.5rem] flex-col rounded-xl border p-2 text-left transition sm:min-h-[7.5rem]",
+                    "flex aspect-square flex-col overflow-hidden rounded-xl border p-1.5 text-left transition sm:p-2",
                     inMonth
                       ? "border-primary/10 bg-white"
                       : "border-transparent bg-gray-50/80 text-gray-400",
@@ -315,27 +530,33 @@ export function AppointmentCalendar({
                     today && !selected && "border-emerald-300/80",
                   )}
                 >
-                  <div className="mb-1 flex items-center justify-between gap-1">
-                    <span
-                      className={cn(
-                        "text-sm font-semibold",
-                        today ? "text-primary" : "text-gray-700",
-                      )}
-                    >
-                      {day.getDate()}
-                    </span>
+                  <div className="flex items-start justify-between gap-0.5">
+                    <div className="min-w-0">
+                      <span
+                        className={cn(
+                          "block text-sm font-semibold tabular-nums sm:text-base",
+                          today ? "text-primary" : "text-gray-700",
+                          !inMonth && "text-gray-400",
+                        )}
+                      >
+                        {day.getDate()}
+                      </span>
+                      <span className="block truncate text-[10px] font-medium capitalize text-gray-400 md:hidden">
+                        {formatDayAbbrev(day, locale)}
+                      </span>
+                    </div>
                     {items.length > 0 ? (
-                      <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                      <span className="shrink-0 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
                         {items.length}
                       </span>
                     ) : null}
                   </div>
-                  <div className="mt-auto space-y-1">
-                    {items.slice(0, MAX_CHIPS).map((item) => (
+                  <div className="mt-auto hidden min-h-0 space-y-0.5 overflow-hidden md:block">
+                    {items.slice(0, MAX_CHIPS_DESKTOP).map((item) => (
                       <div
                         key={item.id}
                         className={cn(
-                          "truncate rounded-md px-1.5 py-0.5 text-[10px] leading-4",
+                          "truncate rounded-md px-1 py-0.5 text-[10px] leading-3",
                           isReferralOverdue(item)
                             ? "bg-rose-100 text-rose-800"
                             : item.status === "Atendido"
@@ -352,203 +573,56 @@ export function AppointmentCalendar({
                         {item.patientName}
                       </div>
                     ))}
-                    {items.length > MAX_CHIPS ? (
+                    {items.length > MAX_CHIPS_DESKTOP ? (
                       <span className="text-[10px] text-gray-500">
-                        +{items.length - MAX_CHIPS}
+                        +{items.length - MAX_CHIPS_DESKTOP}
                       </span>
                     ) : null}
                   </div>
+                  {/* Mobile: só bolinhas de status (células menores) */}
+                  {items.length > 0 ? (
+                    <div className="mt-auto flex flex-wrap gap-0.5 md:hidden">
+                      {items.slice(0, 4).map((item) => (
+                        <span
+                          key={item.id}
+                          className={cn(
+                            "h-1.5 w-1.5 rounded-full",
+                            isReferralOverdue(item)
+                              ? "bg-rose-500"
+                              : item.status === "Atendido"
+                                ? "bg-emerald-500"
+                                : "bg-sky-500",
+                          )}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
                 </button>
               );
             })}
           </div>
         </div>
 
-        <aside className="flex min-h-[28rem] flex-col border-t border-primary/10 bg-emerald-50/40 p-4 sm:p-5 lg:border-l lg:border-t-0">
+        {/* Desktop: painel lateral fixo */}
+        <aside className="hidden min-h-[28rem] flex-col border-l border-primary/10 bg-emerald-50/40 p-5 lg:flex">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-primary">
             {t("dayPanel")}
           </h3>
-          <p className="mt-1 text-base font-medium capitalize text-gray-800">
-            {selectedDay ? formatDayHeading(selectedDay, locale) : t("pickDay")}
-          </p>
-          <p className="text-xs text-gray-500">{t("dayScheduleHint")}</p>
-
-          <ul className="mt-4 flex-1 space-y-2 overflow-y-auto pr-1">
-            {dayItems.length === 0 ? (
-              <li className="rounded-xl border border-dashed border-primary/20 bg-white px-3 py-8 text-center text-sm text-gray-500">
-                {t("emptyDay")}
-              </li>
-            ) : (
-              dayItems.map((item) => {
-                const professionalEditable = canProfessionalEdit(item.status);
-                return (
-                  <li key={item.id}>
-                    <div
-                      className={cn(
-                        "overflow-hidden rounded-xl border border-primary/10 bg-white shadow-sm",
-                        isReferralOverdue(item) &&
-                          "border-rose-200 bg-rose-50/40",
-                      )}
-                    >
-                      <button
-                        type="button"
-                        className="flex w-full gap-3 p-3 text-left transition hover:bg-primary/[0.02]"
-                        onClick={() => onSelectReferral(item)}
-                      >
-                        <div className="flex w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-primary/5 px-1 py-2">
-                          <span className="text-base font-bold tabular-nums text-primary">
-                            {item.appointmentDate
-                              ? formatTime(item.appointmentDate)
-                              : "—"}
-                          </span>
-                          <span className="text-[10px] uppercase text-gray-500">
-                            {t("timeLabel")}
-                          </span>
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="truncate text-sm font-semibold text-gray-900">
-                              {item.patientName}
-                            </p>
-                            <div className="flex shrink-0 flex-col items-end gap-1">
-                              <span
-                                className={cn(
-                                  "whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                                  STATUS_PILL[item.status],
-                                )}
-                              >
-                                {item.status}
-                              </span>
-                              {isReferralOverdue(item) ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-rose-800">
-                                  <Clock className="h-3 w-3" />
-                                  {t("overdueSeal")}
-                                </span>
-                              ) : null}
-                            </div>
-                          </div>
-                          <p className="mt-0.5 truncate text-xs text-gray-600">
-                            {item.nucleusName}
-                          </p>
-                          {item.doctor ? (
-                            <p className="truncate text-xs text-gray-500">
-                              {item.doctor}
-                            </p>
-                          ) : null}
-                          {item.clinicalNotes?.trim() ? (
-                            <p
-                              className="mt-1.5 line-clamp-2 text-xs leading-snug text-gray-600"
-                              title={item.clinicalNotes.trim()}
-                            >
-                              <span className="font-medium text-gray-500">
-                                {t("clinicalNotesLabel")}:{" "}
-                              </span>
-                              {item.clinicalNotes.trim()}
-                            </p>
-                          ) : null}
-                        </div>
-                      </button>
-
-                      {actions ? (
-                        <div className="flex items-center justify-end gap-0.5 border-t border-primary/5 px-2 py-1.5">
-                          {actions.policy === "admin" &&
-                          actions.onMarkAttended &&
-                          canAdminMarkAsAttended(item.status) ? (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              className="h-8 w-8 p-0 text-emerald-700 hover:bg-emerald-50"
-                              title={t("legendMarkAttended")}
-                              aria-label={t("legendMarkAttended")}
-                              onClick={() => actions.onMarkAttended?.(item)}
-                            >
-                              <CheckCircle2 className="h-4 w-4" />
-                            </Button>
-                          ) : null}
-
-                          {actions.policy === "admin" &&
-                          actions.onSchedule &&
-                          item.status === "Encaminhado" ? (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              className="h-8 w-8 p-0 text-primary hover:bg-primary/5"
-                              title={t("legendSchedule")}
-                              aria-label={t("legendSchedule")}
-                              onClick={() => actions.onSchedule?.(item)}
-                            >
-                              <CalendarDays className="h-4 w-4" />
-                            </Button>
-                          ) : null}
-
-                          {actions.onView ? (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              className="h-8 w-8 p-0"
-                              title={t("legendView")}
-                              aria-label={t("legendView")}
-                              onClick={() => actions.onView?.(item)}
-                            >
-                              <Eye className="h-4 w-4 text-emerald-700" />
-                            </Button>
-                          ) : null}
-
-                          {actions.onEdit ? (
-                            actions.policy === "professional" &&
-                            !professionalEditable ? (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                className="h-8 w-8 cursor-not-allowed p-0 opacity-50"
-                                disabled
-                                title={t("legendEditLocked")}
-                                aria-label={t("legendEditLocked")}
-                              >
-                                <Pencil className="h-4 w-4 text-gray-400" />
-                              </Button>
-                            ) : (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                className="h-8 w-8 p-0"
-                                title={common("edit")}
-                                aria-label={common("edit")}
-                                onClick={() => actions.onEdit?.(item)}
-                              >
-                                <Pencil className="h-4 w-4 text-amber-600" />
-                              </Button>
-                            )
-                          ) : null}
-
-                          {actions.onDelete ? (
-                            actions.policy === "admin" &&
-                            item.status ===
-                              "Atendido" ? null : actions.policy ===
-                                "professional" &&
-                              !professionalEditable ? null : (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                className="h-8 w-8 p-0"
-                                title={common("delete")}
-                                aria-label={common("delete")}
-                                onClick={() => actions.onDelete?.(item)}
-                              >
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                              </Button>
-                            )
-                          ) : null}
-                        </div>
-                      ) : null}
-                    </div>
-                  </li>
-                );
-              })
-            )}
-          </ul>
+          <div className="mt-1 flex min-h-0 flex-1 flex-col">
+            {renderDayPanel()}
+          </div>
         </aside>
       </div>
+
+      {/* Mobile / tablet: detalhes do dia em modal */}
+      <Modal
+        isOpen={dayModalOpen && !isDesktop}
+        onClose={() => setDayModalOpen(false)}
+        title={t("dayPanel")}
+        maxWidth="max-w-md"
+      >
+        <div className="flex max-h-[70vh] flex-col">{renderDayPanel()}</div>
+      </Modal>
     </section>
   );
 }

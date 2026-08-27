@@ -1,5 +1,3 @@
-import { describe, expect, it } from "vitest";
-
 import {
   civilDayKey,
   filterCalendarReferrals,
@@ -68,9 +66,10 @@ describe("appointment-calendar-utils", () => {
     expect(overdue.map((item) => item.id)).toEqual(["late"]);
   });
 
-  it("builds month ISO bounds", () => {
+  it("builds ISO bounds covering the visible grid (leading/trailing days)", () => {
+    // Agosto/2026 começa no sábado → grade inclui 26/07 … 05/09
     const bounds = monthBoundsIso(new Date(2026, 7, 15));
-    expect(bounds.appointmentFrom).toBe("2026-08-01");
-    expect(bounds.appointmentTo).toBe("2026-08-31");
+    expect(bounds.appointmentFrom).toBe("2026-07-26");
+    expect(bounds.appointmentTo).toBe("2026-09-05");
   });
 });
