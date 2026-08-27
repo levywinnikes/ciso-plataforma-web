@@ -36,7 +36,7 @@ Registro canônico de decisões de produto e governança que afetam regras de ne
 
 - Calendário **somente leitura** nos dashboards `/admin`, `/medico` e `/profissional` (aba própria, default)
 - Eventos = encaminhamentos com `appointmentDate`; grade carrega o **intervalo visível** (mês + dias cinza do mês anterior/próximo) via `appointmentFrom`/`appointmentTo`
-- Mobile: células `aspect-square` com menos colunas; detalhes do dia em **modal** (desktop mantém painel lateral)
+- Mobile: células com altura mínima (sem quadrado vazio); chips com hora+paciente; detalhes do dia em **modal** (desktop mantém painel lateral)
 
 - Listas paginam no servidor (`page`/`pageSize`/`tab`/`includeCounts`); sem `page` permanece array legado
 - Clique no item abre o fluxo já existente do papel

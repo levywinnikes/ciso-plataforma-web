@@ -507,7 +507,7 @@ export function AppointmentCalendar({
 
           {/*
             Mobile: 3 cols · sm: 4 · md+: 7 (semana).
-            Células sempre quadradas (aspect-square).
+            Altura mínima uniforme (sem forçar quadrado vazio); chips com hora+paciente.
           */}
           <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 md:grid-cols-7">
             {days.map((day) => {
@@ -522,7 +522,7 @@ export function AppointmentCalendar({
                   type="button"
                   onClick={() => selectDay(key)}
                   className={cn(
-                    "flex aspect-square flex-col overflow-hidden rounded-xl border p-1.5 text-left transition sm:p-2",
+                    "flex min-h-[5.75rem] flex-col rounded-xl border p-1.5 text-left transition sm:min-h-[6.25rem] sm:p-2 md:min-h-[7.25rem]",
                     inMonth
                       ? "border-primary/10 bg-white"
                       : "border-transparent bg-gray-50/80 text-gray-400",
@@ -530,7 +530,7 @@ export function AppointmentCalendar({
                     today && !selected && "border-emerald-300/80",
                   )}
                 >
-                  <div className="flex shrink-0 items-start justify-between gap-0.5">
+                  <div className="mb-1 flex shrink-0 items-start justify-between gap-0.5">
                     <div className="min-w-0">
                       <span
                         className={cn(
@@ -551,7 +551,7 @@ export function AppointmentCalendar({
                       </span>
                     ) : null}
                   </div>
-                  <div className="mt-1 flex min-h-0 flex-1 flex-col gap-0.5 overflow-hidden">
+                  <div className="flex min-h-0 flex-col gap-0.5 overflow-hidden">
                     {items.slice(0, MAX_CHIPS).map((item) => (
                       <div
                         key={item.id}
