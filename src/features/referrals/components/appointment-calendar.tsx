@@ -36,7 +36,7 @@ import {
 } from "@/features/referrals/overdue";
 import type { Referral, ReferralStatus } from "@/features/referrals/types";
 
-const MAX_CHIPS_DESKTOP = 3;
+const MAX_CHIPS = 4;
 
 const STATUS_PILL: Record<ReferralStatus, string> = {
   Bloqueado: "bg-orange-50 text-orange-800 ring-1 ring-inset ring-orange-200",
@@ -530,7 +530,7 @@ export function AppointmentCalendar({
                     today && !selected && "border-emerald-300/80",
                   )}
                 >
-                  <div className="flex items-start justify-between gap-0.5">
+                  <div className="flex shrink-0 items-start justify-between gap-0.5">
                     <div className="min-w-0">
                       <span
                         className={cn(
@@ -551,12 +551,12 @@ export function AppointmentCalendar({
                       </span>
                     ) : null}
                   </div>
-                  <div className="mt-auto hidden min-h-0 space-y-0.5 overflow-hidden md:block">
-                    {items.slice(0, MAX_CHIPS_DESKTOP).map((item) => (
+                  <div className="mt-1 flex min-h-0 flex-1 flex-col gap-0.5 overflow-hidden">
+                    {items.slice(0, MAX_CHIPS).map((item) => (
                       <div
                         key={item.id}
                         className={cn(
-                          "truncate rounded-md px-1 py-0.5 text-[10px] leading-3",
+                          "truncate rounded-md px-1 py-0.5 text-[9px] leading-tight sm:text-[10px] sm:leading-3",
                           isReferralOverdue(item)
                             ? "bg-rose-100 text-rose-800"
                             : item.status === "Atendido"
@@ -573,30 +573,12 @@ export function AppointmentCalendar({
                         {item.patientName}
                       </div>
                     ))}
-                    {items.length > MAX_CHIPS_DESKTOP ? (
-                      <span className="text-[10px] text-gray-500">
-                        +{items.length - MAX_CHIPS_DESKTOP}
+                    {items.length > MAX_CHIPS ? (
+                      <span className="text-[9px] text-gray-500 sm:text-[10px]">
+                        +{items.length - MAX_CHIPS}
                       </span>
                     ) : null}
                   </div>
-                  {/* Mobile: só bolinhas de status (células menores) */}
-                  {items.length > 0 ? (
-                    <div className="mt-auto flex flex-wrap gap-0.5 md:hidden">
-                      {items.slice(0, 4).map((item) => (
-                        <span
-                          key={item.id}
-                          className={cn(
-                            "h-1.5 w-1.5 rounded-full",
-                            isReferralOverdue(item)
-                              ? "bg-rose-500"
-                              : item.status === "Atendido"
-                                ? "bg-emerald-500"
-                                : "bg-sky-500",
-                          )}
-                        />
-                      ))}
-                    </div>
-                  ) : null}
                 </button>
               );
             })}
