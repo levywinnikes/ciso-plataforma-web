@@ -76,21 +76,23 @@ Não é obrigatório registrar:
 
 ### IV-004 — Calendário mobile + limpeza do dashboard admin
 
-| Campo        | Valor                                                                                                                                                                                              |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Data**     | 27/08/2026                                                                                                                                                                                         |
-| **Motivo**   | Dia 31 do mês anterior sumia na grade; mobile apertava o painel do dia; cards de atalho duplicavam o menu lateral                                                                                  |
-| **Escopo**   | Calendário de agendamentos + dashboard `/admin`                                                                                                                                                    |
-| **Entrega**  | Fetch do intervalo visível da grade; células quadradas (3/4/7 cols) com hora+paciente nos chips; detalhes do dia em modal no mobile; remoção dos cards de atalho; cards de totais com estado ativo |
-| **Arquivos** | `appointment-calendar.tsx`, `appointment-calendar-utils.ts`, `admin/page.tsx`, docs/ai                                                                                                             |
-| **Horas**    | 2,5h                                                                                                                                                                                               |
-| **Valor**    | R$ 125,00                                                                                                                                                                                          |
-| **Status**   | Em produção (`4b71f4b`) — alias `https://www.integravisao.com.br`                                                                                                                                  |
-| **Pauta**    | Correção/UX do calendário (extensão IV-001); sem pauta formal de feature nova                                                                                                                      |
+| Campo        | Valor                                                                                                                                                                                                 |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Data**     | 27/08/2026                                                                                                                                                                                            |
+| **Motivo**   | Dia 31 do mês anterior sumia na grade; mobile apertava o painel do dia; cards de atalho duplicavam o menu lateral                                                                                     |
+| **Escopo**   | Calendário de agendamentos + dashboard `/admin`                                                                                                                                                       |
+| **Entrega**  | Fetch do intervalo visível da grade; grade responsiva (3/4/7 cols) com chips hora+paciente e badge de contagem; modal do dia no mobile; remoção dos cards de atalho; cards de totais com estado ativo |
+| **Arquivos** | `appointment-calendar.tsx`, `appointment-calendar-utils.ts`, `admin/page.tsx`, docs/ai                                                                                                                |
+| **Horas**    | 2,5h                                                                                                                                                                                                  |
+| **Valor**    | R$ 125,00                                                                                                                                                                                             |
+| **Status**   | Em produção (`424a7b6`) — alias `https://www.integravisao.com.br`                                                                                                                                     |
+| **Pauta**    | Correção/UX do calendário (extensão IV-001); sem pauta formal de feature nova                                                                                                                         |
 
 #### Commits
 
 - `4b71f4b` — fix: calendário mobile, dias cinza e limpeza do dashboard
+- `1b72279` — fix: mostra hora e paciente nos dias do calendário mobile
+- `424a7b6` — fix: usa o espaço das células do calendário com chips detalhados
 
 ---
 
