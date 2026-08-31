@@ -78,31 +78,31 @@ Não é obrigatório registrar:
 
 ### IV-006 — Bloquear data de nascimento incompleta
 
-| Campo        | Valor                                                                                              |
-| ------------ | -------------------------------------------------------------------------------------------------- |
-| **Data**     | 31/08/2026                                                                                         |
-| **Motivo**   | Campo aceitava `10` no envio: o `required` nativo só exige não-vazio e interceptava o Zod          |
-| **Escopo**   | Cadastro/edição de encaminhamento (admin e profissional) + API                                     |
-| **Entrega**  | `required` do `FloatingInput` só visual; `noValidate` nos formulários; API recusa data incompleta  |
-| **Arquivos** | `floating-input.tsx`, `birth-date.ts`, views de novo/edição, APIs de encaminhamento, `patterns.md` |
-| **Horas**    | 0,25h                                                                                              |
-| **Valor**    | R$ 12,50                                                                                           |
-| **Status**   | Aguardando commit                                                                                  |
-| **Pauta**    | Correção de validação do campo existente (IV-005) — sem pauta de feature nova                      |
+| Campo        | Valor                                                                                                         |
+| ------------ | ------------------------------------------------------------------------------------------------------------- |
+| **Data**     | 31/08/2026                                                                                                    |
+| **Motivo**   | Campo aceitava `10` no envio: o `required` nativo só exige não-vazio e interceptava o Zod                     |
+| **Escopo**   | Cadastro/edição de encaminhamento (admin e profissional) + API                                                |
+| **Entrega**  | `required` do `FloatingInput` só visual; `noValidate` nos formulários; API recusa data incompleta             |
+| **Arquivos** | `floating-input.tsx`, `birth-date.ts`, views de novo/edição, APIs de encaminhamento, `patterns.md`            |
+| **Horas**    | 0,25h                                                                                                         |
+| **Valor**    | R$ 12,50                                                                                                      |
+| **Status**   | Em produção (`2f2b5a4`) — alias `https://www.integravisao.com.br` (deploy `dpl_6V1zm3XGsVkdjBYSYz3Lzm6vw4nX`) |
+| **Pauta**    | Correção de validação do campo existente (IV-005) — sem pauta de feature nova                                 |
 
 ### IV-005 — Data de nascimento digitável (dd/mm/aaaa)
 
-| Campo        | Valor                                                                                                        |
-| ------------ | ------------------------------------------------------------------------------------------------------------ |
-| **Data**     | 31/08/2026                                                                                                   |
-| **Motivo**   | Escolher ano de nascimento no calendário nativo é difícil                                                    |
-| **Escopo**   | Cadastro e edição de encaminhamento (profissional e admin)                                                   |
-| **Entrega**  | Campo livre com máscara dd/mm/aaaa; validação de data real; calendário mantido só em agendamento/filtro      |
-| **Arquivos** | `birth-date.ts`, `floating-input.tsx`, schemas/views de novo e edição, APIs de encaminhamento, `patterns.md` |
-| **Horas**    | 0,75h                                                                                                        |
-| **Valor**    | R$ 37,50                                                                                                     |
-| **Status**   | Aguardando commit                                                                                            |
-| **Pauta**    | Ajuste de UX em campo existente — sem pauta de feature nova                                                  |
+| Campo        | Valor                                                                                                         |
+| ------------ | ------------------------------------------------------------------------------------------------------------- |
+| **Data**     | 31/08/2026                                                                                                    |
+| **Motivo**   | Escolher ano de nascimento no calendário nativo é difícil                                                     |
+| **Escopo**   | Cadastro e edição de encaminhamento (profissional e admin)                                                    |
+| **Entrega**  | Campo livre com máscara dd/mm/aaaa; validação de data real; calendário mantido só em agendamento/filtro       |
+| **Arquivos** | `birth-date.ts`, `floating-input.tsx`, schemas/views de novo e edição, APIs de encaminhamento, `patterns.md`  |
+| **Horas**    | 0,75h                                                                                                         |
+| **Valor**    | R$ 37,50                                                                                                      |
+| **Status**   | Em produção (`2f2b5a4`) — alias `https://www.integravisao.com.br` (deploy `dpl_6V1zm3XGsVkdjBYSYz3Lzm6vw4nX`) |
+| **Pauta**    | Ajuste de UX em campo existente — sem pauta de feature nova                                                   |
 
 ### IV-004 — Calendário mobile + limpeza do dashboard admin
 
