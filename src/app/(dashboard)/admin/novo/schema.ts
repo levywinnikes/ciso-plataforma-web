@@ -1,6 +1,7 @@
 import type { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
+import { birthDateSchema } from "@/features/referrals/birth-date";
 import {
   createStatusField,
   withBlockJustification,
@@ -10,13 +11,7 @@ import type { CareNucleus } from "@/features/referrals/types";
 // Mensagens sao chaves i18n resolvidas pela view via useTranslations().
 export const adminNovoEncaminhamentoSchema = withBlockJustification({
   patientName: z.string().min(1, "errors.patientNameRequired"),
-  patientBirthDate: z
-    .string()
-    .min(1, "errors.birthDateRequired")
-    .refine(
-      (date) => /^\d{4}-\d{2}-\d{2}$/.test(date),
-      "errors.birthDateInvalid",
-    ),
+  patientBirthDate: birthDateSchema,
   patientPhone: z
     .string()
     .min(1, "errors.phoneRequired")

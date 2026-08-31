@@ -3,7 +3,7 @@ import { novoEncaminhamentoSchema } from "../schema";
 describe("novoEncaminhamentoSchema", () => {
   const validData = {
     patientName: "João Silva",
-    patientBirthDate: "1990-01-15",
+    patientBirthDate: "15/01/1990",
     patientPhone: "11987654321",
     patientDocument: "123.456.789-00",
     systemicDiseases: "",
@@ -85,5 +85,31 @@ describe("novoEncaminhamentoSchema", () => {
       justificativaBloqueio: "Cliente ainda não decidiu horário",
     });
     expect(result.success).toBe(true);
+  });
+
+  it("should accept birth date as dd/mm/aaaa", () => {
+    const result = novoEncaminhamentoSchema.safeParse(validData);
+    expect(result.success).toBe(true);
+  });
+
+  it("should reject ISO birth date in the form", () => {
+    const result = novoEncaminhamentoSchema.safeParse({
+      ...validData,
+      patientBirthDate: "1990-01-15",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("should reject a partial birth date", () => {
+    const result = novoEncaminhamentoSchema.safeParse({
+      ...validData,
+      patientBirthDate: "10",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.flatten().fieldErrors.patientBirthDate).toContain(
+        "errors.birthDateInvalid",
+      );
+    }
   });
 });

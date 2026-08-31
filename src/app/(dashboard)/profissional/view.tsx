@@ -606,6 +606,7 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
           encaminhamento.
         </p>
         <form
+          noValidate
           onSubmit={model.onSubmitEdit}
           className="mt-4 grid gap-6 text-left lg:grid-cols-12"
         >
@@ -623,10 +624,13 @@ export function ProfissionalPageView({ model }: ProfissionalPageViewProps) {
                 </div>
                 <Field
                   label={""}
+                  hint={tNew("birthDateHint")}
                   error={tError(errors.patientBirthDate?.message)}
                 >
                   <FloatingInput
-                    type="date"
+                    mask="date"
+                    inputMode="numeric"
+                    autoComplete="bday"
                     required
                     label={tNew("birthDate")}
                     {...register("patientBirthDate")}

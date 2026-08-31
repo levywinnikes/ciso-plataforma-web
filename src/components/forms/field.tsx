@@ -23,6 +23,7 @@ export function Field({ label, required, hint, error, children }: FieldProps) {
         </label>
       ) : null}
       {children}
+      {!label && hint ? <p className="text-xs text-gray-400">{hint}</p> : null}
       {error && <p className="text-xs text-red-500">{error}</p>}
     </div>
   );

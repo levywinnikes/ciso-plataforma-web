@@ -57,7 +57,11 @@ export function AdminNovoEncaminhamentoPageView({
         </div>
       </div>
 
-      <form onSubmit={model.onSubmit} className="grid gap-6 lg:grid-cols-12">
+      <form
+        noValidate
+        onSubmit={model.onSubmit}
+        className="grid gap-6 lg:grid-cols-12"
+      >
         <div className="space-y-6 lg:col-span-8">
           <CardSection title={t("patientData")}>
             <div className="grid gap-4 md:grid-cols-2">
@@ -72,10 +76,13 @@ export function AdminNovoEncaminhamentoPageView({
               </div>
               <Field
                 label={""}
+                hint={t("birthDateHint")}
                 error={tError(errors.patientBirthDate?.message)}
               >
                 <FloatingInput
-                  type="date"
+                  mask="date"
+                  inputMode="numeric"
+                  autoComplete="bday"
                   required
                   label={t("birthDate")}
                   {...register("patientBirthDate")}

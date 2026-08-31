@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 
+import { parseBirthDateOrNull } from "@/features/referrals/birth-date";
 import { resolveCreateStatus } from "@/features/referrals/block-status";
 import {
   applyAppointmentRange,
@@ -16,17 +17,9 @@ import {
 } from "@/features/referrals/list-query";
 import { mapReferralResponse } from "@/features/referrals/map-referral";
 import { startOfLocalDay } from "@/features/referrals/overdue";
+import { apiError } from "@/lib/api-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-function parseBirthDate(value: string): Date {
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
-    const [day, month, year] = value.split("/").map(Number);
-    return new Date(year, month - 1, day);
-  }
-
-  return new Date(value);
-}
 
 function buildRoleWhere(session: {
   user: {
@@ -253,6 +246,11 @@ export async function POST(request: Request) {
     );
   }
 
+  const patientBirthDate = parseBirthDateOrNull(String(body.patientBirthDate));
+  if (!patientBirthDate) {
+    return apiError("errors.birthDateInvalid", 400);
+  }
+
   const statusResult = resolveCreateStatus({
     status: body.status,
     justificativaBloqueio: body.justificativaBloqueio,
@@ -281,7 +279,7 @@ export async function POST(request: Request) {
     const created = await tx.referral.create({
       data: {
         patientName: body.patientName,
-        patientBirthDate: parseBirthDate(body.patientBirthDate),
+        patientBirthDate,
         patientPhone: String(body.patientPhone).replace(/\D/g, ""),
         patientDocument: body.patientDocument || null,
         systemicDiseases: body.systemicDiseases || null,

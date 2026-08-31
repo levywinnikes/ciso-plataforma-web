@@ -175,7 +175,7 @@ Para garantir reutilização de código e facilidade de manutenção sem inflar 
 ### Diretrizes de Separação de Responsabilidades:
 
 1. **Campos Compartilhados (Componentizados individualmente em `/features/referrals/components/`):**
-   - **`PatientFormFields`**: Agrupa nome, data de nascimento, telefone e documento do paciente. Recebe o objeto do `form` para registrar os inputs com `FloatingInput` e validar com `Field`.
+   - **`PatientFormFields`**: Agrupa nome, data de nascimento, telefone e documento do paciente. Data de nascimento é campo digitável `dd/mm/aaaa` (`FloatingInput mask="date"`), nunca calendário.
    - **`ClinicalInfoFields`**: Agrupa doenças sistêmicas e observações/queixas clínicas.
    - **`NucleusSelectionFields`**: Agrupa a seleção de clínica, convênio (filtrado) e núcleo de atendimento, além do resumo de preços dinâmico do núcleo selecionado.
 

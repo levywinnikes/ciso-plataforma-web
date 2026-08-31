@@ -6,7 +6,7 @@
 | ------------- | --------------------- |
 | Integra Visão | `ciso-plataforma-web` |
 
-**Última atualização:** 27/08/2026 (IV-004 calendário mobile + limpeza dashboard)  
+**Última atualização:** 31/08/2026 (IV-006 data de nascimento incompleta)  
 **Responsável pelo registro:** assistente de desenvolvimento (sessões Cursor)  
 **Cliente / uso:** controle interno do projeto e base para cobrança  
 **Taxa:** R$ 50,00/h (horas estimadas IA)
@@ -68,11 +68,41 @@ Não é obrigatório registrar:
 | 25/08/2026 | Financeiro / comissões pós-médico (Fase A) IV-002                |   10h   |    R$ 500,00    | Acompanhar período e cobrar taxa de núcleo + indicação cirúrgica                             |
 | 26/08/2026 | Abas Encaminhados/Agendados/Atendidos + filtros/ordenação IV-003 |   4h    |    R$ 200,00    | Achar registros na lista paginada por situação e por coluna, sem varrer páginas              |
 | 27/08/2026 | Calendário mobile + limpeza dashboard admin IV-004               |  2,5h   |    R$ 125,00    | Dias cinza corretos, grade responsiva, modal no mobile; remover cards duplicados do menu     |
-| **Total**  | **Todas as entregas registradas no projeto**                     | **36h** | **R$ 1.800,00** |                                                                                              |
+| 31/08/2026 | Data de nascimento digitável (dd/mm/aaaa) IV-005                 |  0,75h  |    R$ 37,50     | Calendário nativo é difícil para ano de nascimento; a pessoa digita a data                   |
+| 31/08/2026 | Bloquear data de nascimento incompleta IV-006                    |  0,25h  |    R$ 12,50     | `10` passava no required nativo do navegador; o Zod não chegava a recusar                    |
+| **Total**  | **Todas as entregas registradas no projeto**                     | **37h** | **R$ 1.850,00** |                                                                                              |
 
 ---
 
 ## Histórico de entregas
+
+### IV-006 — Bloquear data de nascimento incompleta
+
+| Campo        | Valor                                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------------- |
+| **Data**     | 31/08/2026                                                                                         |
+| **Motivo**   | Campo aceitava `10` no envio: o `required` nativo só exige não-vazio e interceptava o Zod          |
+| **Escopo**   | Cadastro/edição de encaminhamento (admin e profissional) + API                                     |
+| **Entrega**  | `required` do `FloatingInput` só visual; `noValidate` nos formulários; API recusa data incompleta  |
+| **Arquivos** | `floating-input.tsx`, `birth-date.ts`, views de novo/edição, APIs de encaminhamento, `patterns.md` |
+| **Horas**    | 0,25h                                                                                              |
+| **Valor**    | R$ 12,50                                                                                           |
+| **Status**   | Aguardando commit                                                                                  |
+| **Pauta**    | Correção de validação do campo existente (IV-005) — sem pauta de feature nova                      |
+
+### IV-005 — Data de nascimento digitável (dd/mm/aaaa)
+
+| Campo        | Valor                                                                                                        |
+| ------------ | ------------------------------------------------------------------------------------------------------------ |
+| **Data**     | 31/08/2026                                                                                                   |
+| **Motivo**   | Escolher ano de nascimento no calendário nativo é difícil                                                    |
+| **Escopo**   | Cadastro e edição de encaminhamento (profissional e admin)                                                   |
+| **Entrega**  | Campo livre com máscara dd/mm/aaaa; validação de data real; calendário mantido só em agendamento/filtro      |
+| **Arquivos** | `birth-date.ts`, `floating-input.tsx`, schemas/views de novo e edição, APIs de encaminhamento, `patterns.md` |
+| **Horas**    | 0,75h                                                                                                        |
+| **Valor**    | R$ 37,50                                                                                                     |
+| **Status**   | Aguardando commit                                                                                            |
+| **Pauta**    | Ajuste de UX em campo existente — sem pauta de feature nova                                                  |
 
 ### IV-004 — Calendário mobile + limpeza do dashboard admin
 

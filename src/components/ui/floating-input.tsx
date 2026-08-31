@@ -7,15 +7,22 @@ import { cn } from "./utils";
 
 export interface FloatingInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
-  mask?: "cnpj" | "cpf" | "phone" | "cep";
+  mask?: "cnpj" | "cpf" | "phone" | "cep" | "date";
 }
 
 function applyMask(
   value: string,
-  mask?: "cnpj" | "cpf" | "phone" | "cep",
+  mask?: "cnpj" | "cpf" | "phone" | "cep" | "date",
 ): string {
   if (!mask) return value;
   const digits = value.replace(/\D/g, "");
+
+  if (mask === "date") {
+    const v = digits.slice(0, 8);
+    if (v.length <= 2) return v;
+    if (v.length <= 4) return `${v.slice(0, 2)}/${v.slice(2)}`;
+    return `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`;
+  }
 
   if (mask === "cnpj") {
     let v = digits.slice(0, 14);
@@ -39,7 +46,10 @@ function applyMask(
 }
 
 export const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
-  function FloatingInput({ className, label, type, mask, ...props }, ref) {
+  function FloatingInput(
+    { className, label, type, mask, required, ...props },
+    ref,
+  ) {
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = type === "password";
     const inputType = isPassword ? (showPassword ? "text" : "password") : type;
@@ -62,11 +72,12 @@ export const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
           )}
           placeholder=" "
           {...props}
+          aria-required={required || undefined}
           onChange={handleChange}
         />
         <label className="pointer-events-none absolute left-3 top-4 z-10 origin-[0] -translate-y-3 scale-75 transform text-sm text-gray-500 transition-all duration-200 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 peer-focus:scale-75 peer-focus:text-primary">
           {label}
-          {props.required && <span className="ml-1 text-red-500">*</span>}
+          {required && <span className="ml-1 text-red-500">*</span>}
         </label>
         {isPassword && (
           <button

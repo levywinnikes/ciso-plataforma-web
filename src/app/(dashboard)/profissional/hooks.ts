@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { toBirthDateInputValue } from "@/features/referrals/birth-date";
 import { fetchReferralsPage } from "@/features/referrals/fetch-referrals";
 import type { CareNucleus, Referral } from "@/features/referrals/types";
 import { useAppToast } from "@/hooks/use-app-toast";
@@ -214,7 +215,7 @@ export function useProfissionalPageModel(): ProfissionalPageModel {
 
     editForm.reset({
       patientName: referral.patientName || "",
-      patientBirthDate: referral.patientBirthDate || "",
+      patientBirthDate: toBirthDateInputValue(referral.patientBirthDate || ""),
       patientPhone: referral.patientPhone || "",
       patientDocument: referral.patientDocument || "",
       systemicDiseases: referral.systemicDiseases || "",

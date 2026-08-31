@@ -35,6 +35,10 @@ import {
   TableShell,
   Textarea,
 } from "@/components/ui";
+import {
+  birthDateSchema,
+  toBirthDateInputValue,
+} from "@/features/referrals/birth-date";
 import { withBlockJustification } from "@/features/referrals/block-status-schema";
 import { AppointmentCalendar } from "@/features/referrals/components/appointment-calendar";
 import { MarkAttendedDialog } from "@/features/referrals/components/mark-attended-dialog";
@@ -93,7 +97,7 @@ type ScheduleFormData = z.infer<typeof scheduleSchema>;
 
 const editReferralSchema = withBlockJustification({
   patientName: z.string().min(1, "errors.required"),
-  patientBirthDate: z.string().min(1, "errors.required"),
+  patientBirthDate: birthDateSchema,
   patientPhone: z.string().min(1, "errors.required"),
   patientDocument: z.string().optional().nullable(),
   systemicDiseases: z.string().optional().nullable(),
@@ -128,6 +132,7 @@ interface DoctorOption {
 export default function AdminPage() {
   const t = useTranslations("adminDashboard");
   const common = useTranslations("common");
+  const tNew = useTranslations("newReferral");
   const toast = useAppToast();
   const tError = useFormError();
   const searchParams = useSearchParams();
@@ -475,9 +480,7 @@ export default function AdminPage() {
     setEditingReferral(referral);
     editForm.reset({
       patientName: referral.patientName || "",
-      patientBirthDate: referral.patientBirthDate
-        ? new Date(referral.patientBirthDate).toISOString().slice(0, 10)
-        : "",
+      patientBirthDate: toBirthDateInputValue(referral.patientBirthDate),
       patientPhone: referral.patientPhone || "",
       patientDocument: referral.patientDocument || "",
       systemicDiseases: referral.systemicDiseases || "",
@@ -1110,6 +1113,7 @@ export default function AdminPage() {
         maxWidth="max-w-md"
       >
         <form
+          noValidate
           onSubmit={scheduleForm.handleSubmit(onSubmitSchedule)}
           className="space-y-4 pt-4"
         >
@@ -1178,52 +1182,56 @@ export default function AdminPage() {
         maxWidth="max-w-4xl"
       >
         <form
+          noValidate
           onSubmit={editForm.handleSubmit(onSubmitEdit)}
           className="space-y-6 pt-4 text-left"
         >
           <div className="grid gap-4 md:grid-cols-2">
             <Field
-              label="Nome do Paciente"
+              label=""
               error={tError(editForm.formState.errors.patientName?.message)}
             >
               <FloatingInput
                 required
-                label="Nome do Paciente"
+                label={tNew("patientName")}
                 {...editForm.register("patientName")}
               />
             </Field>
 
             <Field
-              label="Nascimento"
+              label=""
               error={tError(
                 editForm.formState.errors.patientBirthDate?.message,
               )}
             >
               <FloatingInput
-                type="date"
+                mask="date"
+                inputMode="numeric"
+                autoComplete="bday"
                 required
-                label="Nascimento"
+                label={tNew("birthDate")}
                 {...editForm.register("patientBirthDate")}
               />
             </Field>
 
             <Field
-              label="Telefone"
+              label=""
               error={tError(editForm.formState.errors.patientPhone?.message)}
             >
               <FloatingInput
+                mask="phone"
                 required
-                label="Telefone"
+                label={tNew("phone")}
                 {...editForm.register("patientPhone")}
               />
             </Field>
 
             <Field
-              label="Documento (Opcional)"
+              label=""
               error={tError(editForm.formState.errors.patientDocument?.message)}
             >
               <FloatingInput
-                label="Documento (Opcional)"
+                label={`${tNew("document")} (${tNew("optional")})`}
                 {...editForm.register("patientDocument")}
               />
             </Field>

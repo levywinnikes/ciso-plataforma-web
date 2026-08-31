@@ -122,7 +122,9 @@ export default function MyPage() {
 **Atualização Proativa:** É OBRIGAÇÃO DA IA atualizar AUTOMATICAMENTE os arquivos `src/i18n/messages/pt-BR.json` e `src/i18n/messages/en-US.json` sempre que introduzir novas chaves de tradução (seja em views, erros de Zod ou retornos da API). O usuário NÃO deve precisar pedir ou lembrar de atualizar as traduções.
 **Linguagem Focada no Cliente (Anti-Jargão):** É ESTRITAMENTE PROIBIDO escrever termos técnicos na interface ou nos arquivos de tradução (ex: "CRUD", "JSON", "Endpoint", "Payload"). Use SEMPRE termos de negócio: "Gestão", "Cadastro", "Gerenciamento", "Sistema", etc. A interface não é para programadores.
 
-**Datas na interface (Brasil):** NUNCA exiba data em formato ISO (`YYYY-MM-DD`) ou americano na UI. Sempre use `DD/MM/YYYY` (e hora quando fizer sentido) via `formatDate` / `formatDateTime` (`pt-BR`). ISO pode existir só em API, `type="date"` e banco — nunca como texto visível ao usuário.
+**Datas na interface (Brasil):** NUNCA exiba data em formato ISO (`YYYY-MM-DD`) ou americano na UI. Sempre use `DD/MM/YYYY` (e hora quando fizer sentido) via `formatDate` / `formatDateTime` (`pt-BR`). ISO pode existir só em API e banco — nunca como texto visível ao usuário.
+
+**Data de nascimento:** NUNCA use calendário (`type="date"`). Campo livre com máscara `dd/mm/aaaa` (`FloatingInput mask="date"` + `birthDateSchema`). A pessoa digita; o calendário nativo é ruim para ano de nascimento. `type="date"` permanece só para datas recentes (agendamento, filtro de período). A máscara aceita digitação parcial (`10`, `10/01`); isso NÃO é valor válido. O schema recusa até `dd/mm/aaaa` completo e real. Formulários com RHF devem usar `noValidate` — o `required` nativo do navegador considera `10` preenchido e impede o Zod de mostrar o erro.
 
 ### Adicionar nova chave
 
@@ -164,22 +166,22 @@ import { Button, Input, Select, Textarea, Card } from "@/components/ui";
 
 ### Componentes disponiveis
 
-| Componente       | Arquivo                | Uso                                           |
-| ---------------- | ---------------------- | --------------------------------------------- |
-| `Button`         | `button.tsx`           | Botoes com variantes                          |
-| `Input`          | `input.tsx`            | Campos de texto com forwardRef                |
-| `Select`         | `select.tsx`           | Dropdown com forwardRef                       |
-| `Textarea`       | `textarea.tsx`         | Area de texto com forwardRef                  |
-| `DateInput`      | `date-input.tsx`       | Campo de data com mascara DD/MM/YYYY          |
-| `PhoneInput`     | `phone-input.tsx`      | Campo de telefone com mascara (XX) XXXXX-XXXX |
-| `Card`           | `card.tsx`             | Container de secao                            |
-| `CardSection`    | `card-section.tsx`     | Sub-secao do card                             |
-| `Modal`          | `modal.tsx`            | Dialog modal                                  |
-| `ConfirmDialog`  | `confirm-dialog.tsx`   | Confirmacao simples (excluir, avisos)         |
-| `PageHeader`     | `page-header.tsx`      | Cabecalho de pagina                           |
-| `StatCard`       | `stat-card.tsx`        | Card de metrica                               |
-| `TableCard`      | `table-card.tsx`       | Card de tabela                                |
-| `FileUploadArea` | `file-upload-area.tsx` | Area de upload                                |
+| Componente       | Arquivo                | Uso                                                                                                      |
+| ---------------- | ---------------------- | -------------------------------------------------------------------------------------------------------- |
+| `Button`         | `button.tsx`           | Botoes com variantes                                                                                     |
+| `Input`          | `input.tsx`            | Campos de texto com forwardRef                                                                           |
+| `Select`         | `select.tsx`           | Dropdown com forwardRef                                                                                  |
+| `Textarea`       | `textarea.tsx`         | Area de texto com forwardRef                                                                             |
+| `DateInput`      | `date-input.tsx`       | Calendário nativo — só datas recentes (agendamento, filtro). **Nascimento:** `FloatingInput mask="date"` |
+| `PhoneInput`     | `phone-input.tsx`      | Campo de telefone com mascara (XX) XXXXX-XXXX                                                            |
+| `Card`           | `card.tsx`             | Container de secao                                                                                       |
+| `CardSection`    | `card-section.tsx`     | Sub-secao do card                                                                                        |
+| `Modal`          | `modal.tsx`            | Dialog modal                                                                                             |
+| `ConfirmDialog`  | `confirm-dialog.tsx`   | Confirmacao simples (excluir, avisos)                                                                    |
+| `PageHeader`     | `page-header.tsx`      | Cabecalho de pagina                                                                                      |
+| `StatCard`       | `stat-card.tsx`        | Card de metrica                                                                                          |
+| `TableCard`      | `table-card.tsx`       | Card de tabela                                                                                           |
+| `FileUploadArea` | `file-upload-area.tsx` | Area de upload                                                                                           |
 
 ### Utilitario de classes
 
@@ -237,7 +239,7 @@ import { FloatingInput } from "@/components/ui/floating-input";
 </Field>;
 ```
 
-- `required` no `<FloatingInput>`: Exibe um asterisco vermelho automaticamente na interface para avisar o usuário de antemão que aquele campo é obrigatório (Feedback visual preventivo).
+- `required` no `<FloatingInput>`: Exibe um asterisco vermelho automaticamente na interface para avisar o usuário de antemão que aquele campo é obrigatório (Feedback visual preventivo). **Não** aplica `required` nativo no `<input>` — só o asterisco e `aria-required`. A validação de preenchimento e formato fica no Zod. Formulários com React Hook Form devem ter `noValidate` no `<form>`.
 - `label` no `<Field>`: Enviar string vazia `""` para suprimir o label externo.
 - `error` no `<Field>`: Mensagem de erro traduzida (ex: Zod). Renderiza em vermelho embaixo do input.
 - `label` no `<FloatingInput>`: Texto do label flutuante interno (flutua e diminui quando selecionado/preenchido).

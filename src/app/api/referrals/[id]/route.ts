@@ -2,22 +2,15 @@ import type { ReferralStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 
+import { parseBirthDateOrNull } from "@/features/referrals/birth-date";
 import {
   PROFESSIONAL_EDITABLE_STATUSES,
   validateBlockedStatusInput,
 } from "@/features/referrals/block-status";
 import { mapReferralResponse } from "@/features/referrals/map-referral";
+import { apiError } from "@/lib/api-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-function parseBirthDate(value: string): Date {
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
-    const [day, month, year] = value.split("/").map(Number);
-    return new Date(year, month - 1, day);
-  }
-
-  return new Date(value);
-}
 
 export async function PUT(
   request: Request,
@@ -75,6 +68,11 @@ export async function PUT(
       { message: "Dados obrigatórios ausentes" },
       { status: 400 },
     );
+  }
+
+  const patientBirthDate = parseBirthDateOrNull(String(body.patientBirthDate));
+  if (!patientBirthDate) {
+    return apiError("errors.birthDateInvalid", 400);
   }
 
   let nextStatus: ReferralStatus = referral.status;
@@ -140,7 +138,7 @@ export async function PUT(
       where: { id: referralId },
       data: {
         patientName: body.patientName,
-        patientBirthDate: parseBirthDate(body.patientBirthDate),
+        patientBirthDate,
         patientPhone: String(body.patientPhone).replace(/\D/g, ""),
         patientDocument: body.patientDocument || null,
         systemicDiseases: body.systemicDiseases || null,
